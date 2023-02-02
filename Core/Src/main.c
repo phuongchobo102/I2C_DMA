@@ -67,10 +67,6 @@ static void MX_USART1_UART_Init(void);
 
 /* USER CODE END PFP */
 
-uint32_t id_ic =  0;
-
-uint32_t test_id_ic =  0x55aa;
-
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
@@ -82,8 +78,6 @@ uint32_t test_id_ic =  0x55aa;
   */
 int main(void)
 {
-
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
