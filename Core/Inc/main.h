@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "elinkswitch_gpio.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -85,10 +85,50 @@ void Error_Handler(void);
 #define BUTTON4_GPIO_Port GPIOB
 #define VGA2_PLUG_DT_Pin GPIO_PIN_8
 #define VGA2_PLUG_DT_GPIO_Port GPIOB
-#define VGA2_PLUG_DTB9_Pin GPIO_PIN_9
-#define VGA2_PLUG_DTB9_GPIO_Port GPIOB
+#define VGA1_PLUG_DT_Pin GPIO_PIN_9
+#define VGA1_PLUG_DT_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+#define ELS_BUTTON1_GPIO_PORT           BUTTON1_GPIO_Port
+#define ELS_BUTTON1_PIN                 BUTTON1_Pin
+#define ELS_BUTTON2_GPIO_PORT           BUTTON2_GPIO_Port
+#define ELS_BUTTON2_PIN                 BUTTON2_Pin
+#define ELS_BUTTON3_GPIO_PORT           BUTTON3_GPIO_Port
+#define ELS_BUTTON3_PIN                 BUTTON3_Pin
+#define ELS_BUTTON4_GPIO_PORT           BUTTON4_GPIO_Port
+#define ELS_BUTTON4_PIN                 BUTTON4_Pin
+
+#define BUTTON_EDID_Pin GPIO_PIN_15
+#define BUTTON_EDID_GPIO_Port GPIOA
+#define ELS_BUTTON_EDID_GPIO_PORT           BUTTON_EDID_GPIO_Port
+#define ELS_BUTTON_EDID_PIN                 BUTTON_EDID_Pin
+
+#define USB_SW_SEL0_GPIO_Port           SW_SEL0_GPIO_Port
+#define USB_SW_SEL0_Pin                 SW_SEL0_Pin
+#define USB_SW_SEL1_GPIO_Port           SW_SEL1_GPIO_Port
+#define USB_SW_SEL1_Pin                 SW_SEL1_Pin
+
+#define ELS_USB_SENSE0_GPIO_PORT
+#define ELS_USB_SENSE0_PIN
+
+
+#define USB1_SENSE_Pin GPIO_PIN_1
+#define USB1_SENSE_GPIO_Port GPIOA
+#define USB2_SENSE_Pin GPIO_PIN_3
+#define USB2_SENSE_GPIO_Port GPIOA
+#define USB3_SENSE_Pin GPIO_PIN_4
+#define USB3_SENSE_GPIO_Port GPIOA
+#define USB4_SENSE_Pin GPIO_PIN_6
+#define USB4_SENSE_GPIO_Port GPIOA
+
+#define ELS_USB_SENSE1_GPIO_PORT        USB1_SENSE_GPIO_Port
+#define ELS_USB_SENSE1_PIN              USB1_SENSE_Pin
+#define ELS_USB_SENSE2_GPIO_PORT        USB2_SENSE_GPIO_Port
+#define ELS_USB_SENSE2_PIN              USB2_SENSE_Pin
+#define ELS_USB_SENSE3_GPIO_PORT        USB3_SENSE_GPIO_Port
+#define ELS_USB_SENSE3_PIN              USB3_SENSE_Pin
+#define ELS_USB_SENSE4_GPIO_PORT        USB4_SENSE_GPIO_Port
+#define ELS_USB_SENSE4_PIN              USB4_SENSE_Pin
 
 /* USER CODE END Private defines */
 

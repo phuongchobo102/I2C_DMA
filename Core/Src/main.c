@@ -144,9 +144,9 @@ int main(void)
   printf("UID[0] %d.... \n\r", UID[0]);
   printf("UID[1] %d.... \n\r", UID[1]);
   printf("UID[2] %d.... \n\r", UID[2]);
-  
-   
-  test_LED();
+  HAL_GPIO_WritePin(KVMSW_EN_GPIO_Port, KVMSW_EN_Pin, 1);
+   elsgpio_init();
+//  test_LED();
   
    /* USER CODE END 2 */
 
@@ -155,6 +155,7 @@ int main(void)
 
   while (1)
   {
+    elsgpio_task();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -583,11 +584,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BUTTON2_Pin BUTTON3_Pin */
+  /*Configure GPIO pins : BUTTON2_Pin BUTTON3_Pin  */
   GPIO_InitStruct.Pin = BUTTON2_Pin|BUTTON3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  
+  
+  
+  
 
   /*Configure GPIO pins : TLC_LATCH_Pin TLC_BLANK_Pin GD_PWR_CTRL_Pin */
   GPIO_InitStruct.Pin = TLC_LATCH_Pin|LED_SHDN_Pin|GD_PWR_CTRL_Pin;
@@ -604,7 +609,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : VGA4_PLUG_DT_Pin VGA3_PLUG_DT_Pin VGA2_PLUG_DT_Pin VGA2_PLUG_DTB9_Pin */
-  GPIO_InitStruct.Pin = VGA4_PLUG_DT_Pin|VGA3_PLUG_DT_Pin|VGA2_PLUG_DT_Pin|VGA2_PLUG_DTB9_Pin;
+  GPIO_InitStruct.Pin = VGA4_PLUG_DT_Pin|VGA3_PLUG_DT_Pin|VGA2_PLUG_DT_Pin|VGA1_PLUG_DT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
