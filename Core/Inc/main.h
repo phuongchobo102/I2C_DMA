@@ -69,8 +69,8 @@ void Error_Handler(void);
 #define BUTTON3_GPIO_Port GPIOA
 #define TLC_LATCH_Pin GPIO_PIN_0
 #define TLC_LATCH_GPIO_Port GPIOB
-#define TLC_BLANK_Pin GPIO_PIN_1
-#define TLC_BLANK_GPIO_Port GPIOB
+#define LED_SHDN_Pin GPIO_PIN_1
+#define LED_SHDN_GPIO_Port GPIOB
 #define GD_PWR_CTRL_Pin GPIO_PIN_2
 #define GD_PWR_CTRL_GPIO_Port GPIOB
 #define KVMSW_EN_Pin GPIO_PIN_8
