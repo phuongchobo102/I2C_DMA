@@ -2,6 +2,9 @@
 #include "IS31FL3218.h"
 #include "main.h"
 
+uint32_t lastTimeScanLed;
+
+
 unsigned char abm_tab[64] = //64 step auto to breath
 {
   0,1,2,3,4,5,6,7,
@@ -23,37 +26,47 @@ void init_IS31FL3218(void)
   
   HAL_GPIO_WritePin(LED_SHDN_GPIO_Port, LED_SHDN_Pin, GPIO_PIN_SET);
   printf("init_IS31FL3218 \r\n");
-  printf("init_IS31FL3218 \r\n");
-  printf("init_IS31FL3218 \r\n");
+  
+//  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x17, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //Reset
   
   myBuf = 0xFF;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x13, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
-
+  
   myBuf = 0xFF;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x14, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
   
   myBuf = 0xFF;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x15, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
   
-  for(i = 0x01;i <= 0x12;i++ )
-  {
-    myBuf = 0;
-    HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), i, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
-  }
+    for(i = 0x01;i <= 0x12;i++ )
+    {
+      myBuf = 0;
+      HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), i, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
+    }
   
   myBuf = 0;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
   
   myBuf = 0x01;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x00, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //CONFIGURES REGISTER to make Enable
-   
+  
 }
 
+void set_led(uint8_t index, uint8_t value){
+  uint8_t myBuf = value;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), index, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
+  
+  myBuf = 0;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
+  
+  myBuf = 0x01;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x00, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //CONFIGURES REGISTER to make Enable
+}
 
 void test_LED(void)
 {
   uint8_t myBuf, i = 64;
-   
+  
   init_IS31FL3218();
   
   while(i)
@@ -67,7 +80,41 @@ void test_LED(void)
     i--; //i minus 1
     
     printf("i = %d \r\n", i);
-//    delay(10); //delay 10ms
+    //    delay(10); //delay 10ms
   }
   
 }
+
+
+void update_led_button(){
+  printf("channel select %d \r\n", channelSelect);
+  for(uint8_t i=0;i<4;i++) {
+    if(channelSelect == i ) set_led( i * 3 + 1 ,  109);
+    else set_led( i * 3 + 1 ,  0);
+  }
+}
+
+void update_led_usb(){
+  
+}
+
+void update_led_vga(){
+  
+}
+
+void update_led_edid(){
+
+}
+
+
+void led_task(){
+  if(HAL_GetTick() - lastTimeScanLed > 1000 ) {
+    lastTimeScanLed = HAL_GetTick();
+    update_led_button();
+    update_led_usb();
+    update_led_vga();
+    update_led_edid();
+  }
+}
+
+
