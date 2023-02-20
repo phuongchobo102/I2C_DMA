@@ -38,19 +38,22 @@ static uint32_t time_last;
 
 struct lwbtn elsgpio_lwbtn;
 /* User defined settings */
-const uint8_t keys[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8'/*, '9'*/};
+const uint8_t keys[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8'/*, '9'*/,'a','b','c','d'};
 uint32_t last_time_keys[sizeof(keys) / sizeof(keys[0])] = {0};
 
+uint16_t adcBuffer[4];
 /* List of buttons to process with assigned custom arguments for callback functions */
 static lwbtn_btn_t btns[] = {
   {.arg = (void*)&keys[0]}, {.arg = (void*)&keys[1]}, {.arg = (void*)&keys[2]}, {.arg = (void*)&keys[3]},
   {.arg = (void*)&keys[4]}, {.arg = (void*)&keys[5]}, {.arg = (void*)&keys[6]}, {.arg = (void*)&keys[7]} ,
   {.arg = (void*)&keys[8]}/*, {.arg = (void*)&keys[9] } */,
+  {.arg = (void*)&keys[9]}, {.arg = (void*)&keys[10]}, {.arg = (void*)&keys[11]}, {.arg = (void*)&keys[12]}
 };
 /************************************
 * GLOBAL VARIABLES
 ************************************/
 
+ADC_ChannelConfTypeDef sConfig = {0};
 /************************************
 * STATIC FUNCTION PROTOTYPES
 ************************************/
@@ -70,7 +73,30 @@ uint32_t get_tick(void)
 {
   return stick;
 }
-
+uint16_t read_adc_usb(uint8_t channel){
+  uint16_t adcValue = 0;
+  if (channel == 1) sConfig.Channel = ADC_CHANNEL_1;
+  else if( channel ==3 ) sConfig.Channel = ADC_CHANNEL_3;  
+  else if( channel ==4 ) sConfig.Channel = ADC_CHANNEL_4;
+  else if( channel ==6 ) sConfig.Channel = ADC_CHANNEL_6;
+  else return 0;
+//  sConfig.Rank = channel;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler(); 
+  }
+  
+  HAL_ADC_Start(&hadc);
+  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+  adcValue = HAL_ADC_GetValue(&hadc);
+  HAL_ADC_Stop(&hadc);
+//  sConfig.Rank = 0;
+//  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+  return adcValue;
+}
 /**
 * \brief           Get input state callback 
 * \param           lw: LwBTN instance
@@ -79,6 +105,7 @@ uint32_t get_tick(void)
 */
 uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
   uint8_t result = 0;
+  uint16_t rawADC;
   (void)lw;
   
   /*
@@ -135,7 +162,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == '5')
     {
-      if(!LL_GPIO_IsInputPinSet(VGA1_PLUG_DT_GPIO_Port, VGA1_PLUG_DT_Pin))
+      if(LL_GPIO_IsInputPinSet(VGA1_PLUG_DT_GPIO_Port, VGA1_PLUG_DT_Pin))
       {
         result = 1;
       }else
@@ -144,7 +171,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == '6')
     {
-      if(!LL_GPIO_IsInputPinSet(VGA2_PLUG_DT_GPIO_Port, VGA2_PLUG_DT_Pin))
+      if(LL_GPIO_IsInputPinSet(VGA2_PLUG_DT_GPIO_Port, VGA2_PLUG_DT_Pin))
       {
         result = 1;
       }else
@@ -153,7 +180,16 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == '7')
     {
-      if(!LL_GPIO_IsInputPinSet(VGA3_PLUG_DT_GPIO_Port, VGA3_PLUG_DT_Pin))
+      if(LL_GPIO_IsInputPinSet(VGA3_PLUG_DT_GPIO_Port, VGA3_PLUG_DT_Pin))
+      {
+        result = 1;
+      }else
+      {
+        result = 0;
+      }
+    }else if(u8_temp == '8')
+    {
+      if(LL_GPIO_IsInputPinSet(VGA4_PLUG_DT_GPIO_Port, VGA4_PLUG_DT_Pin))
       {
         result = 1;
       }else
@@ -161,9 +197,46 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
         result = 0;
       }
     }
-    else if(u8_temp == '8')
+    else if(u8_temp == 'a')
+    {    
+      rawADC  = read_adc_usb(1);
+//      printf("a: %d --", rawADC); 
+      if( rawADC > 100)
+      {
+        result = 1;
+      }else
+      {
+        result = 0;
+      }
+    }
+    else if(u8_temp == 'b')
     {
-      if(!LL_GPIO_IsInputPinSet(VGA4_PLUG_DT_GPIO_Port, VGA4_PLUG_DT_Pin))
+      rawADC  = read_adc_usb(3);
+//      printf("b: %d --", rawADC); 
+      
+      if( rawADC >100)
+      {
+        result = 1;
+      }else
+      {
+        result = 0;
+      }
+    }else if(u8_temp == 'c')
+    {
+      rawADC  = read_adc_usb(4);
+//      printf("c: %d --", rawADC); 
+      if( rawADC > 100)
+      {
+        result = 1;
+      }else
+      {
+        result = 0;
+      }
+    }else if(u8_temp == 'd')
+    {
+      rawADC  = read_adc_usb(6);
+//      printf("d: %d --\r\n", rawADC); 
+      if( rawADC > 100)
       {
         result = 1;
       }else
@@ -187,6 +260,7 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
   uint32_t keepalive_cnt = 0;
   uint32_t* diff_time_ptr = &last_time_keys[(*(uint8_t*)btn->arg) - '0'];
   uint32_t diff_time = get_tick() - *diff_time_ptr;
+  char currentButton; 
   
   /* This is for purpose of test and timing validation */
   if (diff_time > 2000) {
@@ -215,32 +289,51 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
   //SetConsoleTextAttribute(hConsole, color);
   if(s == "ONRELEASE" )
   {
-    printf("[%7u][%6u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(),
-           (unsigned)diff_time, *(uint8_t*)btn->arg, s, (unsigned)keepalive_cnt, (unsigned)btn->click.cnt);
+    //    printf("[%7u][%6u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(),
+    //           (unsigned)diff_time, *(uint8_t*)btn->arg, s, (unsigned)keepalive_cnt, (unsigned)btn->click.cnt);
     //      if (/*s == "ONRELEASE" &&*/ *(uint8_t*)btn->arg == '1'){
     //      printf("Button 1 Pressed\r\n");
     //      }
-    switch(*(uint8_t*)btn->arg){
-    case '1':
-      printf("Button 1 Pressed\r\n");
-    HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 0);
-    HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 0);
+    currentButton = *(uint8_t*)btn->arg;
+    switch(currentButton){
+    case '1'...'4': //button
+      printf("Button %c Pressed \r\n", currentButton);
+      currentButton -= '1' ;  //convert to 0...3
+      channelSelect =  currentButton;
+      uint8_t sel0 = currentButton %2;
+      uint8_t sel1 = (currentButton /2) % 2;
+      HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, (currentButton %2));
+      HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, ((currentButton /2) % 2));
+      for(uint8_t i=0;i<4;i++) {
+        if(channelSelect == i ) set_led( i * 3 + 1 ,  109);
+        else set_led( i * 3 + 1 ,  0);
+      }
       break;
-    case '2':
-      printf("Button 2 Pressed\r\n");
-    HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 1);
-    HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 0);      
+    case '5'...'8': //vga detect
+      currentButton -= '5' ;
+      printf("VGA detect %d\r\n", currentButton);    
       break;
-    case '3':
-      printf("Button 3 Pressed\r\n");
-    HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 0);
-    HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 1);      
+    case 'a'...'d': //usb detect
+      currentButton -= 'a';
+      printf("USB detect OUT %d\r\n", currentButton); 
       break;
-    case '4':
-      printf("Button 4 Pressed\r\n");
-    HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 1);
-    HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 1);      
+    case '0': //button EDID
+      printf("Button EDID Pressed\r\n");
+      //TODO: EDID bahavior
       break;
+    }
+  }
+  if(s == "  ONPRESS" ){
+    currentButton = *(uint8_t*)btn->arg;
+    switch(currentButton){
+    case 'a'...'d': //usb detect
+      currentButton -= 'a';
+      printf("USB detect plug IN %d\r\n", currentButton); 
+      break;
+//    case '0': //button EDID
+//      printf("Button EDID Press\r\n");
+//      //TODO: EDID bahavior
+//      break;
     }
   }
   (void)lw;
@@ -259,35 +352,35 @@ bool elsgpio_init(void)
 {
   //LL_GPIO_InitTypeDef gpio_initstruct;
   
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-  
-  LL_GPIO_SetPinMode(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  LL_GPIO_SetPinMode(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  LL_GPIO_SetPinMode(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  LL_GPIO_SetPinMode(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  
-  LL_GPIO_SetPinMode(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  LL_GPIO_SetPinMode(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  LL_GPIO_SetPinMode(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  LL_GPIO_SetPinMode(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
-  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+//  
+//  LL_GPIO_SetPinMode(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  LL_GPIO_SetPinMode(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  LL_GPIO_SetPinMode(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  LL_GPIO_SetPinMode(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  
+//  LL_GPIO_SetPinMode(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  LL_GPIO_SetPinMode(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  LL_GPIO_SetPinMode(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+//  LL_GPIO_SetPinMode(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_MODE_INPUT);
+//  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
+//  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
   
   /* lwbt*/
   
@@ -362,6 +455,6 @@ void elsgpio_1ms_elapsed(void)
         minutes = 0;
       }
     }
-    printf("\n\r minutes--seconds: %d--%d \n\r ", minutes, seconds);
+    //    printf("\n\r minutes--seconds: %d--%d \n\r ", minutes, seconds);
   }
 }

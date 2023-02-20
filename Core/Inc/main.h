@@ -32,6 +32,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "elinkswitch_gpio.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -130,6 +131,8 @@ void Error_Handler(void);
 #define ELS_USB_SENSE4_GPIO_PORT        USB4_SENSE_GPIO_Port
 #define ELS_USB_SENSE4_PIN              USB4_SENSE_Pin
 
+    extern ADC_HandleTypeDef hadc;
+extern uint8_t channelSelect ;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

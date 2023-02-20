@@ -20,6 +20,8 @@
 #include "main.h"
 #include "stdio.h"
 #include "usb_device.h"
+#include "IS31FL3218.h"
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -77,6 +79,7 @@ static void MX_USART1_UART_Init(void);
 uint32_t id_ic =  0;
 
 uint32_t test_id_ic =  0x55aa;
+uint8_t channelSelect = 0;
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
@@ -146,7 +149,9 @@ int main(void)
   printf("UID[2] %d.... \n\r", UID[2]);
   HAL_GPIO_WritePin(KVMSW_EN_GPIO_Port, KVMSW_EN_Pin, 1);
    elsgpio_init();
-//  test_LED();
+   HAL_ADCEx_Calibration_Start(&hadc);
+   init_IS31FL3218();
+  test_LED();
   
    /* USER CODE END 2 */
 
@@ -156,6 +161,7 @@ int main(void)
   while (1)
   {
     elsgpio_task();
+//    led_task();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -288,7 +294,7 @@ static void MX_ADC_Init(void)
   */
   hadc.Instance = ADC1;
   hadc.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
-  hadc.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc.Init.Resolution = ADC_RESOLUTION_6B;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
   hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
@@ -307,9 +313,18 @@ static void MX_ADC_Init(void)
 
   /** Configure for the selected ADC regular channel to be converted.
   */
-  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_3;
+//  sConfig.Rank = 3;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -318,6 +333,7 @@ static void MX_ADC_Init(void)
   /** Configure for the selected ADC regular channel to be converted.
   */
   sConfig.Channel = ADC_CHANNEL_4;
+//  sConfig.Rank = 4;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -326,6 +342,7 @@ static void MX_ADC_Init(void)
   /** Configure for the selected ADC regular channel to be converted.
   */
   sConfig.Channel = ADC_CHANNEL_6;
+//  sConfig.Rank = 6;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -585,24 +602,20 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BUTTON2_Pin BUTTON3_Pin  */
-  GPIO_InitStruct.Pin = BUTTON2_Pin|BUTTON3_Pin;
+  GPIO_InitStruct.Pin = BUTTON2_Pin|BUTTON3_Pin | BUTTON_EDID_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
   
-  
-  
-  
-
   /*Configure GPIO pins : TLC_LATCH_Pin TLC_BLANK_Pin GD_PWR_CTRL_Pin */
-  GPIO_InitStruct.Pin = TLC_LATCH_Pin|LED_SHDN_Pin|GD_PWR_CTRL_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+//  GPIO_InitStruct.Pin = TLC_LATCH_Pin|LED_SHDN_Pin|GD_PWR_CTRL_Pin;
+//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//  GPIO_InitStruct.Pull = GPIO_PULLUP;
+//  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : KVMSW_EN_Pin BUTTON_EDID_Pin */
-  GPIO_InitStruct.Pin = KVMSW_EN_Pin|BUTTON_EDID_Pin;
+  GPIO_InitStruct.Pin = KVMSW_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -611,7 +624,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : VGA4_PLUG_DT_Pin VGA3_PLUG_DT_Pin VGA2_PLUG_DT_Pin VGA2_PLUG_DTB9_Pin */
   GPIO_InitStruct.Pin = VGA4_PLUG_DT_Pin|VGA3_PLUG_DT_Pin|VGA2_PLUG_DT_Pin|VGA1_PLUG_DT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BUTTON4_Pin */
