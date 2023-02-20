@@ -133,6 +133,9 @@ void Error_Handler(void);
 
     extern ADC_HandleTypeDef hadc;
 extern uint8_t channelSelect ;
+extern uint8_t edidStatus;
+extern uint8_t vgaStatus[4];
+extern uint8_t usbStatus[4];
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -162,7 +162,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == '5')
     {
-      if(LL_GPIO_IsInputPinSet(VGA1_PLUG_DT_GPIO_Port, VGA1_PLUG_DT_Pin))
+      if(!LL_GPIO_IsInputPinSet(VGA1_PLUG_DT_GPIO_Port, VGA1_PLUG_DT_Pin))
       {
         result = 1;
       }else
@@ -171,7 +171,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == '6')
     {
-      if(LL_GPIO_IsInputPinSet(VGA2_PLUG_DT_GPIO_Port, VGA2_PLUG_DT_Pin))
+      if(!LL_GPIO_IsInputPinSet(VGA2_PLUG_DT_GPIO_Port, VGA2_PLUG_DT_Pin))
       {
         result = 1;
       }else
@@ -180,7 +180,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == '7')
     {
-      if(LL_GPIO_IsInputPinSet(VGA3_PLUG_DT_GPIO_Port, VGA3_PLUG_DT_Pin))
+      if(!LL_GPIO_IsInputPinSet(VGA3_PLUG_DT_GPIO_Port, VGA3_PLUG_DT_Pin))
       {
         result = 1;
       }else
@@ -189,7 +189,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == '8')
     {
-      if(LL_GPIO_IsInputPinSet(VGA4_PLUG_DT_GPIO_Port, VGA4_PLUG_DT_Pin))
+      if(!LL_GPIO_IsInputPinSet(VGA4_PLUG_DT_GPIO_Port, VGA4_PLUG_DT_Pin))
       {
         result = 1;
       }else
@@ -300,25 +300,28 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
       printf("Button %c Pressed \r\n", currentButton);
       currentButton -= '1' ;  //convert to 0...3
       channelSelect =  currentButton;
-      uint8_t sel0 = currentButton %2;
-      uint8_t sel1 = (currentButton /2) % 2;
-      HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, (currentButton %2));
-      HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, ((currentButton /2) % 2));
-      for(uint8_t i=0;i<4;i++) {
-        if(channelSelect == i ) set_led( i * 3 + 1 ,  109);
-        else set_led( i * 3 + 1 ,  0);
-      }
+//      uint8_t sel0 = currentButton %2;
+//      uint8_t sel1 = (currentButton /2) % 2;
+//      HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, (currentButton %2));
+//      HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, ((currentButton /2) % 2));
+//      for(uint8_t i=0;i<4;i++) {
+//        if(channelSelect == i ) set_led( i * 3 + 1 ,  109);
+//        else set_led( i * 3 + 1 ,  0);
+//      }
       break;
     case '5'...'8': //vga detect
       currentButton -= '5' ;
-      printf("VGA detect %d\r\n", currentButton);    
+      printf("VGA detect OUT %d\r\n", currentButton);   
+      vgaStatus[currentButton] = 0;
       break;
     case 'a'...'d': //usb detect
       currentButton -= 'a';
       printf("USB detect OUT %d\r\n", currentButton); 
+      usbStatus[currentButton] = 0;
       break;
     case '0': //button EDID
-      printf("Button EDID Pressed\r\n");
+      edidStatus = (edidStatus + 1) % 2;
+      printf("Button EDID Pressed %d\r\n", edidStatus);
       //TODO: EDID bahavior
       break;
     }
@@ -329,6 +332,14 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     case 'a'...'d': //usb detect
       currentButton -= 'a';
       printf("USB detect plug IN %d\r\n", currentButton); 
+      usbStatus[currentButton] = 1;
+      break;
+      case '5'...'8': //vga detect
+      currentButton -= '5' ;
+      printf("VGA detect IN %d\r\n", currentButton);    
+      vgaStatus[currentButton] = 1;
+      break;
+    default: 
       break;
 //    case '0': //button EDID
 //      printf("Button EDID Press\r\n");

@@ -2,7 +2,17 @@
 #include "IS31FL3218.h"
 #include "main.h"
 
+#define GREEN_OFFSET    1
+#define RED_OFFSET      2
+#define BLUE_OFFSET     3
+#define LED_EDID_OFFSET 12
+
 uint32_t lastTimeScanLed;
+
+uint8_t lastChannelSelect;
+uint8_t lastedidStatus = 1;
+uint8_t lastvgaStatus[4];
+uint8_t lastusbStatus[4];
 
 
 unsigned char abm_tab[64] = //64 step auto to breath
@@ -27,7 +37,7 @@ void init_IS31FL3218(void)
   HAL_GPIO_WritePin(LED_SHDN_GPIO_Port, LED_SHDN_Pin, GPIO_PIN_SET);
   printf("init_IS31FL3218 \r\n");
   
-//  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x17, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //Reset
+  //  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x17, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //Reset
   
   myBuf = 0xFF;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x13, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
@@ -38,11 +48,11 @@ void init_IS31FL3218(void)
   myBuf = 0xFF;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x15, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
   
-    for(i = 0x01;i <= 0x12;i++ )
-    {
-      myBuf = 0;
-      HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), i, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
-    }
+  for(i = 0x01;i <= 0x12;i++ )
+  {
+    myBuf = 0;
+    HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), i, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
+  }
   
   myBuf = 0;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
@@ -87,23 +97,50 @@ void test_LED(void)
 
 
 void update_led_button(){
-  printf("channel select %d \r\n", channelSelect);
-  for(uint8_t i=0;i<4;i++) {
-    if(channelSelect == i ) set_led( i * 3 + 1 ,  109);
-    else set_led( i * 3 + 1 ,  0);
+  if(lastChannelSelect != channelSelect){
+    lastChannelSelect = channelSelect;
+    for(uint8_t i=0;i<4;i++) {
+      if(channelSelect == i ) set_led( i * 3 + RED_OFFSET ,  109);
+      else set_led( i * 3 + RED_OFFSET ,  0);
+    }
+    HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, (channelSelect %2));
+    HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, ((channelSelect /2) % 2));
   }
 }
 
 void update_led_usb(){
-  
+  for(uint8_t i=0;i<4;i++){
+    if(lastusbStatus[i] != usbStatus[i]){
+      lastusbStatus[i] = usbStatus[i];
+      if(usbStatus[i]) set_led( i * 3 + GREEN_OFFSET ,  109);
+      else set_led( i * 3 + GREEN_OFFSET ,  0);
+    }
+  }
 }
 
 void update_led_vga(){
-  
+  for(uint8_t i=0;i<4;i++){
+    if(lastvgaStatus[i] != vgaStatus[i]){
+      lastvgaStatus[i] = vgaStatus[i];
+      if(vgaStatus[i]) set_led( i * 3 + BLUE_OFFSET ,  109);
+      else set_led( i * 3 + BLUE_OFFSET ,  0);
+    }
+  }
 }
 
 void update_led_edid(){
-
+  if(lastedidStatus != edidStatus){
+    lastedidStatus = edidStatus;
+    if(edidStatus) {
+      set_led( LED_EDID_OFFSET + BLUE_OFFSET ,  0);
+      set_led( LED_EDID_OFFSET + 3 + BLUE_OFFSET ,  100);
+    }else{
+      
+      set_led( LED_EDID_OFFSET + BLUE_OFFSET ,  100);
+      set_led( LED_EDID_OFFSET + 3 + BLUE_OFFSET ,  0);
+      
+    }    
+  }
 }
 
 
