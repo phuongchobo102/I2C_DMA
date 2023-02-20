@@ -30,13 +30,27 @@ extern "C" {
 /************************************
  * EXPORTED TYPEDEFS
  ************************************/
- typedef enum elinkswitch_state_enum {
+typedef enum elinkswitch_state_enum {
 	 ELINKSWITCH_STATE_NOT_INIT,
 	 ELINKSWITCH_STATE_INITED,
 	 ELINKSWITCH_STATE_AUTHORIZED,
 	 ELINKSWITCH_STATE_RECEIVED_USB_COMMAND,
 	 ELINKSWITCH_STATE_RECEIVED_BTN_EVENT
  }elinkswitch_state_e;
+
+typedef void (*elinkswitch_state_change_event)(elinkswitch_state_e new_state);
+typedef void (*elinkswitch_usb_change_state)(void);
+
+typedef struct elinkswitch_usb_trigger_struct {
+	elinkswitch_usb_change_state authorized;
+	elinkswitch_usb_change_state back_to_inited;
+}elinkswitch_usb_trigger_t;
+
+
+
+
+
+
  /************************************
  * EXPORTED CONSTANTS
  ************************************/
