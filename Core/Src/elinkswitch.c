@@ -34,7 +34,7 @@
 /************************************
  * PRIVATE & STATIC VARIABLES
  ************************************/
-
+elinkswitch_state_e elinkswitch_current_state = ELINKSWITCH_STATE_NOT_INIT;
 /************************************
  * GLOBAL VARIABLES
  ************************************/
@@ -52,19 +52,57 @@
  ************************************/
 
 /*!
- * @brief Identify the larger of two 8-bit integers.
+ * @brief Initialize the elinkswitch functionality.
  *
- * @param[in] num1  The first number to be compared.
- * @param[in] num2  The second number to be compared.
+ * @params none
  *
- * @return The value of the larger number.
  *
- * This function must be run before crc_fast() or the table stored in ROM.
+ * @return none
+ *
  */
-int8_t 
-max8 (int8_t num1, int8_t num2)
+void elinkswitch_init(void)
 {
-    return ((num1 > num2) ? num1 : num2);
+	//ToDo: init stuff here
+	elinkswitch_current_state = ELINKSWITCH_STATE_INITED;
 }
 
+/*!
+ * @brief routine to run all stuffs of elinkswitch.
+ *
+ * @params none
+ *
+ *
+ * @return none
+ *
+ */
+void elinkswitch_task(void)
+{
+	switch(elinkswitch_current_state)
+	{
+	case ELINKSWITCH_STATE_NOT_INIT:
+		break;
+	case ELINKSWITCH_STATE_INITED:
+		break;
+	case ELINKSWITCH_STATE_AUTHORIZED:
+		break;
+	case ELINKSWITCH_STATE_RECEIVED_USB_COMMAND:
+		break;
+	case ELINKSWITCH_STATE_RECEIVED_BTN_EVENT:
+		break;
+	}
+}
+
+/*!
+ * @brief Handling 1ms event.
+ *
+ * @params none
+ *
+ *
+ * @return none
+ *
+ */
+void elinkswitch_1ms_elapsed(void)
+{
+
+}
 /*** end of file ***/
