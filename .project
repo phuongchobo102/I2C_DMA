@@ -35,5 +35,10 @@
 			<type>2</type>
 			<locationURI>PROJECT_LOC/Middlewares/lwbtn</locationURI>
 		</link>
+		<link>
+			<name>Core/Src/elinkswitch.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/Core/Src/elinkswitch.c</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
