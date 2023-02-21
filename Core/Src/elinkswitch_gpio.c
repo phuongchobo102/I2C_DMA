@@ -16,6 +16,8 @@
 #include "main.h"
 #include "lwbtn.h"
 
+#include "elinkswitch.h"
+
 #include <stdio.h>
 
 /************************************
@@ -49,6 +51,8 @@ static lwbtn_btn_t btns[] = {
   {.arg = (void*)&keys[8]}/*, {.arg = (void*)&keys[9] } */,
   {.arg = (void*)&keys[9]}, {.arg = (void*)&keys[10]}, {.arg = (void*)&keys[11]}, {.arg = (void*)&keys[12]}
 };
+
+elinkswitch_button_event elinkswitch_receive_button_event;
 /************************************
 * GLOBAL VARIABLES
 ************************************/
@@ -61,6 +65,8 @@ ADC_ChannelConfTypeDef sConfig = {0};
 uint32_t get_tick(void);
 uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn);
 void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt);
+
+void lc_elsgpio_elinkswitch_state_change_event(elinkswitch_state_e new_state);
 /************************************
 * STATIC FUNCTIONS
 ************************************/
@@ -73,6 +79,8 @@ uint32_t get_tick(void)
 {
   return stick;
 }
+
+
 uint16_t read_adc_usb(uint8_t channel){
   uint16_t adcValue = 0;
   if (channel == 1) sConfig.Channel = ADC_CHANNEL_1;
@@ -349,6 +357,13 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
   }
   (void)lw;
 }
+
+
+void lc_elsgpio_elinkswitch_state_change_event(elinkswitch_state_e new_state)
+{
+	//ToDo: Handle state change here
+	printf("\r\n Change to state=%d \r\n",new_state);
+}
 /************************************
 * GLOBAL FUNCTIONS
 ************************************/
@@ -393,6 +408,9 @@ bool elsgpio_init(void)
 //  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
 //  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
   
+
+	/* */
+	elinkswitch_state_change_event_listener_register(lc_elsgpio_elinkswitch_state_change_event);
   /* lwbt*/
   
   elsgpio_lwbtn.btns = btns;
@@ -406,6 +424,12 @@ bool elsgpio_init(void)
   lwbtn_init_ex(&elsgpio_lwbtn, btns, sizeof(btns) / sizeof(btns[0]), prv_btn_get_state, prv_btn_event);
   time_last = get_tick();
   return true;
+}
+
+bool elsgpio_register_button_event_listener(elinkswitch_button_event listener)
+{
+	elinkswitch_receive_button_event = listener;
+	return true;
 }
 
 /*!

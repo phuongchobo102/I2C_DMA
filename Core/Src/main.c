@@ -157,6 +157,7 @@ int main(void)
   printf("UID[1] %d.... \n\r", UID[1]);
   printf("UID[2] %d.... \n\r", UID[2]);
   HAL_GPIO_WritePin(KVMSW_EN_GPIO_Port, KVMSW_EN_Pin, 1);
+  elinkswitch_init();
    elsgpio_init();
    HAL_ADCEx_Calibration_Start(&hadc);
    init_IS31FL3218();
@@ -173,6 +174,7 @@ int main(void)
   {
     elsgpio_task();
     led_task();
+    elinkswitch_task();
 //    HAL_ADC_Start_DMA(&hadc, value, 4); // start adc in DMA mode
     /* USER CODE END WHILE */
 

@@ -31,6 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "elinkswitch.h"
 #include "elinkswitch_gpio.h"
 
 /* USER CODE END Includes */
