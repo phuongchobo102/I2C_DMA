@@ -1088,6 +1088,9 @@
             <group>
                 <name>Core</name>
                 <file>
+                    <name>$PROJ_DIR$\..\Core\Src\elinkswitch.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Core\Src\elinkswitch_gpio.c</name>
                 </file>
                 <file>
