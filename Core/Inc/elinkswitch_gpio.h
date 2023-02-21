@@ -18,6 +18,7 @@ extern "C" {
  * INCLUDES
  ************************************/
 #include <stdbool.h>
+#include "elinkswitch.h"
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -34,6 +35,7 @@ extern "C" {
  * GLOBAL FUNCTION PROTOTYPES
  ************************************/
 extern bool elsgpio_init(void);
+extern bool elsgpio_register_button_event_listener(elinkswitch_button_event listener);
 extern void elsgpio_task(void);
 extern void elsgpio_1ms_elapsed(void);
 

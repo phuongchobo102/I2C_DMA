@@ -18,7 +18,8 @@ extern "C" {
 /************************************
  * INCLUDES
  ************************************/
-#include "main.h"
+#include <stdbool.h>
+//#include "main.h"
 /************************************
  * EXPORTED PREPROCESSOR DEFINES
  ************************************/

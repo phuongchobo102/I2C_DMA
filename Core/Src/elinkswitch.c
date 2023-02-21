@@ -11,6 +11,7 @@
  * INCLUDES
  ************************************/
 #include "elinkswitch.h"
+#include <stdint.h>
 /************************************
  * PRIVATE PREPROCESSOR DEFINES
  ************************************/
@@ -43,7 +44,7 @@ elinkswitch_state_change_event elinkswitch_state_change_event_array[ELINKSWITCH_
 elinkswitch_state_e elinkswitch_current_state = ELINKSWITCH_STATE_NOT_INIT;
 elinkswitch_state_change_event_listener_t elinkswitch_state_change_event_listener;
 elinkswitch_usb_trigger_t elinkswitch_usb_trigger;
-elinkswitch_button_event elinkswitch_receive_button_event;
+//elinkswitch_button_event elinkswitch_receive_button_event;
 
 volatile bool elinkswitch_state_changed = false;
 /************************************
@@ -174,12 +175,12 @@ void elinkswitch_init(void)
 	elinkswitch_state_change_event_listener.current_size = 0;
 	elinkswitch_state_change_event_listener.max_size = ELINKSWITCH_STATE_CHANGE_EVENT_MAX_LIST;
 	elinkswitch_state_change_event_listener.list = elinkswitch_state_change_event_array;
-	/**/
+	/* Init usb trigger */
 	elinkswitch_usb_trigger.authorized = lc_elinkswitch_state_switch_to_authorized;
 	elinkswitch_usb_trigger.back_to_inited = lc_elinkswitch_state_switch_back_to_inited;
 	elinkswitch_usb_trigger.receive_usb_command = lc_elinkswitch_state_switch_to_receive_usb_command;
 	/**/
-	elinkswitch_receive_button_event = lc_elinkswitch_receive_btn_event;
+//	elinkswitch_receive_button_event = lc_elinkswitch_receive_btn_event;
 	/* Mark that elink switch is inited*/
 	elinkswitch_current_state = ELINKSWITCH_STATE_INITED;
 }
