@@ -183,6 +183,7 @@ void elinkswitch_init(void)
   elinkswitch_usb_trigger.receive_usb_command = lc_elinkswitch_state_switch_to_receive_usb_command;
   /**/
   //	elinkswitch_receive_button_event = lc_elinkswitch_receive_btn_event;
+  elsgpio_register_button_event_listener(lc_elinkswitch_receive_btn_event);
   /* Mark that elink switch is inited*/
   elinkswitch_current_state = ELINKSWITCH_STATE_INITED;
 }
