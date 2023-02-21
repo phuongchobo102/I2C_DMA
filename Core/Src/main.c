@@ -44,6 +44,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc;
+DMA_HandleTypeDef hdma_adc;
 
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
@@ -67,6 +68,7 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC_Init(void);
+static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_SPI1_Init(void);
@@ -80,7 +82,12 @@ uint32_t id_ic =  0;
 
 uint32_t test_id_ic =  0x55aa;
 uint8_t channelSelect = 0;
+uint8_t edidStatus;
+uint8_t vgaStatus[4];
+uint8_t usbStatus[4];
 
+
+  uint32_t value[4]; 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
@@ -123,8 +130,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USB_DEVICE_Init();
   MX_ADC_Init();
+  
   MX_I2C1_Init();
   MX_I2C2_Init();
   MX_SPI1_Init();
@@ -153,6 +162,8 @@ int main(void)
    init_IS31FL3218();
   test_LED();
   
+
+  
    /* USER CODE END 2 */
 
   /* Infinite loop */  
@@ -161,13 +172,21 @@ int main(void)
   while (1)
   {
     elsgpio_task();
-//    led_task();
+    led_task();
+//    HAL_ADC_Start_DMA(&hadc, value, 4); // start adc in DMA mode
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+    printf("ADC complete %d, %d, %d, %d", value[0], value[1], value[2], value[3]);
+}
+
 
 /**
   * @brief System Clock Configuration
@@ -564,6 +583,24 @@ static void MX_USART1_UART_Init(void)
 
 }
 
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+}
+
+
 /**
   * @brief GPIO Initialization Function
   * @param None
@@ -608,11 +645,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
   
   /*Configure GPIO pins : TLC_LATCH_Pin TLC_BLANK_Pin GD_PWR_CTRL_Pin */
-//  GPIO_InitStruct.Pin = TLC_LATCH_Pin|LED_SHDN_Pin|GD_PWR_CTRL_Pin;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_PULLUP;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = LED_SHDN_Pin|GD_PWR_CTRL_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : KVMSW_EN_Pin BUTTON_EDID_Pin */
   GPIO_InitStruct.Pin = KVMSW_EN_Pin;
