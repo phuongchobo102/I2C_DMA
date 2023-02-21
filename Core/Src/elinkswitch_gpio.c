@@ -53,6 +53,11 @@ static lwbtn_btn_t btns[] = {
 };
 
 elinkswitch_button_event elinkswitch_receive_button_event;
+
+uint16_t adcValue[4]; 
+uint32_t lastTimeReadADC;
+
+
 /************************************
 * GLOBAL VARIABLES
 ************************************/
@@ -326,17 +331,17 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
       printf("USB detect plug IN %d\r\n", currentButton); 
       usbStatus[currentButton] = 1;
       break;
-      case '5'...'8': //vga detect
+    case '5'...'8': //vga detect
       currentButton -= '5' ;
       printf("VGA detect IN %d\r\n", currentButton);    
       vgaStatus[currentButton] = 1;
       break;
     default: 
       break;
-//    case '0': //button EDID
-//      printf("Button EDID Press\r\n");
-//      //TODO: EDID bahavior
-//      break;
+      //    case '0': //button EDID
+      //      printf("Button EDID Press\r\n");
+      //      //TODO: EDID bahavior
+      //      break;
     }
   }
   (void)lw;
@@ -345,8 +350,8 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
 
 void lc_elsgpio_elinkswitch_state_change_event(elinkswitch_state_e new_state)
 {
-	//ToDo: Handle state change here
-	printf("\r\n Change to state=%d \r\n",new_state);
+  //ToDo: Handle state change here
+  printf("\r\n Change to state=%d \r\n",new_state);
 }
 /************************************
 * GLOBAL FUNCTIONS
@@ -362,39 +367,39 @@ bool elsgpio_init(void)
 {
   //LL_GPIO_InitTypeDef gpio_initstruct;
   
-//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-//  
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  
-//  LL_GPIO_SetPinMode(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+  //  
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  
+  //  LL_GPIO_SetPinMode(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
   
-
-	/* */
-	elinkswitch_state_change_event_listener_register(lc_elsgpio_elinkswitch_state_change_event);
+  
+  /* */
+  elinkswitch_state_change_event_listener_register(lc_elsgpio_elinkswitch_state_change_event);
   /* lwbt*/
   
   elsgpio_lwbtn.btns = btns;
@@ -412,8 +417,8 @@ bool elsgpio_init(void)
 
 bool elsgpio_register_button_event_listener(elinkswitch_button_event listener)
 {
-	elinkswitch_receive_button_event = listener;
-	return true;
+  elinkswitch_receive_button_event = listener;
+  return true;
 }
 
 /*!
@@ -434,17 +439,10 @@ void elsgpio_task(void)
     lwbtn_set_btn_state(&btns[i], prv_btn_get_state(/*NULL*/&elsgpio_lwbtn, &btns[i]));
   }
 #endif /* LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_MANUAL */
-  
-  /* Check if specific button is active and do some action */
-  //  for(size_t i = 0; i < sizeof(btns) / sizeof(btns[0]); ++i) 
-  //  { 
-  //    if (lwbtn_is_btn_active(&btns[i])) {
-  //        if ((get_tick() - time_last) > 200) {
-  //            time_last = get_tick();
-  //            printf("Button[%d] is active\r\n",i);
-  //        }
-  //    }
-  //  }
+  if(HAL_GetTick() - lastTimeReadADC > 1000){
+    lastTimeReadADC = HAL_GetTick();
+    HAL_ADC_Start_DMA(&hadc, (uint32_t*) adcValue, 4);   
+  }
 }
 
 /*!

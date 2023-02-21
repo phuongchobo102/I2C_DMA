@@ -86,9 +86,9 @@ uint8_t edidStatus;
 uint8_t vgaStatus[4];
 uint8_t usbStatus[4];
 
-
-  uint16_t adcValue[4]; 
-uint32_t lastTimeReadADC;
+//
+//  uint16_t adcValue[4]; 
+//uint32_t lastTimeReadADC;
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
@@ -176,10 +176,10 @@ int main(void)
     elsgpio_task();
     led_task();
     elinkswitch_task();
-    if(HAL_GetTick() - lastTimeReadADC > 1000){
-      lastTimeReadADC = HAL_GetTick();
-      HAL_ADC_Start_DMA(&hadc, (uint32_t*) adcValue, 4);   
-    }
+//    if(HAL_GetTick() - lastTimeReadADC > 1000){
+//      lastTimeReadADC = HAL_GetTick();
+//      HAL_ADC_Start_DMA(&hadc, (uint32_t*) adcValue, 4);   
+//    }
     HAL_Delay(1);
   }
   /* USER CODE END 3 */
