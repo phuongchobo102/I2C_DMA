@@ -74,7 +74,8 @@ typedef struct elinkswitch_usb_trigger_struct {
  * EXPORTED  FUNCTION PROTOTYPES
  ************************************/
 void elinkswitch_init(void);
-bool elinkswitch_state_change_event_listener_register(elinkswitch_state_change_event listener);
+bool elinkswitch_register_state_change_event_listener(elinkswitch_state_change_event listener);
+bool elinkswitch_get_usb_triggers(elinkswitch_usb_trigger_t *triggers);
 void elinkswitch_task(void);
 void elinkswitch_1ms_elapsed(void);
 
