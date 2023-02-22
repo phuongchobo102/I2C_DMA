@@ -1088,10 +1088,25 @@
             <group>
                 <name>Core</name>
                 <file>
+                    <name>$PROJ_DIR$\..\Core\Src\aes.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Core\Src\b64.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Core\Src\crc16_ibm.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Core\Src\elinkswitch.c</name>
                 </file>
                 <file>
                     <name>$PROJ_DIR$\..\Core\Src\elinkswitch_gpio.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Core\Src\encode.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Core\Src\i2c_EDID.c</name>
                 </file>
                 <file>
                     <name>$PROJ_DIR$\..\Core\Src\IS31FL3218.c</name>
