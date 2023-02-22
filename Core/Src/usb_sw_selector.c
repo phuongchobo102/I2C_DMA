@@ -8,7 +8,7 @@ void usb_sw_enable(uint8_t isTrue){
 }
 
 void usb_sw_select(uint8_t portIndex) {
-	switch (portIndex) {
+    switch (portIndex) {
 	case 0:
 		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 0);
 		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 0);
