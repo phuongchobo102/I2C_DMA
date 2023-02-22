@@ -197,7 +197,7 @@ void elinkswitch_init(void)
 * @return true: if it is success, otherwise is fail
 *
 */
-bool elinkswitch_state_change_event_listener_register(elinkswitch_state_change_event listener)
+bool elinkswitch_register_state_change_event_listener(elinkswitch_state_change_event listener)
 {
   if(elinkswitch_state_change_event_listener.current_size < elinkswitch_state_change_event_listener.max_size)
   {
@@ -206,6 +206,27 @@ bool elinkswitch_state_change_event_listener_register(elinkswitch_state_change_e
     return true;
   }
   return false;
+}
+
+/*!
+* @brief Get usb triggers.
+*
+* @param[out] triggers actual trigger functions if there is no error
+*
+*
+* @return true: if it is success, otherwise is fail
+* This function should only be called from usb portion.
+*/
+bool elinkswitch_get_usb_triggers(elinkswitch_usb_trigger_t *triggers)
+{
+	if(!triggers)
+	{
+		triggers = &elinkswitch_usb_trigger;
+		return true;
+	}else
+	{
+		return false;
+	}
 }
 
 /*!

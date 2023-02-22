@@ -399,7 +399,7 @@ bool elsgpio_init(void)
   
   
   /* */
-  elinkswitch_state_change_event_listener_register(lc_elsgpio_elinkswitch_state_change_event);
+  elinkswitch_register_state_change_event_listener(lc_elsgpio_elinkswitch_state_change_event);
   /* lwbt*/
   
   elsgpio_lwbtn.btns = btns;
