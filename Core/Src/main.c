@@ -86,8 +86,9 @@ uint8_t edidStatus;
 uint8_t vgaStatus[4];
 uint8_t usbStatus[4];
 
-
-  uint32_t value[4]; 
+//
+//  uint16_t adcValue[4]; 
+//uint32_t lastTimeReadADC;
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
@@ -175,19 +176,19 @@ int main(void)
     elsgpio_task();
     led_task();
     elinkswitch_task();
-//    HAL_ADC_Start_DMA(&hadc, value, 4); // start adc in DMA mode
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+//    if(HAL_GetTick() - lastTimeReadADC > 1000){
+//      lastTimeReadADC = HAL_GetTick();
+//      HAL_ADC_Start_DMA(&hadc, (uint32_t*) adcValue, 4);   
+//    }
     HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-    printf("ADC complete %d, %d, %d, %d", value[0], value[1], value[2], value[3]);
-}
+//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+//{
+//    printf("ADC complete %d, %d, %d, %d", value[0], value[1], value[2], value[3]);
+//}
 
 
 /**
@@ -315,7 +316,7 @@ static void MX_ADC_Init(void)
   */
   hadc.Instance = ADC1;
   hadc.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
-  hadc.Init.Resolution = ADC_RESOLUTION_6B;
+  hadc.Init.Resolution = ADC_RESOLUTION_12B;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
   hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
@@ -345,7 +346,7 @@ static void MX_ADC_Init(void)
   /** Configure for the selected ADC regular channel to be converted.
   */
   sConfig.Channel = ADC_CHANNEL_3;
-//  sConfig.Rank = 3;
+  sConfig.Rank = 3;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -354,7 +355,7 @@ static void MX_ADC_Init(void)
   /** Configure for the selected ADC regular channel to be converted.
   */
   sConfig.Channel = ADC_CHANNEL_4;
-//  sConfig.Rank = 4;
+  sConfig.Rank = 4;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -363,7 +364,7 @@ static void MX_ADC_Init(void)
   /** Configure for the selected ADC regular channel to be converted.
   */
   sConfig.Channel = ADC_CHANNEL_6;
-//  sConfig.Rank = 6;
+  sConfig.Rank = 6;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();

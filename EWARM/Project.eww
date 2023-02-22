@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workspace>
     <project>
-        <path>$WS_DIR$\..\..\..\1-YEV\1.HC_5x7\HC_Fast_Rsp\hop_chua.ewp</path>
+        <path>$WS_DIR$\STM32F070CB-ELINKGATE.ewp</path>
     </project>
     <batchBuild />
 </workspace>

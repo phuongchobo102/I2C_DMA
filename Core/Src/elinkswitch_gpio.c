@@ -53,6 +53,11 @@ static lwbtn_btn_t btns[] = {
 };
 
 elinkswitch_button_event elinkswitch_receive_button_event;
+
+uint16_t adcValue[4]; 
+uint32_t lastTimeReadADC;
+
+
 /************************************
 * GLOBAL VARIABLES
 ************************************/
@@ -81,30 +86,30 @@ uint32_t get_tick(void)
 }
 
 
-uint16_t read_adc_usb(uint8_t channel){
-  uint16_t adcValue = 0;
-  if (channel == 1) sConfig.Channel = ADC_CHANNEL_1;
-  else if( channel ==3 ) sConfig.Channel = ADC_CHANNEL_3;  
-  else if( channel ==4 ) sConfig.Channel = ADC_CHANNEL_4;
-  else if( channel ==6 ) sConfig.Channel = ADC_CHANNEL_6;
-  else return 0;
-//  sConfig.Rank = channel;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler(); 
-  }
-  
-  HAL_ADC_Start(&hadc);
-  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-  adcValue = HAL_ADC_GetValue(&hadc);
-  HAL_ADC_Stop(&hadc);
-//  sConfig.Rank = 0;
+//uint16_t read_adc_usb(uint8_t channel){
+//  uint16_t adcValue = 0;
+//  if (channel == 1) sConfig.Channel = ADC_CHANNEL_1;
+//  else if( channel ==3 ) sConfig.Channel = ADC_CHANNEL_3;  
+//  else if( channel ==4 ) sConfig.Channel = ADC_CHANNEL_4;
+//  else if( channel ==6 ) sConfig.Channel = ADC_CHANNEL_6;
+//  else return 0;
+////  sConfig.Rank = channel;
 //  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
 //  {
-//    Error_Handler();
+//    Error_Handler(); 
 //  }
-  return adcValue;
-}
+//  
+//  HAL_ADC_Start(&hadc);
+//  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+//  adcValue = HAL_ADC_GetValue(&hadc);
+//  HAL_ADC_Stop(&hadc);
+////  sConfig.Rank = 0;
+////  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+////  {
+////    Error_Handler();
+////  }
+//  return adcValue;
+//}
 /**
 * \brief           Get input state callback 
 * \param           lw: LwBTN instance
@@ -207,9 +212,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
     }
     else if(u8_temp == 'a')
     {    
-      rawADC  = read_adc_usb(1);
-//      printf("a: %d --", rawADC); 
-      if( rawADC > 100)
+      if( adcValue[0] > 500)
       {
         result = 1;
       }else
@@ -219,10 +222,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
     }
     else if(u8_temp == 'b')
     {
-      rawADC  = read_adc_usb(3);
-//      printf("b: %d --", rawADC); 
-      
-      if( rawADC >100)
+      if( adcValue[1] >500)
       {
         result = 1;
       }else
@@ -231,9 +231,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == 'c')
     {
-      rawADC  = read_adc_usb(4);
-//      printf("c: %d --", rawADC); 
-      if( rawADC > 100)
+      if( adcValue[2] > 500)
       {
         result = 1;
       }else
@@ -242,9 +240,7 @@ uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
       }
     }else if(u8_temp == 'd')
     {
-      rawADC  = read_adc_usb(6);
-//      printf("d: %d --\r\n", rawADC); 
-      if( rawADC > 100)
+      if( adcValue[3] > 500)
       {
         result = 1;
       }else
@@ -297,25 +293,15 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
   //SetConsoleTextAttribute(hConsole, color);
   if(s == "ONRELEASE" )
   {
-    //    printf("[%7u][%6u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(),
-    //           (unsigned)diff_time, *(uint8_t*)btn->arg, s, (unsigned)keepalive_cnt, (unsigned)btn->click.cnt);
-    //      if (/*s == "ONRELEASE" &&*/ *(uint8_t*)btn->arg == '1'){
-    //      printf("Button 1 Pressed\r\n");
-    //      }
     currentButton = *(uint8_t*)btn->arg;
     switch(currentButton){
     case '1'...'4': //button
       printf("Button %c Pressed \r\n", currentButton);
       currentButton -= '1' ;  //convert to 0...3
       channelSelect =  currentButton;
-//      uint8_t sel0 = currentButton %2;
-//      uint8_t sel1 = (currentButton /2) % 2;
-//      HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, (currentButton %2));
-//      HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, ((currentButton /2) % 2));
-//      for(uint8_t i=0;i<4;i++) {
-//        if(channelSelect == i ) set_led( i * 3 + 1 ,  109);
-//        else set_led( i * 3 + 1 ,  0);
-//      }
+      if(  elinkswitch_receive_button_event) {
+        elinkswitch_receive_button_event(ELINKSWITCH_BUTTON1_ON_RELEASE + currentButton);
+      }
       break;
     case '5'...'8': //vga detect
       currentButton -= '5' ;
@@ -330,6 +316,9 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     case '0': //button EDID
       edidStatus = (edidStatus + 1) % 2;
       printf("Button EDID Pressed %d\r\n", edidStatus);
+      if(  elinkswitch_receive_button_event) {
+        elinkswitch_receive_button_event(ELINKSWITCH_BUTTON5_ON_RELEASE );
+      }
       //TODO: EDID bahavior
       break;
     }
@@ -342,17 +331,17 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
       printf("USB detect plug IN %d\r\n", currentButton); 
       usbStatus[currentButton] = 1;
       break;
-      case '5'...'8': //vga detect
+    case '5'...'8': //vga detect
       currentButton -= '5' ;
       printf("VGA detect IN %d\r\n", currentButton);    
       vgaStatus[currentButton] = 1;
       break;
     default: 
       break;
-//    case '0': //button EDID
-//      printf("Button EDID Press\r\n");
-//      //TODO: EDID bahavior
-//      break;
+      //    case '0': //button EDID
+      //      printf("Button EDID Press\r\n");
+      //      //TODO: EDID bahavior
+      //      break;
     }
   }
   (void)lw;
@@ -361,8 +350,8 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
 
 void lc_elsgpio_elinkswitch_state_change_event(elinkswitch_state_e new_state)
 {
-	//ToDo: Handle state change here
-	printf("\r\n Change to state=%d \r\n",new_state);
+  //ToDo: Handle state change here
+  printf("\r\n Change to state=%d \r\n",new_state);
 }
 /************************************
 * GLOBAL FUNCTIONS
@@ -378,39 +367,39 @@ bool elsgpio_init(void)
 {
   //LL_GPIO_InitTypeDef gpio_initstruct;
   
-//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-//  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-//  
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  
-//  LL_GPIO_SetPinMode(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-//  LL_GPIO_SetPinMode(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_MODE_INPUT);
-//  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
-//  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+  //  
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  
+  //  LL_GPIO_SetPinMode(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  //  LL_GPIO_SetPinMode(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_MODE_INPUT);
+  //  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
+  //  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
   
-
-	/* */
-	elinkswitch_state_change_event_listener_register(lc_elsgpio_elinkswitch_state_change_event);
+  
+  /* */
+  elinkswitch_state_change_event_listener_register(lc_elsgpio_elinkswitch_state_change_event);
   /* lwbt*/
   
   elsgpio_lwbtn.btns = btns;
@@ -428,8 +417,8 @@ bool elsgpio_init(void)
 
 bool elsgpio_register_button_event_listener(elinkswitch_button_event listener)
 {
-	elinkswitch_receive_button_event = listener;
-	return true;
+  elinkswitch_receive_button_event = listener;
+  return true;
 }
 
 /*!
@@ -450,17 +439,10 @@ void elsgpio_task(void)
     lwbtn_set_btn_state(&btns[i], prv_btn_get_state(/*NULL*/&elsgpio_lwbtn, &btns[i]));
   }
 #endif /* LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_MANUAL */
-  
-  /* Check if specific button is active and do some action */
-  //  for(size_t i = 0; i < sizeof(btns) / sizeof(btns[0]); ++i) 
-  //  { 
-  //    if (lwbtn_is_btn_active(&btns[i])) {
-  //        if ((get_tick() - time_last) > 200) {
-  //            time_last = get_tick();
-  //            printf("Button[%d] is active\r\n",i);
-  //        }
-  //    }
-  //  }
+  if(HAL_GetTick() - lastTimeReadADC > 1000){
+    lastTimeReadADC = HAL_GetTick();
+    HAL_ADC_Start_DMA(&hadc, (uint32_t*) adcValue, 4);   
+  }
 }
 
 /*!
