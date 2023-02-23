@@ -39,7 +39,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define START_FLASH_ADDR 0x08010000
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -88,6 +88,7 @@ uint8_t usbStatus[4];
 
 //
 uint8_t i2c1Value[128]; 
+uint8_t flashBuffer[128];
 uint32_t lastTimeReadI2C1;
 uint8_t ret;
 /* Private user code ---------------------------------------------------------*/
@@ -105,6 +106,18 @@ uint32_t UID[4] =  {0};
 */
 
 #define bufSize 1
+
+uint8_t isDiff(uint8_t* buff1, uint8_t* buff2){
+  for (size_t i = 0; i < sizeof(buff1); i++)
+  {
+    if (buff1[i] != buff2[i])
+    {
+      return 1;
+    }    
+  }
+  return 0;  
+}
+
 
 int main(void)
 {
@@ -163,7 +176,7 @@ int main(void)
   elsgpio_init();
   HAL_ADCEx_Calibration_Start(&hadc);
   init_IS31FL3218();
-    test_LED();
+//    test_LED();
   
    /* USER CODE END 2 */
 
@@ -180,13 +193,39 @@ int main(void)
       printf("------ OK at 0x%02x \r\n", i);
     }
   }
+
+//  for(uint8_t i =0; i< 128; i++){
+//    ret = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(i<<1), 3, 5);
+//    // HAL_I2C_Init
+//    if (ret != HAL_OK) /* No ACK Received At That Address */
+//    {
+//      printf("not OK at %d \r\n", i);
+//    }
+//    else if(ret == HAL_OK)
+//    {
+//      printf("------ OK at %d \r\n", i);
+//    }
+//  }
+  HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(80<<1), 3, 5);
   HAL_I2C_Master_Receive(&hi2c2, 160, i2c1Value, 128, 100);
   for(uint8_t i=0; i<128; i++){
     printf("0x%02x ", i2c1Value[i]);
-//    printf("%c", i2c1Value[i]);
     if(i%8 == 7) printf("\r\n");
+//    printf("%c", i2c1Value[i]);
+    HAL_Delay(1);
+    
   }
    
+  Flash_Read_Data(START_FLASH_ADDR , (uint32_t*)flashBuffer, sizeof(flashBuffer));
+  if( isDiff(i2c1Value, flashBuffer)) {
+    printf("Diff found \r\n");
+    Flash_Write_Data(START_FLASH_ADDR , (uint32_t *)i2c1Value, sizeof(i2c1Value) );
+    //write flash buffer
+    //memcopy buffer
+  }
+  else{
+    printf("Diff not found \r\n");
+  }
   /* USER CODE END 2 */
   
   /* Infinite loop */  

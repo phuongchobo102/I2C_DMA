@@ -33,6 +33,7 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "elinkswitch.h"
 #include "elinkswitch_gpio.h"
+#include "flash.h"
 
 /* USER CODE END Includes */
 

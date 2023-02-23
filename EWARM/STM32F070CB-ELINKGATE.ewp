@@ -1106,6 +1106,9 @@
                     <name>$PROJ_DIR$\..\Core\Src\encode.c</name>
                 </file>
                 <file>
+                    <name>$PROJ_DIR$\..\Core\Src\flash.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Core\Src\i2c_EDID.c</name>
                 </file>
                 <file>
