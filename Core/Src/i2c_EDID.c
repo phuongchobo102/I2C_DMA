@@ -2,7 +2,7 @@
 #include "main.h"
 #include "i2c_EDID.h"
 
-extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
 uint8_t aRxBuffer[RXBUFFERSIZE];
 uint8_t aTxBuffer[RXBUFFERSIZE];
 
@@ -11,7 +11,7 @@ void reponse_50_msg(void)
   /* The board receives the message and sends it back */
 
   /*##-2- Put I2C peripheral in reception process ###########################*/  
-  if(HAL_I2C_Slave_Receive_IT(&hi2c1, (uint8_t *)aRxBuffer, RXBUFFERSIZE) != HAL_OK)
+  if(HAL_I2C_Slave_Receive_IT(&hi2c2, (uint8_t *)aRxBuffer, RXBUFFERSIZE) != HAL_OK)
   {
     /* Transfer error in reception process */
     printf("HAL_I2C_Slave_Receive_IT is error \r\n");
@@ -25,7 +25,7 @@ void reponse_50_msg(void)
       For simplicity reasons, this example is just waiting till the end of the
       transfer, but application may perform other tasks while transfer operation
       is ongoing. */
-  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY)
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY)
   {
     
   }
@@ -33,7 +33,7 @@ void reponse_50_msg(void)
   /*##-4- Start the transmission process #####################################*/  
   /* While the I2C in reception process, user can transmit data through 
      "aTxBuffer" buffer */
-  if(HAL_I2C_Slave_Transmit_IT(&hi2c1, (uint8_t*)aTxBuffer, TXBUFFERSIZE)!= HAL_OK)
+  if(HAL_I2C_Slave_Transmit_IT(&hi2c2, (uint8_t*)aTxBuffer, TXBUFFERSIZE)!= HAL_OK)
   {
     /* Transfer error in transmission process */
     printf("HAL_I2C_Slave_Transmit_IT is error \r\n");
@@ -47,7 +47,7 @@ void reponse_50_msg(void)
       For simplicity reasons, this example is just waiting till the end of the
       transfer, but application may perform other tasks while transfer operation
       is ongoing. */
-  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY)
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY)
   {
     
   } 

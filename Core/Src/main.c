@@ -173,11 +173,11 @@ int main(void)
     // HAL_I2C_Init
     if (ret != HAL_OK) /* No ACK Received At That Address */
     {
-      printf("not OK at %d \r\n", i);
+      printf("not OK at 0x%02x \r\n", i);
     }
     else if(ret == HAL_OK)
     {
-      printf("------ OK at %d \r\n", i);
+      printf("------ OK at 0x%02x \r\n", i);
     }
   }
   HAL_I2C_Master_Receive(&hi2c2, 160, i2c1Value, 128, 100);
