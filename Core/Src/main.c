@@ -21,7 +21,8 @@
 #include "stdio.h"
 #include "usb_device.h"
 #include "IS31FL3218.h"
-
+#include "aes.h"
+#include "usb_sw_selector.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -54,6 +55,8 @@ SPI_HandleTypeDef hspi2;
 
 UART_HandleTypeDef huart1;
 
+static WWDG_HandleTypeDef   WwdgHandle;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -74,6 +77,8 @@ static void MX_I2C2_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
+static void init_WWDG(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -113,7 +118,7 @@ uint8_t isDiff(uint8_t* buff1, uint8_t* buff2){
     if (buff1[i] != buff2[i])
     {
       return 1;
-    }    
+    }
   }
   return 0;  
 }
@@ -171,6 +176,10 @@ int main(void)
   printf("UID[0] %d.... \n\r", UID[0]);
   printf("UID[1] %d.... \n\r", UID[1]);
   printf("UID[2] %d.... \n\r", UID[2]);
+  
+//  test_AES(); while(1);
+  process_usb_msg();
+  
   HAL_GPIO_WritePin(KVMSW_EN_GPIO_Port, KVMSW_EN_Pin, 1);
   elinkswitch_init();
   elsgpio_init();
@@ -231,6 +240,8 @@ int main(void)
   /* Infinite loop */  
   /* USER CODE BEGIN WHILE */ 
   
+  //init_WWDG();
+  
   while (1)
   {
     elsgpio_task();
@@ -246,6 +257,14 @@ int main(void)
       //      }
     }
     HAL_Delay(1);
+    
+/*      
+    if (HAL_WWDG_Refresh(&WwdgHandle) != HAL_OK)
+    {
+      Error_Handler();
+    }
+//*/     
+    
   }
   /* USER CODE END 3 */
 }
@@ -310,6 +329,22 @@ void SystemClock_Config(void)
       Error_Handler();
     }   
 
+}
+
+
+static void init_WWDG(void)
+{
+    WwdgHandle.Instance = WWDG;
+    WwdgHandle.Init.Prescaler = WWDG_PRESCALER_8;
+    WwdgHandle.Init.Window    = 0x50;
+    WwdgHandle.Init.Counter   = 0x7F;
+    WwdgHandle.Init.EWIMode   = WWDG_EWI_DISABLE;
+
+    if (HAL_WWDG_Init(&WwdgHandle) != HAL_OK)
+    {
+      /* Initialization Error */
+      Error_Handler();
+    }  
 }
 
 /**
