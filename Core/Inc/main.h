@@ -34,6 +34,7 @@ extern "C" {
 #include "elinkswitch.h"
 #include "elinkswitch_gpio.h"
 #include "flash.h"
+#include "vga.h"
 
 /* USER CODE END Includes */
 
