@@ -57,7 +57,7 @@ volatile bool elinkswitch_state_changed = false;
 static void lc_elinkswitch_state_change_notify(void);
 static bool lc_elinkswitch_state_switch_to_authorized(void);
 static bool lc_elinkswitch_state_switch_back_to_inited(void);
-static bool lc_elinkswitch_state_switch_to_receive_usb_command(void);
+static bool lc_elinkswitch_state_switch_to_receive_usb_command(elinkswitch_received_usb_command_event_e event,const uint8_t *in,uint16_t in_length, uint8_t *out,uint16_t *out_length);
 static bool lc_elinkswitch_receive_btn_event(elinkswitch_button_event_e btn_event);
 /************************************
 * PRIVATE & STATIC FUNCTIONS
@@ -120,7 +120,7 @@ static bool lc_elinkswitch_state_switch_back_to_inited(void)
 * @return none
 *
 */
-static bool lc_elinkswitch_state_switch_to_receive_usb_command(void)
+static bool lc_elinkswitch_state_switch_to_receive_usb_command(elinkswitch_received_usb_command_event_e event,const uint8_t *in,uint16_t in_length,uint8_t *out,uint16_t *out_length)
 {
   if(elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED)
   {

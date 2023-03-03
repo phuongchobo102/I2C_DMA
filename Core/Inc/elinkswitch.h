@@ -19,6 +19,7 @@ extern "C" {
  * INCLUDES
  ************************************/
 #include <stdbool.h>
+#include <stdint.h>
 //#include "main.h"
 /************************************
  * EXPORTED PREPROCESSOR DEFINES
@@ -47,14 +48,24 @@ typedef enum elinkswitch_state_enum {
 	 ELINKSWITCH_BUTTON5_ON_RELEASE
   }elinkswitch_button_event_e;
 
+  typedef enum elinkswitch_received_usb_command_event_enum {
+	  ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS,
+	  ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS,
+	  ELINKSWITCH_RECEIVED_USB_COMMAND_GET_STORED_VGA_ID,
+	  ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,
+	  ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS,
+	  ELINKSWITCH_RECEIVED_USB_COMMAND_SET_STORED_VGA_ID
+   }elinkswitch_received_usb_command_event_e;
+
 typedef void (*elinkswitch_state_change_event)(elinkswitch_state_e new_state);
 typedef bool (*elinkswitch_trigger_change_state)(void);
+typedef bool (*elinkswitch_received_usb_command_event)(elinkswitch_received_usb_command_event_e event,const uint8_t *in,uint16_t in_length, uint8_t *out,uint16_t *out_length);
 typedef bool (*elinkswitch_button_event)(elinkswitch_button_event_e btn_event);
 
 typedef struct elinkswitch_usb_trigger_struct {
 	elinkswitch_trigger_change_state authorized;
 	elinkswitch_trigger_change_state back_to_inited;
-	elinkswitch_trigger_change_state receive_usb_command;
+	elinkswitch_received_usb_command_event receive_usb_command;
 }elinkswitch_usb_trigger_t;
 
 
