@@ -33,6 +33,7 @@
 /* Private variables ---------------------------------------------------------*/
 //To extern the report_buffer variable
 extern uint8_t report_buffer[64];
+extern uint8_t tx_buffer[64];
 extern uint8_t flag_rx;
 /* USER CODE END PV */
 
@@ -194,9 +195,9 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t* state)
 //static int8_t CUSTOM_HID_OutEvent_FS  (uint8_t event_idx, uint8_t state)
 {
   /* USER CODE BEGIN 6 */
-	memcpy(report_buffer, state, 64);
-	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report_buffer, 0x40);
-	flag_rx = 1;
+  memcpy(tx_buffer, state, 64);
+//  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report_buffer, 0x40);
+  flag_rx = 1;
   return (USBD_OK);
   /* USER CODE END 6 */
 }

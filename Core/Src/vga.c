@@ -1,4 +1,6 @@
 #include "vga.h"
+#include "stdio.h"
+#include "string.h"
 
 uint32_t lastTimeTaskEDID;
 

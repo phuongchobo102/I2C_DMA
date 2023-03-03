@@ -56,6 +56,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_FS;
+extern I2C_HandleTypeDef hi2c1;
 /* USER CODE BEGIN EV */
 extern DMA_HandleTypeDef hdma_adc;
 /* USER CODE END EV */
@@ -171,3 +172,15 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE END DMA1_Channel1_IRQn 1 */
 }
 /* USER CODE END 1 */
+/**
+  * @brief  This function handles I2C event and error interrupt request.  
+  * @param  None
+  * @retval None
+  * @Note   This function is redefined in "main.h" and related to I2C data transmission     
+  */
+void I2Cx_IRQHandler(void)
+{
+  HAL_I2C_EV_IRQHandler(&hi2c1);
+  HAL_I2C_ER_IRQHandler(&hi2c1);  
+}
+
