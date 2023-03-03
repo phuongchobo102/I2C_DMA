@@ -1129,6 +1129,9 @@
                 <file>
                     <name>$PROJ_DIR$\..\Core\Src\usb_sw_selector.c</name>
                 </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Core\Src\vga.c</name>
+                </file>
             </group>
             <group>
                 <name>USB_DEVICE</name>
@@ -1174,6 +1177,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_cortex.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_crc.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_dma.c</name>

@@ -1,4 +1,6 @@
 #include "vga.h"
+#include "stdio.h"
+#include "string.h"
 
 #define START_FLASH_ADDR 0x08010000
 #define VGA_I2C_ADDRESS 0x50

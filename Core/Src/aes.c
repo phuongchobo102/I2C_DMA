@@ -19,7 +19,7 @@ ECB-AES128
     2b7e151628aed2a6abf7158809cf4f3c
 
   resulting cipher
-    3ad77bb40d7a3660a89ecaf32466ef97 
+    3a d7 7b b4 0d 7a 36 60 a8 9e ca f3 24 66 ef 97 
     f5d3d58503b9699de785895a96fdbaaf 
     43b1cd7f598ece23881b00e3ed030688 
     7b0c785e27e8ad3f8223207104725dd4 

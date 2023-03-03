@@ -21,11 +21,8 @@
 #include "stdio.h"
 #include "usb_device.h"
 #include "IS31FL3218.h"
-<<<<<<< HEAD
 #include "aes.h"
 #include "usb_sw_selector.h"
-=======
->>>>>>> daacb07ed1755bf10cbd7abd4737c41c5d99aad3
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -85,13 +82,9 @@ static void MX_I2C2_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
-<<<<<<< HEAD
 static void init_WWDG(void);
 
-=======
-
 static void MX_CRC_Init(void);
->>>>>>> daacb07ed1755bf10cbd7abd4737c41c5d99aad3
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -121,7 +114,6 @@ uint32_t UID[4] = {0};
 
 #define bufSize 1
 
-<<<<<<< HEAD
 uint8_t isDiff(uint8_t* buff1, uint8_t* buff2){
   for (size_t i = 0; i < sizeof(buff1); i++)
   {
@@ -134,8 +126,7 @@ uint8_t isDiff(uint8_t* buff1, uint8_t* buff2){
 }
 
 
-=======
->>>>>>> daacb07ed1755bf10cbd7abd4737c41c5d99aad3
+
 int main(void)
 {
   char tmp = 1;
@@ -202,18 +193,18 @@ int main(void)
    /* USER CODE END 2 */
 
 
-  for(uint8_t i =0; i< 128; i++){
-    ret = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(i<<1), 3, 5);
-    // HAL_I2C_Init
-    if (ret != HAL_OK) /* No ACK Received At That Address */
-    {
-      printf("not OK at 0x%02x \r\n", i);
-    }
-    else if(ret == HAL_OK)
-    {
-      printf("------ OK at 0x%02x \r\n", i);
-    }
-  }
+//  for(uint8_t i =0; i< 128; i++){
+//    ret = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(i<<1), 3, 5);
+//    // HAL_I2C_Init
+//    if (ret != HAL_OK) /* No ACK Received At That Address */
+//    {
+//      printf("not OK at 0x%02x \r\n", i);
+//    }
+//    else if(ret == HAL_OK)
+//    {
+//      printf("------ OK at 0x%02x \r\n", i);
+//    }
+//  }
 
 //  for(uint8_t i =0; i< 128; i++){
 //    ret = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(i<<1), 3, 5);
@@ -227,26 +218,26 @@ int main(void)
 //      printf("------ OK at %d \r\n", i);
 //    }
 //  }
-  HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(80<<1), 3, 5);
-  HAL_I2C_Master_Receive(&hi2c2, 160, i2c1Value, 128, 100);
-  for(uint8_t i=0; i<128; i++){
-    printf("0x%02x ", i2c1Value[i]);
-    if(i%8 == 7) printf("\r\n");
-//    printf("%c", i2c1Value[i]);
-    HAL_Delay(1);
-    
-  }
+//  HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(80<<1), 3, 5);
+//  HAL_I2C_Master_Receive(&hi2c2, 160, i2c1Value, 128, 100);
+//  for(uint8_t i=0; i<128; i++){
+//    printf("0x%02x ", i2c1Value[i]);
+//    if(i%8 == 7) printf("\r\n");
+////    printf("%c", i2c1Value[i]);
+//    HAL_Delay(1);
+//    
+//  }
    
-  Flash_Read_Data(START_FLASH_ADDR , (uint32_t*)flashBuffer, sizeof(flashBuffer));
-  if( isDiff(i2c1Value, flashBuffer)) {
-    printf("Diff found \r\n");
-    Flash_Write_Data(START_FLASH_ADDR , (uint32_t *)i2c1Value, sizeof(i2c1Value) );
-    //write flash buffer
-    //memcopy buffer
-  }
-  else{
-    printf("Diff not found \r\n");
-  }
+//  Flash_Read_Data(START_FLASH_ADDR , (uint32_t*)flashBuffer, sizeof(flashBuffer));
+//  if( isDiff(i2c1Value, flashBuffer)) {
+//    printf("Diff found \r\n");
+//    Flash_Write_Data(START_FLASH_ADDR , (uint32_t *)i2c1Value, sizeof(i2c1Value) );
+//    //write flash buffer
+//    //memcopy buffer
+//  }
+//  else{
+//    printf("Diff not found \r\n");
+//  }
   /* USER CODE END 2 */
   
   /* Infinite loop */  
@@ -291,7 +282,6 @@ int main(void)
  */
 void SystemClock_Config(void)
 {
-<<<<<<< HEAD
   
   // 070
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -356,49 +346,7 @@ static void init_WWDG(void)
       /* Initialization Error */
       Error_Handler();
     }  
-=======
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSI14 | RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSI14State = RCC_HSI14_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.HSI14CalibrationValue = 16;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
-  RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB | RCC_PERIPHCLK_USART1 | RCC_PERIPHCLK_I2C1;
-  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
-
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
-    Error_Handler();
-  }
->>>>>>> daacb07ed1755bf10cbd7abd4737c41c5d99aad3
 }
 
 /**
