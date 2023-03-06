@@ -188,6 +188,7 @@ int main(void)
   elsgpio_init();
   HAL_ADCEx_Calibration_Start(&hadc);
   init_IS31FL3218();
+  usb_kvm_switch_init();
 //    test_LED();
   
    /* USER CODE END 2 */
