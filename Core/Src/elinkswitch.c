@@ -302,8 +302,10 @@ void elinkswitch_task(void)
   case ELINKSWITCH_STATE_AUTHORIZED:
     break;
   case ELINKSWITCH_STATE_RECEIVED_USB_COMMAND:
+	  elinkswitch_current_state = ELINKSWITCH_STATE_AUTHORIZED;
     break;
   case ELINKSWITCH_STATE_RECEIVED_BTN_EVENT:
+	  elinkswitch_current_state = ELINKSWITCH_STATE_AUTHORIZED;
     break;
   }
 }
