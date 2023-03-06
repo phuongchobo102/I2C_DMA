@@ -222,6 +222,10 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
         //Notify and get result
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
         //ToDo: Retrieve data from elinkswitch_usb_out_buff and send to USB host
+        response_host.data[0] = elinkswitch_usb_out_buff[0];
+        response_host.data[1] = elinkswitch_usb_out_buff[1];
+        response_host.data[2] = elinkswitch_usb_out_buff[2];
+        response_host.data[3] = elinkswitch_usb_out_buff[3];
         printf("Response USB_GET_MOUSE_PORT_STATUS \r\n");
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
@@ -233,6 +237,10 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
         //Notify and get result
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
         //ToDo: Retrieve data from elinkswitch_usb_out_buff and send to USB host
+        response_host.data[0] = elinkswitch_usb_out_buff[0];
+        response_host.data[1] = elinkswitch_usb_out_buff[1];
+        response_host.data[2] = elinkswitch_usb_out_buff[2];
+        response_host.data[3] = elinkswitch_usb_out_buff[3];
         printf("Response USB_GET_VGA_PORT_STATUS \r\n");
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
@@ -242,7 +250,8 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
         response_host.opcode = USB_SET_USB_PORT;
         response_host.opcode_status = 0x01;
         //Notify and get result
-        elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,NULL, 0,NULL, 0);
+        elinkswitch_usb_in_buff[0] = usb_msg->data[0];
+        elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
         printf("Response USB_SET_USB_PORT \r\n");
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
@@ -252,7 +261,8 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
         response_host.opcode = USB_SET_VGA_PORT;
         response_host.opcode_status = 0x01;
         //Notify and get result
-        elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS,NULL, 0,NULL, 0);
+        elinkswitch_usb_in_buff[0] = usb_msg->data[0];
+        elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
         printf("Response USB_SET_VGA_PORT \r\n");
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
