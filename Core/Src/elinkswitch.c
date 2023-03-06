@@ -11,7 +11,10 @@
 * INCLUDES
 ************************************/
 #include "elinkswitch.h"
-#include <stdint.h>
+#include "elinkswitch_gpio.h"
+#include "main.h"
+
+#include <stdio.h>
 /************************************
 * PRIVATE PREPROCESSOR DEFINES
 ************************************/
@@ -124,10 +127,56 @@ static bool lc_elinkswitch_state_switch_to_receive_usb_command(elinkswitch_recei
 {
   if(elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED)
   {
-    elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_USB_COMMAND;
+	  /**
+	   * uint8_t channelSelect = 0;
+uint8_t edidStatus;
+uint8_t vgaStatus[4];
+uint8_t usbStatus[4];
+	   */
+	  if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS)
+	  {
+		  if(out)
+		  {
+			  out[0] = usbStatus[0];
+			  out[1] = usbStatus[1];
+			  out[2] = usbStatus[2];
+			  out[3] = usbStatus[3];
+		  }
+		  if(out_length)
+		  {
+			  *out_length = 4;
+		  }
+
+	  }else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS)
+	  {
+		  if(out)
+		  {
+			  out[0] = vgaStatus[0];
+			  out[1] = vgaStatus[1];
+			  out[2] = vgaStatus[2];
+			  out[3] = vgaStatus[3];
+		  }
+		  if(out_length)
+		  {
+			  *out_length = 4;
+		  }
+	  }else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_STORED_VGA_ID)
+	  {
+
+	  }else if((event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS) || (event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS))
+	  {
+		  if(in)
+		  {
+			  channelSelect = in[0];
+		  }
+	  }else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_STORED_VGA_ID)
+	  {
+
+	  }
+	  elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_USB_COMMAND;
     
-    elinkswitch_state_changed = true;
-    return true;
+	  elinkswitch_state_changed = true;
+	  return true;
   }
   return false;
 }
@@ -143,7 +192,7 @@ static bool lc_elinkswitch_state_switch_to_receive_usb_command(elinkswitch_recei
 */
 static bool lc_elinkswitch_receive_btn_event(elinkswitch_button_event_e btn_event)
 {
-  printf("receivr event button %d \r\n", btn_event);
+  printf("receive event button %d \r\n", btn_event);
   if((elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED) || (elinkswitch_current_state == ELINKSWITCH_STATE_RECEIVED_USB_COMMAND))
   {
     if(btn_event != ELINKSWITCH_BUTTON5_ON_RELEASE)
