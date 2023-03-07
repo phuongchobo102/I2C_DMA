@@ -86,6 +86,7 @@ uint8_t read_flash_checked()
 void store_info_vga_flash(uint8_t *bufferVGA)
 {
     uint8_t buff132[132];
+    uint8_t ret;
     crcValue.crcValue32 = HAL_CRC_Accumulate(&hcrc, (uint32_t *)bufferVGA, sizeof(bufferVGA));
     for (uint8_t i = 0; i < sizeof(buff132); i++)
     {
@@ -95,6 +96,14 @@ void store_info_vga_flash(uint8_t *bufferVGA)
             buff132[i] = crcValue.crcValue8[i - 128];
     }
     Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, sizeof(buff132));
+    if( !read_flash_checked()) {        //if check flash fail 
+      Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, sizeof(buff132));
+      if(!read_flash_checked()) {//re write flash fail 
+       //raise evetn write fail
+        return 0;
+      }
+    }
+ return 1;   
 }
 
 
