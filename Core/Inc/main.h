@@ -141,6 +141,13 @@ extern uint8_t vgaStatus[4];
 extern uint8_t usbStatus[4];
 extern uint16_t adcValue[4]; 
 
+
+uint8_t get_current_channel();
+void set_current_channel(uint8_t channel);
+uint8_t get_current_edid();
+uint8_t get_current_vga(uint8_t channel);
+uint8_t get_current_usb(uint8_t channel);
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

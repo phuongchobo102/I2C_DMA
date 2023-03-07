@@ -18,23 +18,27 @@ union crcValue
 */
 uint8_t is_VGA_detect()
 {
+    uint8_t ret;
     uint8_t compareBuffer[5] = {0x00, 0xff, 0xff, 0xff, 0xff};
-    HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128, VGA_EDID_BYTE, 100); // TODO: change to ReceiveDMA
-    for (uint8_t i = 0; i < VGA_EDID_BYTE; i++)                                                  // print
+    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128, VGA_EDID_BYTE, 100); // TODO: change to ReceiveDMA
+    if (ret == HAL_OK)
     {
-        printf("0x%02x ", i2c1ValueBuff128[i]);
-        if (i % 8 == 7)
-            printf("\r\n");
+        for (uint8_t i = 0; i < VGA_EDID_BYTE; i++) // print
+        {
+            printf("0x%02x ", i2c1ValueBuff128[i]);
+            if (i % 8 == 7)
+                printf("\r\n");
+        }
+        ret = strncmp(i2c1ValueBuff128, compareBuffer, 5);
+        if (ret == 0) // thid is VGA device
+            return 1;
     }
-    uint8_t ret = strncmp(i2c1ValueBuff128, compareBuffer, 5);
-    if (ret == 0) // thid is VGA device
-        return 1;
     return 0;
 }
 
 /*
 //  function:       is_VGA_diff_flash :
-//  parameters:             2 buffer 
+//  parameters:             2 buffer
 //  returns:            0 if same, 1 if different
 //  description:     check buffer
 */
@@ -52,7 +56,7 @@ uint8_t is_VGA_diff_flash(uint8_t *localBuff, uint8_t *deviceBuff)
 /*
 //  function:       read_flash_checked :
 //  parameters:             none
-//  returns:            0 if read and check fail 
+//  returns:            0 if read and check fail
 //  description:     read flash and check crc
 */
 uint8_t read_flash_checked()
@@ -79,11 +83,11 @@ uint8_t read_flash_checked()
 
 /*
 //  function: store_info_vga_flash :
-//  parameters: buffer 128 bytes 
-//  returns: none - should return result 
+//  parameters: buffer 128 bytes
+//  returns: none - should return result
 //  description:     store info to flash
 */
-void store_info_vga_flash(uint8_t *bufferVGA)
+uint8_t store_info_vga_flash(uint8_t *bufferVGA)
 {
     uint8_t buff132[132];
     uint8_t ret;
@@ -96,23 +100,24 @@ void store_info_vga_flash(uint8_t *bufferVGA)
             buff132[i] = crcValue.crcValue8[i - 128];
     }
     Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, sizeof(buff132));
-    if( !read_flash_checked()) {        //if check flash fail 
-      Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, sizeof(buff132));
-      if(!read_flash_checked()) {//re write flash fail 
-       //raise evetn write fail
-        return 0;
-      }
+    if (!read_flash_checked())
+    { // if check flash fail
+        Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, sizeof(buff132));
+        if (!read_flash_checked())
+        { // re write flash fail
+            // raise evetn write fail
+            return 0;
+        }
     }
- return 1;   
+    return 1;
 }
-
 
 //////////////////////////////////////////////////////////////// PUBLIC FUNCTIONS //////////////////////////////////////////////////////////////////
 /*
 //  function: vga_init :
 //  parameters: none
 //  returns: none
-//  description:     init VGA 
+//  description:     init VGA
 */
 void vga_init()
 {
@@ -137,7 +142,7 @@ void vga_init()
 //  function: vga_tasks :
 //  parameters: none
 //  returns: none
-//  description: 
+//  description:
 */
 void vga_tasks()
 {
@@ -145,11 +150,12 @@ void vga_tasks()
     {
         lastTimeTaskEDID = HAL_GetTick();
         // if vga device
-        if (is_VGA_detect())  //if have VGA
+        if (is_VGA_detect()) // if have VGA
         {
-            read_flash_checked();    //read local flash
-            if(is_VGA_diff_flash(flashBufferVGA128, i2c1ValueBuff128)){ //if VGA != localBuff
-                store_info_vga_flash(i2c1ValueBuff128);    //storage new VGA EDID
+            read_flash_checked(); // read local flash
+            if (is_VGA_diff_flash(flashBufferVGA128, i2c1ValueBuff128))
+            {                                           // if VGA != localBuff
+                store_info_vga_flash(i2c1ValueBuff128); // storage new VGA EDID
             }
         }
     }
