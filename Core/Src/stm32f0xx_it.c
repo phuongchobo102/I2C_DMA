@@ -128,6 +128,7 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
 	elsgpio_1ms_elapsed();
 	elinkswitch_1ms_elapsed();
+//	usb_kvm_switch_1ms_elapsed();
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */

@@ -47,6 +47,7 @@ elinkswitch_state_change_event elinkswitch_state_change_event_array[ELINKSWITCH_
 elinkswitch_state_e elinkswitch_current_state = ELINKSWITCH_STATE_NOT_INIT;
 elinkswitch_state_change_event_listener_t elinkswitch_state_change_event_listener;
 elinkswitch_usb_trigger_t elinkswitch_usb_trigger;
+bool is_elinkswitch_usb_trigger_set;
 //elinkswitch_button_event elinkswitch_receive_button_event;
 
 volatile bool elinkswitch_state_changed = false;
@@ -177,6 +178,9 @@ uint8_t usbStatus[4];
     
 	  elinkswitch_state_changed = true;
 	  return true;
+  }else
+  {
+	  printf("\r\n elinkswitch_current_state is not elinkswitch_current_state=%d,instead of %d(ELINKSWITCH_STATE_AUTHORIZED) \r\n",elinkswitch_current_state,ELINKSWITCH_STATE_AUTHORIZED);
   }
   return false;
 }
@@ -230,6 +234,7 @@ void elinkswitch_init(void)
   elinkswitch_usb_trigger.authorized = lc_elinkswitch_state_switch_to_authorized;
   elinkswitch_usb_trigger.back_to_inited = lc_elinkswitch_state_switch_back_to_inited;
   elinkswitch_usb_trigger.receive_usb_command = lc_elinkswitch_state_switch_to_receive_usb_command;
+  is_elinkswitch_usb_trigger_set = false;
   /**/
   //	elinkswitch_receive_button_event = lc_elinkswitch_receive_btn_event;
   elsgpio_register_button_event_listener(lc_elinkswitch_receive_btn_event);
@@ -268,9 +273,17 @@ bool elinkswitch_register_state_change_event_listener(elinkswitch_state_change_e
 */
 bool elinkswitch_get_usb_triggers(elinkswitch_usb_trigger_t *triggers)
 {
-	if(!triggers)
+	//if(!triggers)
+	if(!is_elinkswitch_usb_trigger_set)
 	{
-		triggers = &elinkswitch_usb_trigger;
+		if(!triggers)
+		{
+			triggers = &elinkswitch_usb_trigger;
+		}
+		triggers->authorized = elinkswitch_usb_trigger.authorized;
+		triggers->back_to_inited = elinkswitch_usb_trigger.back_to_inited;
+		triggers->receive_usb_command = elinkswitch_usb_trigger.receive_usb_command;
+		is_elinkswitch_usb_trigger_set = true;
 		return true;
 	}else
 	{

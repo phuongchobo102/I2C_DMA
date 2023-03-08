@@ -38,5 +38,6 @@ void process_usb_msg(usb_msg_format_t *usb_msg);
 void authenKVM(void);
 
 void usb_kvm_switch_init(void);
+//void usb_kvm_switch_1ms_elapsed(void);
 
 
