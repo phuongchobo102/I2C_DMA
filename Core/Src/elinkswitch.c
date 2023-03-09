@@ -125,7 +125,7 @@ static bool lc_elinkswitch_state_switch_back_to_inited(void)
 */
 static bool lc_elinkswitch_state_switch_to_receive_usb_command(elinkswitch_received_usb_command_event_e event,const uint8_t *in,uint16_t in_length,uint8_t *out,uint16_t *out_length)
 {
-  if(elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED)
+//  if(elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED)
   {
 	  /**
 	   * uint8_t channelSelect = 0;
@@ -133,6 +133,7 @@ uint8_t edidStatus;
 uint8_t vgaStatus[4];
 uint8_t usbStatus[4];
 	   */
+    printf("go to lc_elinkswitch_state_switch_to_receive_usb_command \r\n");
 	  if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS)
 	  {
 		  if(out)
@@ -268,14 +269,14 @@ bool elinkswitch_register_state_change_event_listener(elinkswitch_state_change_e
 */
 bool elinkswitch_get_usb_triggers(elinkswitch_usb_trigger_t *triggers)
 {
-	if(!triggers)
-	{
+//	if(!triggers)
+//	{
 		triggers = &elinkswitch_usb_trigger;
 		return true;
-	}else
-	{
-		return false;
-	}
+//	}else
+//	{
+//		return false;
+//	}
 }
 
 /*!

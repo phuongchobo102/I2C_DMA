@@ -186,6 +186,7 @@ int main(void)
   HAL_GPIO_WritePin(KVMSW_EN_GPIO_Port, KVMSW_EN_Pin, 1);
   elinkswitch_init();
   elsgpio_init();
+//  authenKVM_init();
   HAL_ADCEx_Calibration_Start(&hadc);
   init_IS31FL3218();
   usb_kvm_switch_init();
@@ -255,11 +256,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    elsgpio_task();
-    led_task();
-    elinkswitch_task();
-    vga_tasks();
-    HAL_Delay(1);
+//    elsgpio_task();
+//    led_task();
+//    elinkswitch_task();
+//    vga_tasks();
+    authenKVM();
+//    HAL_Delay(1);
     
 /*      
     if (HAL_WWDG_Refresh(&WwdgHandle) != HAL_OK)

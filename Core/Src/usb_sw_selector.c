@@ -49,6 +49,15 @@ void usb_sw_select(uint8_t portIndex) {
 		break;
 	}
 }
+                
+void authenKVM_init(void)
+ {
+    if(elinkswitch_get_usb_triggers(&elinkswitch_usb_trigger))
+          printf("Successful \r\n");
+                else
+                printf("Failed \r\n");
+                
+ }
 
 
 void authenKVM(void)
@@ -92,7 +101,7 @@ void authenKVM(void)
           case USB_AUTHEN_FINISH:
             response_host.header = USB_HEADER;
             response_host.opcode = USB_AUTHEN_FINISH;
-            response_host.opcode_status = 0x00;
+            response_host.opcode_status = 0x01;
             printf("Receive USB_AUTHEN_FINISH \r\n");
             
             break;             
@@ -133,26 +142,32 @@ void authenKVM(void)
               USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
               printf("Go to USB_AUTHEN_ING \r\n");
               switch_status = USB_AUTHEN_ING;
-              //Notify
-              elinkswitch_usb_trigger.authorized();
+              
             }
             else
               printf("USB_INIT \r\n");
             
             break;            
           case USB_AUTHEN_ING:
-            if(usb_msg->opcode == USB_AUTHEN_ING)
+            if(usb_msg->opcode == USB_AUTHEN_FINISH)
             {
                 AES_ECB_decrypt(usb_msg->data, (const uint8_t*)key_aes, tmp_1, 16);
+                
+                USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+                switch_status = USB_AUTHEN_FINISH;
+                //Notify
+ //               elinkswitch_usb_trigger.authorized();
                 // compare UID                
-                if(strncmp((const char *)p_UID, (const char *)tmp_1, 4)==0)
-                {
-                  switch_status = USB_AUTHEN_FINISH;
-                  response_host.len = 5;
-                  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
-                }
-                else
-                   printf("Wrong UID \r\n");
+//                if(strncmp((const char *)p_UID, (const char *)tmp_1, 4)==0)
+//                {
+//                  switch_status = USB_AUTHEN_FINISH;
+//                  response_host.len = 5;
+//                  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+//                  //Notify
+//                  elinkswitch_usb_trigger.authorized();
+//                }
+//                else
+//                   printf("Wrong UID \r\n");
             }
             else
               printf("USB_AUTHEN_ING \r\n");
@@ -178,6 +193,8 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 {  
   uint8_t i;
   usb_msg_format_t response_host;  
+  
+  printf("process_usb_msg :0x%02x \r\n", usb_msg->opcode);
   
   if(usb_msg->header == USB_HEADER)
   {
@@ -469,7 +486,7 @@ void usb_kvm_switch_init(void)
 {
 	if(!elinkswitch_get_usb_triggers(&elinkswitch_usb_trigger))
 	{
-
+          printf("Failed---at usb_kvm_switch_init \r\n");
 	}
 }
 
