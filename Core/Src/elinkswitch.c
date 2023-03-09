@@ -47,6 +47,7 @@ elinkswitch_state_change_event elinkswitch_state_change_event_array[ELINKSWITCH_
 elinkswitch_state_e elinkswitch_current_state = ELINKSWITCH_STATE_NOT_INIT;
 elinkswitch_state_change_event_listener_t elinkswitch_state_change_event_listener;
 elinkswitch_usb_trigger_t elinkswitch_usb_trigger;
+bool is_elinkswitch_usb_trigger_set;
 //elinkswitch_button_event elinkswitch_receive_button_event;
 
 volatile bool elinkswitch_state_changed = false;
@@ -125,7 +126,7 @@ static bool lc_elinkswitch_state_switch_back_to_inited(void)
 */
 static bool lc_elinkswitch_state_switch_to_receive_usb_command(elinkswitch_received_usb_command_event_e event,const uint8_t *in,uint16_t in_length,uint8_t *out,uint16_t *out_length)
 {
-//  if(elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED)
+  if(elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED)
   {
 	  /**
 	   * uint8_t channelSelect = 0;
@@ -134,52 +135,60 @@ uint8_t vgaStatus[4];
 uint8_t usbStatus[4];
 	   */
     printf("go to lc_elinkswitch_state_switch_to_receive_usb_command \r\n");
-	  if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS)
-	  {
-		  if(out)
-		  {
-			  out[0] = usbStatus[0];
-			  out[1] = usbStatus[1];
-			  out[2] = usbStatus[2];
-			  out[3] = usbStatus[3];
-		  }
-		  if(out_length)
-		  {
-			  *out_length = 4;
-		  }
+    if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS)
+    {
+        if(out)
+        {
+            out[0] = usbStatus[0];
+            out[1] = usbStatus[1];
+            out[2] = usbStatus[2];
+            out[3] = usbStatus[3];
+        }
+        if(out_length)
+        {
+            *out_length = 4;
+        }
 
-	  }else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS)
-	  {
-		  if(out)
-		  {
-			  out[0] = vgaStatus[0];
-			  out[1] = vgaStatus[1];
-			  out[2] = vgaStatus[2];
-			  out[3] = vgaStatus[3];
-		  }
-		  if(out_length)
-		  {
-			  *out_length = 4;
-		  }
-	  }else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_STORED_VGA_ID)
-	  {
+    }
+    else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS)
+    {
+        if(out)
+        {
+            out[0] = vgaStatus[0];
+            out[1] = vgaStatus[1];
+            out[2] = vgaStatus[2];
+            out[3] = vgaStatus[3];
+        }
+        if(out_length)
+        {
+            *out_length = 4;
+        }
+    }
+    else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_GET_STORED_VGA_ID)
+    {
 
-	  }else if((event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS) || (event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS))
-	  {
-		  if(in)
-		  {
-			  channelSelect = in[0];
-		  }
-	  }else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_STORED_VGA_ID)
-	  {
+    }
+    else if((event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS) || (event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS))
+    {
+        if(in)
+        {
+              channelSelect = in[0];
+        }
+    }
+    else if(event == ELINKSWITCH_RECEIVED_USB_COMMAND_SET_STORED_VGA_ID)
+    {
 
-	  }
-	  elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_USB_COMMAND;
-    
-	  elinkswitch_state_changed = true;
-	  return true;
-  }
-  return false;
+    }
+    elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_USB_COMMAND;
+
+    elinkswitch_state_changed = true;
+    return true;
+    }
+    else
+    {
+          printf("\r\n elinkswitch_current_state is not elinkswitch_current_state=%d,instead of %d(ELINKSWITCH_STATE_AUTHORIZED) \r\n",elinkswitch_current_state,ELINKSWITCH_STATE_AUTHORIZED);
+    }
+    return false;
 }
 
 /*!
@@ -231,6 +240,7 @@ void elinkswitch_init(void)
   elinkswitch_usb_trigger.authorized = lc_elinkswitch_state_switch_to_authorized;
   elinkswitch_usb_trigger.back_to_inited = lc_elinkswitch_state_switch_back_to_inited;
   elinkswitch_usb_trigger.receive_usb_command = lc_elinkswitch_state_switch_to_receive_usb_command;
+  is_elinkswitch_usb_trigger_set = false;
   /**/
   //	elinkswitch_receive_button_event = lc_elinkswitch_receive_btn_event;
   elsgpio_register_button_event_listener(lc_elinkswitch_receive_btn_event);
@@ -269,14 +279,19 @@ bool elinkswitch_register_state_change_event_listener(elinkswitch_state_change_e
 */
 bool elinkswitch_get_usb_triggers(elinkswitch_usb_trigger_t *triggers)
 {
-//	if(!triggers)
-//	{
-		triggers = &elinkswitch_usb_trigger;
+
+	if(!is_elinkswitch_usb_trigger_set)
+	{
+		if(!triggers)
+		{
+			triggers = &elinkswitch_usb_trigger;
+		}
+		triggers->authorized = elinkswitch_usb_trigger.authorized;
+		triggers->back_to_inited = elinkswitch_usb_trigger.back_to_inited;
+		triggers->receive_usb_command = elinkswitch_usb_trigger.receive_usb_command;
+		is_elinkswitch_usb_trigger_set = true;
 		return true;
-//	}else
-//	{
-//		return false;
-//	}
+        }
 }
 
 /*!

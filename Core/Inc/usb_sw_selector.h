@@ -39,5 +39,6 @@ void authenKVM_init(void);
 void authenKVM(void);
 
 void usb_kvm_switch_init(void);
+//void usb_kvm_switch_1ms_elapsed(void);
 
 

@@ -29,73 +29,27 @@ unsigned char abm_tab[64] = //64 step auto to breath
 
 extern I2C_HandleTypeDef hi2c2;
 
-void init_IS31FL3218(void)
-{
-  uint8_t i;
-  uint8_t myBuf;
-  
-  HAL_GPIO_WritePin(LED_SHDN_GPIO_Port, LED_SHDN_Pin, GPIO_PIN_SET);
-  printf("init_IS31FL3218 \r\n");
-  
-  //  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x17, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //Reset
-  
-  myBuf = 0xFF;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x13, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
-  
-  myBuf = 0xFF;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x14, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
-  
-  myBuf = 0xFF;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x15, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
-  
-  for(i = 0x01;i <= 0x12;i++ )
-  {
-    myBuf = 0;
-    HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), i, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
-  }
-  
-  myBuf = 0;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
-  
-  myBuf = 0x01;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x00, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //CONFIGURES REGISTER to make Enable
-  
-}
 
+//////////////////////////////////////////////////////////////// PRIVATE FUNCTIONS //////////////////////////////////////////////////////////////////
+/**
+ * @brief set led
+ * @param index = 1~16, value
+ * @retval None
+ */
 void set_led(uint8_t index, uint8_t value){
   uint8_t myBuf = value;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), index, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
-  
   myBuf = 0;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
-  
   myBuf = 0x01;
   HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x00, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //CONFIGURES REGISTER to make Enable
 }
 
-void test_LED(void)
-{
-  uint8_t myBuf, i = 64;
-  
-  init_IS31FL3218();
-  
-  while(i)
-  {
-    for(uint8_t j = 1;j <= 0x12;j++) //the loop is write value to pwm register address
-    {
-      HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) 0xA8), j, I2C_MEMADD_SIZE_8BIT, &abm_tab[i-1], 1, 10); //write pwm value of Automatic breathing
-    }
-    myBuf = 0x00;
-    HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) 0xA8), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //updata pwm value to pwm register
-    i--; //i minus 1
-    
-    printf("i = %d \r\n", i);
-    //    delay(10); //delay 10ms
-  }
-  
-}
-
-
+/**
+ * @brief channel select -> led , set led red indicate which channel to select
+ * @param 
+ * @retval None
+ */
 void update_led_button(){
   if(lastChannelSelect != channelSelect){
     lastChannelSelect = channelSelect;
@@ -143,9 +97,52 @@ void update_led_edid(){
   }
 }
 
+//////////////////////////////////////////////////////////////// PUBLIC FUNCTIONS //////////////////////////////////////////////////////////////////
+/**
+ * @brief led init call before loop 
+ * @param None
+ * @retval None
+ */
+void init_IS31FL3218(void)
+{
+  uint8_t i;
+  uint8_t myBuf;
+  
+  HAL_GPIO_WritePin(LED_SHDN_GPIO_Port, LED_SHDN_Pin, GPIO_PIN_SET);
+  printf("init_IS31FL3218 \r\n");
+  
+  //  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x17, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //Reset
+  
+  myBuf = 0xFF;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x13, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
+  
+  myBuf = 0xFF;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x14, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
+  
+  myBuf = 0xFF;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x15, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10);
+  
+  for(i = 0x01;i <= 0x12;i++ )
+  {
+    myBuf = 0;
+    HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), i, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //ALL LED CTROL(Init pwm register)
+  }
+  
+  myBuf = 0;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
+  
+  myBuf = 0x01;
+  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) ADD_IS32FL2318), 0x00, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //CONFIGURES REGISTER to make Enable
+  
+}
 
+/**
+ * @brief led task call in loop 
+ * @param None
+ * @retval None
+ */
 void led_task(){
-  if(HAL_GetTick() - lastTimeScanLed > 1000 ) {
+  if(HAL_GetTick() - lastTimeScanLed > 997 ) {
     lastTimeScanLed = HAL_GetTick();
     update_led_button();
     update_led_usb();
@@ -155,3 +152,25 @@ void led_task(){
 }
 
 
+/**
+ * @brief test led  
+ * @param None
+ * @retval None
+ */
+void test_LED(void)
+{
+  uint8_t myBuf, i = 64;  
+  init_IS31FL3218();
+  while(i)
+  {
+    for(uint8_t j = 1;j <= 0x12;j++) //the loop is write value to pwm register address
+    {
+      HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) 0xA8), j, I2C_MEMADD_SIZE_8BIT, &abm_tab[i-1], 1, 10); //write pwm value of Automatic breathing
+    }
+    myBuf = 0x00;
+    HAL_I2C_Mem_Write(&hi2c2, ((uint16_t) 0xA8), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); //updata pwm value to pwm register
+    i--; //i minus 1
+    printf("i = %d \r\n", i);
+    //    delay(10); //delay 10ms
+  }  
+}

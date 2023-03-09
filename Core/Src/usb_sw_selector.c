@@ -484,9 +484,64 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 
 void usb_kvm_switch_init(void)
 {
-	if(!elinkswitch_get_usb_triggers(&elinkswitch_usb_trigger))
-	{
-          printf("Failed---at usb_kvm_switch_init \r\n");
-	}
+    if(!elinkswitch_get_usb_triggers(&elinkswitch_usb_trigger))
+    {
+        printf("\r\n elinkswitch_get_usb_triggers error \r\n");
+    }
 }
+
+//void usb_kvm_switch_1ms_elapsed(void)
+//{
+//	static uint16_t ms = 0;
+//	static uint8_t seconds = 0;
+//	ms++;
+//	if(ms == 1000)
+//	{
+//		ms = 0;
+//		seconds++;
+//		if(seconds == 60)
+//		{
+//			seconds = 0;
+//		}
+//		if(seconds == 5)
+//		{
+//			elinkswitch_usb_trigger.authorized();
+//		}else if(seconds == 10)
+//		{
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
+//		}else if(seconds == 15)
+//		{
+//			static uint8_t temp = 0;
+//			elinkswitch_usb_in_buff[0] = temp++;
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
+//		}else if(seconds == 20)
+//		{
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
+//		}else if(seconds == 25)
+//		{
+//			static uint8_t temp = 0;
+//			elinkswitch_usb_in_buff[0] = temp++;
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
+//		}else if(seconds == 30)
+//		{
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
+//		}else if(seconds == 35)
+//		{
+//			static uint8_t temp = 0;
+//			elinkswitch_usb_in_buff[0] = temp++;
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
+//		}else if(seconds == 40)
+//		{
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
+//		}else if(seconds == 45)
+//		{
+//			static uint8_t temp = 0;
+//			elinkswitch_usb_in_buff[0] = temp++;
+//			elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
+//		}else if(seconds == 50)
+//		{
+//			elinkswitch_usb_trigger.back_to_inited();
+//		}
+//	}
+//}
 
