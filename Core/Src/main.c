@@ -23,6 +23,7 @@
 #include "IS31FL3218.h"
 #include "aes.h"
 #include "usb_sw_selector.h"
+#include "system_switch.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -115,7 +116,7 @@ uint8_t get_current_channel()
 
 void set_current_channel(uint8_t channel)
 {
-  if (channel >= 0 && channel < 4)
+  if (channel >= 0 && channel <= 4)
     channelSelect = channel;
 }
 
@@ -182,7 +183,7 @@ int main(void)
   //  process_usb_msg();
 
   // init the system
-  HAL_GPIO_WritePin(KVMSW_EN_GPIO_Port, KVMSW_EN_Pin, 1);
+  system_switch_init();
   elinkswitch_init();
   elsgpio_init();
 //  authenKVM_init();
@@ -210,6 +211,7 @@ int main(void)
     elinkswitch_task();
     vga_tasks();
     authenKVM();
+    system_switch_tasks();
     HAL_Delay(1);
 
   /*
