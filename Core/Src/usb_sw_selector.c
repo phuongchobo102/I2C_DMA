@@ -269,7 +269,9 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
         //Notify and get result
         elinkswitch_usb_in_buff[0] = usb_msg->data[0];
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
-        printf("Response USB_SET_USB_PORT \r\n");
+        set_current_channel(usb_msg->data[0]);
+
+        printf("Response USB_SET_USB_PORT %d\r\n", usb_msg->data[0]);
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
         

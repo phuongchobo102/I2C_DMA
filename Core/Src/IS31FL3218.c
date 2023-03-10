@@ -9,7 +9,7 @@
 
 uint32_t lastTimeScanLed;
 
-uint8_t lastChannelSelect;
+uint8_t lastChannelSelect = 10;
 uint8_t lastedidStatus = 1;
 uint8_t lastvgaStatus[4];
 uint8_t lastusbStatus[4];
@@ -62,6 +62,11 @@ void update_led_button(){
   }
 }
 
+/**
+ * @brief led for USB detect
+ * @param 
+ * @retval None
+ */
 void update_led_usb(){
   for(uint8_t i=0;i<4;i++){
     if(lastusbStatus[i] != usbStatus[i]){
@@ -72,6 +77,12 @@ void update_led_usb(){
   }
 }
 
+
+/**
+ * @brief led for VGA detect
+ * @param 
+ * @retval None
+ */
 void update_led_vga(){
   for(uint8_t i=0;i<4;i++){
     if(lastvgaStatus[i] != vgaStatus[i]){
@@ -82,6 +93,12 @@ void update_led_vga(){
   }
 }
 
+
+/**
+ * @brief led for EDID
+ * @param 
+ * @retval None
+ */
 void update_led_edid(){
   if(lastedidStatus != edidStatus){
     lastedidStatus = edidStatus;
@@ -142,7 +159,7 @@ void init_IS31FL3218(void)
  * @retval None
  */
 void led_task(){
-  if(HAL_GetTick() - lastTimeScanLed > 997 ) {
+  if(HAL_GetTick() - lastTimeScanLed > 557 ) {
     lastTimeScanLed = HAL_GetTick();
     update_led_button();
     update_led_usb();
