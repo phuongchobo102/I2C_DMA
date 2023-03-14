@@ -50,12 +50,12 @@ void set_led(uint8_t index, uint8_t value)
  */
 void update_led_button()
 {
-  if (lastChannelSelectLed != channelSelect)
+  if (lastChannelSelectLed != get_current_channel())
   {
-    lastChannelSelectLed = channelSelect;
+    lastChannelSelectLed = get_current_channel();// channelSelect;
     for (uint8_t i = 0; i < 4; i++)
     {
-      if (channelSelect == i)
+      if (get_current_channel() == i)
         set_led(i * 3 + RED_OFFSET, 109);
       else
         set_led(i * 3 + RED_OFFSET, 0);
@@ -72,10 +72,10 @@ void update_led_usb()
 {
   for (uint8_t i = 0; i < 4; i++)
   {
-    if (lastusbStatus[i] != usbStatus[i])
+    if (lastusbStatus[i] != get_current_usb(i))
     {
-      lastusbStatus[i] = usbStatus[i];
-      if (usbStatus[i])
+      lastusbStatus[i] = get_current_usb(i);
+      if (get_current_usb(i))
         set_led(i * 3 + GREEN_OFFSET, 109);
       else
         set_led(i * 3 + GREEN_OFFSET, 0);
@@ -92,10 +92,10 @@ void update_led_vga()
 {
   for (uint8_t i = 0; i < 4; i++)
   {
-    if (lastvgaStatus[i] != vgaStatus[i])
+    if (lastvgaStatus[i] != get_current_vga(i) )
     {
-      lastvgaStatus[i] = vgaStatus[i];
-      if (vgaStatus[i])
+      lastvgaStatus[i] = get_current_vga(i);
+      if (get_current_vga(i))
         set_led(i * 3 + BLUE_OFFSET, 109);
       else
         set_led(i * 3 + BLUE_OFFSET, 0);
@@ -110,10 +110,10 @@ void update_led_vga()
  */
 void update_led_edid()
 {
-  if (lastedidStatus != edidStatus)
+  if (lastedidStatus != get_current_edid())
   {
-    lastedidStatus = edidStatus;
-    if (edidStatus)
+    lastedidStatus = get_current_edid();
+    if (get_current_edid())
     {
       set_led(LED_EDID_OFFSET + BLUE_OFFSET, 0);
       set_led(LED_EDID_OFFSET + 3 + BLUE_OFFSET, 100);

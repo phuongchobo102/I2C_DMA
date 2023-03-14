@@ -124,19 +124,33 @@ uint8_t get_current_edid()
 {
   return edidStatus;
 }
+void set_current_edid(uint8_t value)
+{
+  edidStatus = value;
+}
 
 uint8_t get_current_vga(uint8_t channel)
 {
-  if (channel < 4 && channel >= 0)
+  if (channel < 5 && channel >= 0)
     return vgaStatus[channel];
   return 0;
+}
+void set_current_vga_status(uint8_t channel, uint8_t status)
+{
+  if (channel < 5 && channel >= 0)
+    vgaStatus[channel] = status;
 }
 
 uint8_t get_current_usb(uint8_t channel)
 {
-  if (channel < 4 && channel >= 0)
+  if (channel < 5 && channel >= 0)
     return usbStatus[channel];
   return 0;
+}
+void set_current_usb_status(uint8_t channel, uint8_t status)
+{
+  if (channel < 5 && channel >= 0)
+    usbStatus[channel] = status;
 }
 /**
  * @brief  The application entry point.

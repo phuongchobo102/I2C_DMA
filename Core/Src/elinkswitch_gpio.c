@@ -86,30 +86,6 @@ uint32_t get_tick(void)
 }
 
 
-//uint16_t read_adc_usb(uint8_t channel){
-//  uint16_t adcValue = 0;
-//  if (channel == 1) sConfig.Channel = ADC_CHANNEL_1;
-//  else if( channel ==3 ) sConfig.Channel = ADC_CHANNEL_3;  
-//  else if( channel ==4 ) sConfig.Channel = ADC_CHANNEL_4;
-//  else if( channel ==6 ) sConfig.Channel = ADC_CHANNEL_6;
-//  else return 0;
-////  sConfig.Rank = channel;
-//  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-//  {
-//    Error_Handler(); 
-//  }
-//  
-//  HAL_ADC_Start(&hadc);
-//  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-//  adcValue = HAL_ADC_GetValue(&hadc);
-//  HAL_ADC_Stop(&hadc);
-////  sConfig.Rank = 0;
-////  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-////  {
-////    Error_Handler();
-////  }
-//  return adcValue;
-//}
 /**
 * \brief           Get input state callback 
 * \param           lw: LwBTN instance
@@ -298,7 +274,8 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     case '1'...'4': //button
       printf("Button %c Pressed \r\n", currentButton);
       currentButton -= '1' ;  //convert to 0...3
-      channelSelect =  currentButton;
+//      channelSelect =  currentButton;
+      set_current_channel(currentButton);
       if(  elinkswitch_receive_button_event) {
         elinkswitch_receive_button_event(ELINKSWITCH_BUTTON1_ON_RELEASE + currentButton);
       }
@@ -306,16 +283,24 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     case '5'...'8': //vga detect
       currentButton -= '5' ;
       printf("VGA detect OUT %d\r\n", currentButton);   
-      vgaStatus[currentButton] = 0;
+//      vgaStatus[currentButton] = 0;
+      set_current_vga_status(currentButton, 0);
+       if(  elinkswitch_receive_button_event) {
+        elinkswitch_receive_button_event(ELINKSWITCH_VGA_ON_RELEASE );
+      }
       break;
     case 'a'...'d': //usb detect
       currentButton -= 'a';
       printf("USB detect OUT %d\r\n", currentButton); 
-      usbStatus[currentButton] = 0;
+//      usbStatus[currentButton] = 0;
+      set_current_usb_status(currentButton, 0);
+      if(  elinkswitch_receive_button_event) {
+        elinkswitch_receive_button_event(ELINKSWITCH_USB_ON_RELEASE );
+      }
       break;
     case '0': //button EDID
-      edidStatus = (edidStatus + 1) % 2;
-      printf("Button EDID Pressed %d\r\n", edidStatus);
+      set_current_edid((get_current_edid() + 1) % 2);// edidStatus = (edidStatus + 1) % 2;
+//      printf("Button EDID Pressed %d\r\n", edidStatus);
       if(  elinkswitch_receive_button_event) {
         elinkswitch_receive_button_event(ELINKSWITCH_BUTTON5_ON_RELEASE );
       }
@@ -329,12 +314,20 @@ void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     case 'a'...'d': //usb detect
       currentButton -= 'a';
       printf("USB detect plug IN %d\r\n", currentButton); 
-      usbStatus[currentButton] = 1;
+//      usbStatus[currentButton] = 1;
+      set_current_usb_status(currentButton, 1);
+            if(  elinkswitch_receive_button_event) {
+        elinkswitch_receive_button_event(ELINKSWITCH_USB_ON_RELEASE );
+      }
       break;
     case '5'...'8': //vga detect
       currentButton -= '5' ;
       printf("VGA detect IN %d\r\n", currentButton);    
-      vgaStatus[currentButton] = 1;
+//      vgaStatus[currentButton] = 1;
+      set_current_vga_status(currentButton, 1);
+            if(  elinkswitch_receive_button_event) {
+        elinkswitch_receive_button_event(ELINKSWITCH_VGA_ON_RELEASE );
+      }
       break;
     default: 
       break;
@@ -352,6 +345,7 @@ void lc_elsgpio_elinkswitch_state_change_event(elinkswitch_state_e new_state)
 {
   //ToDo: Handle state change here
   printf("\r\n Change to state=%d \r\n",new_state);
+
 }
 /************************************
 * GLOBAL FUNCTIONS
@@ -365,39 +359,6 @@ void lc_elsgpio_elinkswitch_state_change_event(elinkswitch_state_e new_state)
 */
 bool elsgpio_init(void)
 {
-  //LL_GPIO_InitTypeDef gpio_initstruct;
-  
-  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-  //  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-  //  
-  //  LL_GPIO_SetPinMode(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE1_GPIO_PORT, ELS_USB_SENSE1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  //  LL_GPIO_SetPinMode(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE2_GPIO_PORT, ELS_USB_SENSE2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  //  LL_GPIO_SetPinMode(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE3_GPIO_PORT, ELS_USB_SENSE3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  //  LL_GPIO_SetPinMode(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_USB_SENSE4_GPIO_PORT, ELS_USB_SENSE4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  //  
-  //  LL_GPIO_SetPinMode(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_BUTTON1_GPIO_PORT, ELS_BUTTON1_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  //  LL_GPIO_SetPinMode(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_BUTTON2_GPIO_PORT, ELS_BUTTON2_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  //  LL_GPIO_SetPinMode(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_BUTTON3_GPIO_PORT, ELS_BUTTON3_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  //  LL_GPIO_SetPinMode(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_MODE_INPUT);
-  //  LL_GPIO_SetPinPull(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_PULL_NO);
-  //  LL_GPIO_SetPinSpeed(ELS_BUTTON4_GPIO_PORT, ELS_BUTTON4_PIN, LL_GPIO_SPEED_FREQ_HIGH);
-  
-  
   /* */
   elinkswitch_register_state_change_event_listener(lc_elsgpio_elinkswitch_state_change_event);
   /* lwbt*/
