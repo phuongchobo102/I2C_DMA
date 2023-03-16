@@ -141,8 +141,7 @@ void authenKVM(void)
               response_host.len = 5 + 32;
               USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
               printf("Go to USB_AUTHEN_ING \r\n");
-              switch_status = USB_AUTHEN_ING;
-              
+              switch_status = USB_AUTHEN_ING;              
             }
             else
               printf("USB_INIT \r\n");

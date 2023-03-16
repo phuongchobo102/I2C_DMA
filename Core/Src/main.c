@@ -137,6 +137,9 @@ uint8_t get_current_usb(uint8_t channel)
     return usbStatus[channel];
   return 0;
 }
+
+
+#define ENABLE_WATCHDOG
 /**
  * @brief  The application entry point.
  * @retval int
@@ -194,8 +197,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  // init_WWDG();
-
+#ifdef ENABLE_WATCHDOG
+   init_WWDG();
+#endif
   //    test_LED();
   vga_init();
   /* USER CODE END 2 */
@@ -209,15 +213,16 @@ int main(void)
     led_task();
     elinkswitch_task();
     vga_tasks();
+    
     authenKVM();
-    HAL_Delay(1);
-
-  /*
+ 
+#ifdef ENABLE_WATCHDOG
       if (HAL_WWDG_Refresh(&WwdgHandle) != HAL_OK)
       {
         Error_Handler();
       }
-  //*/
+#endif
+      
   }
   /* USER CODE END 3 */
 }
