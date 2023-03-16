@@ -135,18 +135,22 @@ void Error_Handler(void);
 #define ELS_USB_SENSE4_PIN              USB4_SENSE_Pin
 
     extern ADC_HandleTypeDef hadc;
-extern uint8_t channelSelect ;
-extern uint8_t edidStatus;
-extern uint8_t vgaStatus[4];
-extern uint8_t usbStatus[4];
-extern uint16_t adcValue[4]; 
+// extern uint8_t channelSelect ;
+// extern uint8_t edidStatus;
+// extern uint8_t vgaStatus[4];
+// extern uint8_t usbStatus[4];
+// extern uint16_t adcValue[4]; 
 
 
 uint8_t get_current_channel();
 void set_current_channel(uint8_t channel);
 uint8_t get_current_edid();
+void set_current_edid(uint8_t value);
+
 uint8_t get_current_vga(uint8_t channel);
 uint8_t get_current_usb(uint8_t channel);
+void set_current_vga_status(uint8_t channel, uint8_t status);
+void set_current_usb_status(uint8_t channel, uint8_t status);
 
 /* USER CODE END Private defines */
 

@@ -1127,6 +1127,9 @@
                     <name>$PROJ_DIR$\..\Core\Src\stm32f0xx_it.c</name>
                 </file>
                 <file>
+                    <name>$PROJ_DIR$\..\Core\Src\system_switch.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Core\Src\usb_sw_selector.c</name>
                 </file>
                 <file>

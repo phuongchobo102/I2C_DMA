@@ -21,34 +21,34 @@ static uint16_t elinkswitch_usb_out_length;
 
 usb_msg_format_t *usb_msg;
 
-void usb_sw_enable(uint8_t isTrue){
-	//if(isTrue) 	HAL_GPIO_WritePin(USB_SW_ENABLE)
-	//else
-}
+// void usb_sw_enable(uint8_t isTrue){
+// 	//if(isTrue) 	HAL_GPIO_WritePin(USB_SW_ENABLE)
+// 	//else
+// }
 
-void usb_sw_select(uint8_t portIndex) {
+// void usb_sw_select(uint8_t portIndex) {
   
-    switch (portIndex) {
-	case 0:
-		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 0);
-		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 0);
-		break;
-	case 1:
-		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 1);
-		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 0);
-		break;
-	case 2:
-		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 0);
-		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 1);
-		break;
-	case 3:
-		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 1);
-		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 1);
-		break;
-	default:
-		break;
-	}
-}
+//     switch (portIndex) {
+// 	case 0:
+// 		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 0);
+// 		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 0);
+// 		break;
+// 	case 1:
+// 		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 1);
+// 		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 0);
+// 		break;
+// 	case 2:
+// 		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 0);
+// 		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 1);
+// 		break;
+// 	case 3:
+// 		HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, 1);
+// 		HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, 1);
+// 		break;
+// 	default:
+// 		break;
+// 	}
+// }
                 
 void authenKVM_init(void)
  {
@@ -155,18 +155,18 @@ void authenKVM(void)
                 USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
                 switch_status = USB_AUTHEN_FINISH;
                 //Notify
- //               elinkswitch_usb_trigger.authorized();
+               elinkswitch_usb_trigger.authorized();
                 // compare UID                
-//                if(strncmp((const char *)p_UID, (const char *)tmp_1, 4)==0)
-//                {
-//                  switch_status = USB_AUTHEN_FINISH;
-//                  response_host.len = 5;
-//                  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
-//                  //Notify
-//                  elinkswitch_usb_trigger.authorized();
-//                }
-//                else
-//                   printf("Wrong UID \r\n");
+               if(strncmp((const char *)p_UID, (const char *)tmp_1, 4)==0)
+               {
+                 switch_status = USB_AUTHEN_FINISH;
+                 response_host.len = 5;
+                 USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+                 //Notify
+                 elinkswitch_usb_trigger.authorized();
+               }
+               else
+                  printf("Wrong UID \r\n");
             }
             else
               printf("USB_AUTHEN_ING \r\n");
@@ -268,7 +268,10 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
         //Notify and get result
         elinkswitch_usb_in_buff[0] = usb_msg->data[0];
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
-        printf("Response USB_SET_USB_PORT \r\n");
+        // set_current_channel(usb_msg->data[0]);
+        response_host.data[0] = usb_msg->data[0];
+
+        printf("Response USB_SET_USB_PORT %d\r\n", usb_msg->data[0]);
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
         
@@ -280,6 +283,20 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
         elinkswitch_usb_in_buff[0] = usb_msg->data[0];
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
         printf("Response USB_SET_VGA_PORT \r\n");
+        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+        break;
+      case USB_GET_CHANNEL:
+       response_host.header = USB_HEADER;
+        response_host.opcode = USB_GET_CHANNEL;
+        response_host.opcode_status = 0x01;
+        //Notify and get result
+        elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_CHANNEL_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
+        //ToDo: Retrieve data from elinkswitch_usb_out_buff and send to USB host
+        response_host.data[0] = elinkswitch_usb_out_buff[0];
+//        response_host.data[1] = elinkswitch_usb_out_buff[1];
+//        response_host.data[2] = elinkswitch_usb_out_buff[2];
+//        response_host.data[3] = elinkswitch_usb_out_buff[3];
+        printf("Response USB_GET_CHANNEL_STATUS %d \r\n", elinkswitch_usb_out_buff[0]);
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
         

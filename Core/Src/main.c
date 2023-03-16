@@ -23,6 +23,7 @@
 #include "IS31FL3218.h"
 #include "aes.h"
 #include "usb_sw_selector.h"
+#include "system_switch.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -115,7 +116,7 @@ uint8_t get_current_channel()
 
 void set_current_channel(uint8_t channel)
 {
-  if (channel >= 0 && channel < 4)
+  if (channel >= 0 && channel <= 4)
     channelSelect = channel;
 }
 
@@ -123,27 +124,48 @@ uint8_t get_current_edid()
 {
   return edidStatus;
 }
+void set_current_edid(uint8_t value)
+{
+  edidStatus = value;
+}
 
 uint8_t get_current_vga(uint8_t channel)
 {
-  if (channel < 4 && channel >= 0)
+  if (channel < 5 && channel >= 0)
     return vgaStatus[channel];
   return 0;
+}
+void set_current_vga_status(uint8_t channel, uint8_t status)
+{
+  if (channel < 5 && channel >= 0)
+    vgaStatus[channel] = status;
 }
 
 uint8_t get_current_usb(uint8_t channel)
 {
-  if (channel < 4 && channel >= 0)
+  if (channel < 5 && channel >= 0)
     return usbStatus[channel];
   return 0;
 }
 
-
 #define ENABLE_WATCHDOG
+
+void set_current_usb_status(uint8_t channel, uint8_t status)
+{
+  if (channel < 5 && channel >= 0)
+    usbStatus[channel] = status;
+}
 /**
  * @brief  The application entry point.
  * @retval int
  */
+
+void __write(){}
+void __lseek(){}
+void __close(){}
+int remove(char const* a){
+return 1;
+}
 int main(void)
 {
   char tmp = 1;
@@ -185,7 +207,7 @@ int main(void)
   //  process_usb_msg();
 
   // init the system
-  HAL_GPIO_WritePin(KVMSW_EN_GPIO_Port, KVMSW_EN_Pin, 1);
+  system_switch_init();
   elinkswitch_init();
   elsgpio_init();
 //  authenKVM_init();
@@ -217,6 +239,11 @@ int main(void)
     authenKVM();
  
 #ifdef ENABLE_WATCHDOG
+
+    system_switch_tasks();
+    HAL_Delay(1);
+
+  //*
       if (HAL_WWDG_Refresh(&WwdgHandle) != HAL_OK)
       {
         Error_Handler();
