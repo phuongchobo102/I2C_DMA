@@ -156,6 +156,13 @@ void set_current_usb_status(uint8_t channel, uint8_t status)
  * @brief  The application entry point.
  * @retval int
  */
+
+void __write(){}
+void __lseek(){}
+void __close(){}
+int remove(char const* a){
+return 1;
+}
 int main(void)
 {
   char tmp = 1;

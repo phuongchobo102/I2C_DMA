@@ -42,8 +42,8 @@ typedef struct elinkswitch_state_change_event_listener_struct
  * EXPORTED VARIABLES DEFINITION
  ************************************/
 static elinkswitch_usb_trigger_t elinkswitch_usb_trigger;
-//static uint8_t elinkswitch_usb_out_buff[128];
-//static uint16_t elinkswitch_usb_out_length;
+// static uint8_t elinkswitch_usb_out_buff[128];
+// static uint16_t elinkswitch_usb_out_length;
 extern USBD_HandleTypeDef hUsbDeviceFS;
 /************************************
  * PRIVATE & STATIC CONSTANTS
@@ -151,10 +151,10 @@ uint8_t usbStatus[4];
     {
       if (out)
       {
-        out[0] = get_current_usb(0);// usbStatus[0];
-        out[1] = get_current_usb(1);//usbStatus[1];
-        out[2] = get_current_usb(2);//usbStatus[2];
-        out[3] = get_current_usb(3);//usbStatus[3];
+        out[0] = get_current_usb(0); // usbStatus[0];
+        out[1] = get_current_usb(1); // usbStatus[1];
+        out[2] = get_current_usb(2); // usbStatus[2];
+        out[3] = get_current_usb(3); // usbStatus[3];
       }
       if (out_length)
       {
@@ -165,10 +165,10 @@ uint8_t usbStatus[4];
     {
       if (out)
       {
-        out[0] = get_current_vga(0);//vgaStatus[0];
-        out[1] = get_current_vga(1);//vgaStatus[1];
-        out[2] = get_current_vga(2);//vgaStatus[2];
-        out[3] = get_current_vga(3);//vgaStatus[3];
+        out[0] = get_current_vga(0); // vgaStatus[0];
+        out[1] = get_current_vga(1); // vgaStatus[1];
+        out[2] = get_current_vga(2); // vgaStatus[2];
+        out[3] = get_current_vga(3); // vgaStatus[3];
       }
       if (out_length)
       {
@@ -179,7 +179,7 @@ uint8_t usbStatus[4];
     {
       if (out)
       {
-        out[0] = get_current_channel();//
+        out[0] = get_current_channel(); //
       }
       if (out_length)
       {
@@ -193,7 +193,7 @@ uint8_t usbStatus[4];
     {
       if (in)
       {
-//        channelSelect = in[0];
+        //        channelSelect = in[0];
         set_current_channel(in[0]);
         // set_current_channel(usb_msg->data[0]);
       }
@@ -227,21 +227,75 @@ static bool lc_elinkswitch_receive_btn_event(elinkswitch_button_event_e btn_even
   printf("receive event button %d \r\n", btn_event);
   if ((elinkswitch_current_state == ELINKSWITCH_STATE_AUTHORIZED) || (elinkswitch_current_state == ELINKSWITCH_STATE_RECEIVED_USB_COMMAND))
   {
-    if (btn_event != ELINKSWITCH_BUTTON5_ON_RELEASE)
+    // if (btn_event != ELINKSWITCH_BUTTON5_ON_RELEASE)
+    switch (btn_event)
     {
+    case ELINKSWITCH_BUTTON1_ON_RELEASE ... ELINKSWITCH_BUTTON4_ON_RELEASE:
       elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_BTN_EVENT;
 
       elinkswitch_state_changed = true;
-      usb_msg_format_t response_host;
-      response_host.header = USB_HEADER;
-      response_host.opcode = USB_GET_CHANNEL;
-      response_host.opcode_status = 0x01;
-    // Notify and get result
-    // elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_CHANNEL_STATUS, NULL, 0, elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
-    // ToDo: Retrieve data from elinkswitch_usb_out_buff and send to USB host
-      response_host.data[0] = get_current_channel();
-      printf("Response USB_GET_CHANNEL_STATUS %d \r\n", response_host.data[0]);
-      USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+      if (hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED)
+      {
+        usb_msg_format_t response_host;
+        response_host.header = USB_HEADER;
+        response_host.opcode = USB_GET_CHANNEL;
+        response_host.opcode_status = 0x01;
+        response_host.data[0] = get_current_channel();
+        printf("Response USB_GET_CHANNEL_STATUS %d \r\n", response_host.data[0]);
+        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+      }
+      break;
+    case ELINKSWITCH_USB_ON_CHANGE:
+      elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_BTN_EVENT;
+      elinkswitch_state_changed = true;
+      if (hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED)
+      {
+        usb_msg_format_t response_host;
+        response_host.header = USB_HEADER;
+        response_host.opcode = USB_GET_MOUSE_PORT_STATUS;
+        response_host.opcode_status = 0x01;
+        response_host.data[0] = get_current_usb(0);
+        response_host.data[1] = get_current_usb(1);
+        response_host.data[2] = get_current_usb(2);
+        response_host.data[3] = get_current_usb(3);
+        printf("Response USB_GET_MOUSE_PORT_STATUS %d \r\n", response_host.data[0]);
+        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+      }
+      break;
+    case ELINKSWITCH_VGA_ON_CHANGE:
+      elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_BTN_EVENT;
+      elinkswitch_state_changed = true;
+      if (hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED)
+      {
+        usb_msg_format_t response_host;
+        response_host.header = USB_HEADER;
+        response_host.opcode = USB_GET_VGA_PORT_STATUS;
+        response_host.opcode_status = 0x01;
+        response_host.data[0] = get_current_vga(0);
+        response_host.data[1] = get_current_vga(1);
+        response_host.data[2] = get_current_vga(2);
+        response_host.data[3] = get_current_vga(3);
+        printf("Response USB_GET_MOUSE_PORT_STATUS %d \r\n", response_host.data[0]);
+        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+      }
+      break;
+    case ELINKSWITCH_BUTTONEDID_ON_RELEASE:
+      elinkswitch_current_state = ELINKSWITCH_STATE_RECEIVED_BTN_EVENT;
+      elinkswitch_state_changed = true;
+      if (hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED)
+      {
+        usb_msg_format_t response_host;
+        response_host.header = USB_HEADER;
+        response_host.opcode = USB_GET_CHANNEL;
+        response_host.opcode_status = 0x01;
+        response_host.data[0] = get_current_channel();
+        response_host.data[1] = get_current_edid();
+        printf("Response USB_GET_MOUSE_PORT_STATUS %d \r\n", response_host.data[0]);
+        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+      }
+      break;
+    default:
+      break;
     }
     return true;
   }
@@ -273,7 +327,7 @@ void elinkswitch_init(void)
   elinkswitch_usb_trigger.receive_usb_command = lc_elinkswitch_state_switch_to_receive_usb_command;
   is_elinkswitch_usb_trigger_set = false;
   /**/
-  	// elinkswitch_receive_button_event = lc_elinkswitch_receive_btn_event;
+  // elinkswitch_receive_button_event = lc_elinkswitch_receive_btn_event;
   elsgpio_register_button_event_listener(lc_elinkswitch_receive_btn_event);
   /* Mark that elink switch is inited*/
   elinkswitch_current_state = ELINKSWITCH_STATE_INITED;
