@@ -9,7 +9,7 @@
 
 extern CRC_HandleTypeDef hcrc;
 extern I2C_HandleTypeDef hi2c2;
-
+extern I2C_HandleTypeDef hi2c1;
 void vga_init();
 void vga_tasks();
 

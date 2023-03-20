@@ -55,7 +55,7 @@ void update_led_button()
     lastChannelSelectLed = get_current_channel();// channelSelect;
     for (uint8_t i = 0; i < 4; i++)
     {
-      if (get_current_channel() == i)
+      if (get_current_channel() == (i+1))
         set_led(i * 3 + RED_OFFSET, 109);
       else
         set_led(i * 3 + RED_OFFSET, 0);

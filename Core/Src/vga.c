@@ -146,10 +146,10 @@ void vga_init()
 */
 void vga_tasks()
 {
-    if (HAL_GetTick() - lastTimeTaskEDID > 1000)
+    if (HAL_GetTick() - lastTimeTaskEDID > 1049)
     {
         lastTimeTaskEDID = HAL_GetTick();
-        // if vga device
+        // if vga device at output
         if (is_VGA_detect()) // if have VGA
         {
             read_flash_checked(); // read local flash
@@ -157,6 +157,23 @@ void vga_tasks()
             {                                           // if VGA != localBuff
                 store_info_vga_flash(i2c1ValueBuff128); // storage new VGA EDID
             }
+        }
+
+        // if vga device request from vga input
+        // check command is correct
+        // return buffer i2c1ValueBuff128
+
+        if (HAL_I2C_Slave_Receive_DMA(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128) != HAL_OK)
+        {
+            Error_Handler();
+        }
+
+        if (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY)
+            return;
+        if (HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128) != HAL_OK)
+        {
+            /* Transfer error in transmission process */
+            Error_Handler();
         }
     }
 }

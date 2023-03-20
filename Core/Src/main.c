@@ -48,12 +48,16 @@ ADC_HandleTypeDef hadc;
 DMA_HandleTypeDef hdma_adc;
 
 I2C_HandleTypeDef hi2c1;
+DMA_HandleTypeDef hdma_i2c1_rx;
 I2C_HandleTypeDef hi2c2;
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 
 UART_HandleTypeDef huart1;
+
+DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
+
 
 static WWDG_HandleTypeDef WwdgHandle;
 
@@ -241,7 +245,7 @@ int main(void)
 #ifdef ENABLE_WATCHDOG
 
     system_switch_tasks();
-    HAL_Delay(1);
+//    HAL_Delay(1);
 
   //*
       if (HAL_WWDG_Refresh(&WwdgHandle) != HAL_OK)
@@ -319,7 +323,7 @@ static void init_WWDG(void)
 {
   WwdgHandle.Instance = WWDG;
   WwdgHandle.Init.Prescaler = WWDG_PRESCALER_8;
-  WwdgHandle.Init.Window = 0x50;
+  WwdgHandle.Init.Window = 0x7f;
   WwdgHandle.Init.Counter = 0x7F;
   WwdgHandle.Init.EWIMode = WWDG_EWI_DISABLE;
 
@@ -417,7 +421,7 @@ static void MX_I2C1_Init(void)
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x2000090E;
-  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.OwnAddress1 = 160;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;

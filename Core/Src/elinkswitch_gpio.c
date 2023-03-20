@@ -307,7 +307,7 @@ void prv_btn_event(struct lwbtn *lw, struct lwbtn_btn *btn, lwbtn_evt_t evt)
       printf("Button %c Pressed \r\n", currentButton);
       currentButton -= '1'; // convert to 0...3
       //      channelSelect =  currentButton;
-      set_current_channel(currentButton);
+      set_current_channel(currentButton + 1);
       if (elinkswitch_receive_button_event)
       {
         elinkswitch_receive_button_event(ELINKSWITCH_BUTTON1_ON_RELEASE + currentButton);

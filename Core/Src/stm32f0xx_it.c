@@ -59,6 +59,8 @@ extern PCD_HandleTypeDef hpcd_USB_FS;
 extern I2C_HandleTypeDef hi2c1;
 /* USER CODE BEGIN EV */
 extern DMA_HandleTypeDef hdma_adc;
+extern DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
+extern DMA_HandleTypeDef hdma_i2c1_rx;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -171,6 +173,18 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
 
   /* USER CODE END DMA1_Channel1_IRQn 1 */
+}
+
+void DMA1_Channel2_3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel2_3_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel2_3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_memtomem_dma1_channel2);
+  HAL_DMA_IRQHandler(&hdma_i2c1_rx);
+  /* USER CODE BEGIN DMA1_Channel2_3_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel2_3_IRQn 1 */
 }
 /* USER CODE END 1 */
 /**
