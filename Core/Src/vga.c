@@ -18,6 +18,9 @@ union crcValue
 */
 uint8_t is_VGA_detect()
 {
+#if defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)
+
+#else
     uint8_t ret;
     uint8_t compareBuffer[5] = {0x00, 0xff, 0xff, 0xff, 0xff};
     ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128, VGA_EDID_BYTE, 100); // TODO: change to ReceiveDMA
@@ -33,6 +36,7 @@ uint8_t is_VGA_detect()
         if (ret == 0) // thid is VGA device
             return 1;
     }
+#endif /*defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)*/
     return 0;
 }
 
@@ -160,3 +164,10 @@ void vga_tasks()
         }
     }
 }
+
+#if defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
+{
+
+}
+#endif /*defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)*/

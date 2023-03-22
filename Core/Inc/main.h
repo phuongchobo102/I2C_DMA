@@ -50,6 +50,11 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+#define I2C2_DMA_ENABLE 1
+
+#define I2C2_DMA_INSTANCE_TX            DMA1_Channel2
+#define I2C2_DMA_INSTANCE_RX            DMA1_Channel3
+
 
 /* USER CODE END EM */
 

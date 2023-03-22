@@ -173,15 +173,24 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE END DMA1_Channel1_IRQn 1 */
 }
 /* USER CODE END 1 */
+
+/**
+  * @brief This function handles DMA1 channel 2 3 global interrupt.
+  */
+void DMA1_Channel2_3_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(hi2c2.hdmarx);
+	HAL_DMA_IRQHandler(hi2c2.hdmatx);
+}
 /**
   * @brief  This function handles I2C event and error interrupt request.  
   * @param  None
   * @retval None
   * @Note   This function is redefined in "main.h" and related to I2C data transmission     
   */
-void I2Cx_IRQHandler(void)
+void I2C2_IRQHandler(void)
 {
-  HAL_I2C_EV_IRQHandler(&hi2c1);
-  HAL_I2C_ER_IRQHandler(&hi2c1);  
+  HAL_I2C_EV_IRQHandler(&hi2c2);
+  HAL_I2C_ER_IRQHandler(&hi2c2);
 }
 
