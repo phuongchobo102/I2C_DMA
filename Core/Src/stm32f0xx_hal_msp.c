@@ -164,6 +164,8 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+    // static DMA_HandleTypeDef hdma_tx;
+  static DMA_HandleTypeDef hdma_rx;
   if (hi2c->Instance == I2C1)
   {
     /* USER CODE BEGIN I2C1_MspInit 0 */
@@ -222,6 +224,32 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
     /* Peripheral clock enable */
     __HAL_RCC_I2C2_CLK_ENABLE();
     /* USER CODE BEGIN I2C2_MspInit 1 */
+  // hdma_tx.Instance                 = I2Cx_DMA_INSTANCE_TX;
+  // hdma_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
+  // hdma_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
+  // hdma_tx.Init.MemInc              = DMA_MINC_ENABLE;
+  // hdma_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  // hdma_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+  // hdma_tx.Init.Mode                = DMA_NORMAL;
+  // hdma_tx.Init.Priority            = DMA_PRIORITY_LOW;
+  // HAL_DMA_Init(&hdma_tx);   
+  
+  // /* Associate the initialized DMA handle to the the I2C handle */
+  // __HAL_LINKDMA(hi2c, hdmatx, hdma_tx);
+    
+  hdma_rx.Instance                 = I2Cx_DMA_INSTANCE_RX;
+  hdma_rx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+  hdma_rx.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_rx.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  hdma_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+  hdma_rx.Init.Mode                = DMA_NORMAL;
+  hdma_rx.Init.Priority            = DMA_PRIORITY_HIGH;
+
+  HAL_DMA_Init(&hdma_rx);
+    
+  /* Associate the initialized DMA handle to the the I2C handle */
+  __HAL_LINKDMA(hi2c, hdmarx, hdma_rx);
 
     /* USER CODE END I2C2_MspInit 1 */
   }

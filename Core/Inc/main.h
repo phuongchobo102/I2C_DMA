@@ -140,7 +140,7 @@ void Error_Handler(void);
 // extern uint8_t vgaStatus[4];
 // extern uint8_t usbStatus[4];
 // extern uint16_t adcValue[4]; 
-
+#define I2C_TIMING    0x00B01A4B //  0x00A51314
 
 uint8_t get_current_channel();
 void set_current_channel(uint8_t channel);
