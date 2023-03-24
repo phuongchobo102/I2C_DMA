@@ -41,7 +41,7 @@ typedef struct elinkswitch_state_change_event_listener_struct
 /************************************
  * EXPORTED VARIABLES DEFINITION
  ************************************/
-static elinkswitch_usb_trigger_t elinkswitch_usb_trigger;
+//static elinkswitch_usb_trigger_t elinkswitch_usb_trigger;
 // static uint8_t elinkswitch_usb_out_buff[128];
 // static uint16_t elinkswitch_usb_out_length;
 extern USBD_HandleTypeDef hUsbDeviceFS;

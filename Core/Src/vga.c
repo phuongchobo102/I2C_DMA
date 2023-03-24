@@ -6,13 +6,15 @@ uint32_t lastTimeTaskEDID;
 
 uint8_t i2c1ValueBuff128[128];
 uint8_t flashBufferVGA128[128];
-uint8_t flashBuff132[132];
+uint32_t flashBuff132[132];
 uint8_t ret;
 uint8_t i;
+uint8_t flagI2CRxCplt = 0;
+uint8_t iBufferCounter = 0;
 union crcValue
 {
-    uint32_t crcValue32;
-    uint8_t crcValue8[4];
+  uint32_t crcValue32;
+  uint8_t crcValue8[4];
 } crcValue;
 
 //////////////////////////////////////////////////////////////// LOCAL FUNCTIONS //////////////////////////////////
@@ -21,56 +23,88 @@ union crcValue
 */
 uint8_t is_VGA_detect()
 {
-    uint8_t compareBuffer[5] = {0xff, 0xff, 0xff, 0xff, 0xff};
-    ret = HAL_I2C_IsDeviceReady(&hi2c2, VGA_I2C_ADDRESS << 1, 1, 10);
-    if (ret != HAL_OK)
-        return 0;
-    ret = HAL_I2C_GetState(&I2cHandle);
-    if (ret != HAL_I2C_STATE_READY)
-        return 0;
-    // ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128, VGA_EDID_BYTE, 100); // TODO: change to ReceiveDMA
-    ret = HAL_I2C_Master_Receive_DMA(&hi2c2, VGA_I2C_ADDRESS, i2c1ValueBuff128, VGA_EDID_BYTE);
+  
+  uint8_t ret;
+  uint8_t compareBuffer[5] = {0x00, 0xff, 0xff, 0xff, 0xff};
+  uint8_t c[1];
+  
+  if (iBufferCounter < 5)
+  {
+    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, c, 1, 100); // TODO: change to ReceiveDMA
     if (ret == HAL_OK)
     {
-        for (uint8_t i = 0; i < VGA_EDID_BYTE; i++) // print
-        {
-            printf("0x%02x ", i2c1ValueBuff128[i]);
-            if (i % 8 == 7)
-                printf("\r\n");
-        }
-        ret = strncmp(i2c1ValueBuff128, compareBuffer, 5);
-        if (ret == 0)
-        { // thid is VGA device
-            printf("compare OK\r\n");
-            return 1;
-        }
+      if (compareBuffer[iBufferCounter] == c[0])
+      {
+        i2c1ValueBuff128[iBufferCounter] = c[0];
+        iBufferCounter++;
+      }
+      else
+      {
+        iBufferCounter = 0;
+      }
     }
-    else
-        printf("I2c2 receive not OK \r\n");
-    do
+  }
+  else if (iBufferCounter < 128)
+  {
+    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128 + iBufferCounter , 120, 100); // TODO: change to ReceiveDMA
+    if (ret == HAL_OK)
     {
-        ret = HAL_I2C_GetState(&hi2c2);
-    } while (ret != HAL_I2C_STATE_READY);
-
-    return 0;
+//      i2c1ValueBuff128[iBufferCounter] = c[0];
+//      iBufferCounter++;
+      iBufferCounter = 0;
+      return 1;
+    }
+  }
+  else
+  { // collect 128 byte buffer done
+    iBufferCounter = 0;
+    return 1;
+    
+  }
+  return 0;
+  
+  // #if defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)
+  //   ret = HAL_I2C_Master_Receive_DMA(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128, VGA_EDID_BYTE); // TODO: change to ReceiveDMA
+  
+  // #else
+  //   ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128, VGA_EDID_BYTE, 100); // TODO: change to ReceiveDMA
+  //   if (ret == HAL_OK)
+  //   {
+  //     for (uint8_t i = 0; i < VGA_EDID_BYTE; i++) // print
+  //     {
+  //       printf("0x%02x ", i2c1ValueBuff128[i]);
+  //       if (i % 8 == 7)
+  //         printf("\r\n");
+  //     }
+  //     ret = strncmp(i2c1ValueBuff128, compareBuffer, 5);
+  //     if (ret == 0)
+  //     { // thid is VGA device
+  //       printf("compare OK\r\n");
+  //       return 1;
+  //     }
+  //   }
+  // #endif
+  
+  //   //#endif /*defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)*/
+  //   return 0;
 }
 
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
-{
-    /* Toggle LED2: Transfer in reception process is correct */
-    printf("I2C RX complete \r\n");
-}
+// void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
+//{
+//     /* Toggle LED2: Transfer in reception process is correct */
+//     printf("I2C RX complete \r\n");
+// }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *I2cHandle)
 {
-    /** Error_Handler() function is called when error occurs.
-     * 1- When Slave don't acknowledge it's address, Master restarts communication.
-     * 2- When Master don't acknowledge the last data transferred, Slave don't care in this example.
-     */
-    if (HAL_I2C_GetError(I2cHandle) != HAL_I2C_ERROR_AF)
-    {
-        printf("I2C Error call back \r\n");
-    }
+  /** Error_Handler() function is called when error occurs.
+  * 1- When Slave don't acknowledge it's address, Master restarts communication.
+  * 2- When Master don't acknowledge the last data transferred, Slave don't care in this example.
+  */
+  if (HAL_I2C_GetError(I2cHandle) != HAL_I2C_ERROR_AF)
+  {
+    printf("I2C Error call back \r\n");
+  }
 }
 /*
 //  function:       bufer_compare :
@@ -80,16 +114,17 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *I2cHandle)
 */
 uint8_t bufer_compare(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t bfLen)
 {
-    while (bfLen-- )
+  while (bfLen--)
+  {
+    /* code */
+    if ((*pBuffer1) != (*pBuffer2))
     {
-        /* code */
-        if((*pBuffer1) != (*pBuffer2)){
-            return bfLen;
-        }
-        pBuffer1++;
-        pBuffer2++;
+      return bfLen;
     }
-    return 0;
+    pBuffer1++;
+    pBuffer2++;
+  }
+  return 0;
 }
 
 /*
@@ -100,24 +135,23 @@ uint8_t bufer_compare(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t bfLen)
 */
 uint8_t read_flash_checked()
 {
-
-    Flash_Read_Data(START_FLASH_ADDR, (uint32_t *)flashBuff132, sizeof(flashBuff132));
-    for (i = 0; i < sizeof(flashBuff132); i++) // Read 132 bytes and distribute them to buffer 128 & buffer 4
-    {
-        if (i < 128)
-            flashBufferVGA128[i] = flashBuff132[i];
-        else
-            crcValue.crcValue8[i - 128] = flashBuff132[i];
-    }
-    //  check crc
-    //    uint32_t tmpCRC = HAL_CRC_Accumulate(&hcrc, (uint32_t *)flashBufferVGA128, sizeof(flashBufferVGA128));
-    //    if (tmpCRC != crcValue.crcValue32)
-    //    {
-    //        printf("fail check crc at read flash \r\n");
-    //        return 0;
-    //    }
-    printf("correct crcValue");
-    return 1;
+  Flash_Read_Data(START_FLASH_ADDR, (uint32_t *)flashBuff132, 132);
+  for (i = 0; i < 132; i++) // Read 132 bytes and distribute them to buffer 128 & buffer 4
+  {
+    if (i < 128)
+      flashBufferVGA128[i] = (uint8_t)flashBuff132[i];
+    else
+      crcValue.crcValue8[i - 128] = (uint8_t)flashBuff132[i];
+  }
+  //  check crc
+  uint32_t tmpCRC = HAL_CRC_Accumulate(&hcrc, (uint32_t *)flashBufferVGA128, 128);
+  if (tmpCRC != crcValue.crcValue32)
+  {
+    printf("fail check crc at read flash \r\n");
+    return 0;
+  }
+  //    printf("correct crcValue\r\n");
+  return 1;
 }
 
 /*
@@ -128,26 +162,30 @@ uint8_t read_flash_checked()
 */
 uint8_t store_info_vga_flash(uint8_t *bufferVGA)
 {
-    uint8_t buff132[132];
-    crcValue.crcValue32 = HAL_CRC_Accumulate(&hcrc, (uint32_t *)bufferVGA, sizeof(bufferVGA));
-    for (uint8_t i = 0; i < sizeof(buff132); i++)
-    {
-        if (i < VGA_EDID_BYTE)
-            buff132[i] = bufferVGA[i];
-        else
-            buff132[i] = crcValue.crcValue8[i - 128];
-    }
-    Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, sizeof(buff132));
+  uint32_t buff132[132];
+  printf("store_info_vga_flash\r\n");
+  crcValue.crcValue32 = HAL_CRC_Accumulate(&hcrc, (uint32_t *)bufferVGA, sizeof(bufferVGA));
+  for (uint8_t i = 0; i < 132; i++)
+  {
+    if (i < VGA_EDID_BYTE)
+      buff132[i] = bufferVGA[i];
+    else
+      buff132[i] = crcValue.crcValue8[i - 128];
+  }
+  Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, 132);
+  printf("Write data to flash \r\n");
+  if (!read_flash_checked())
+  { // if check flash fail
+    printf("flash write check failed 1\n\r");
+    Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, 132);
     if (!read_flash_checked())
-    { // if check flash fail
-        Flash_Write_Data(START_FLASH_ADDR, (uint32_t *)buff132, sizeof(buff132));
-        if (!read_flash_checked())
-        { // re write flash fail
-            // raise evetn write fail
-            return 0;
-        }
+    { // re write flash fail
+      printf("flash write check failed 2\n\r");
+      // raise evetn write fail
+      return 0;
     }
-    return 1;
+  }
+  return 1;
 }
 
 //////////////////////////////////////////////////////////////// PUBLIC FUNCTIONS //////////////////////////////////////////////////////////////////
@@ -159,21 +197,21 @@ uint8_t store_info_vga_flash(uint8_t *bufferVGA)
 */
 void vga_init()
 {
-    //    uint8_t ret = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(VGA_I2C_ADDRESS << 1), 3, 5);
-    //    if (ret == HAL_OK)
-    //    {
-    ////        is_VGA_detect();
-    ////        read_flash_checked();
-    ////        if (bufer_compare(flashBufferVGA128, i2c1ValueBuff128))
-    ////        {
-    ////            printf("Diff found \r\n");
-    ////            store_info_vga_flash(i2c1ValueBuff128);
-    ////        }
-    ////        else
-    ////        {
-    ////            printf("Diff not found \r\n");
-    ////        }
-    //    }
+  //    uint8_t ret = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(VGA_I2C_ADDRESS << 1), 3, 5);
+  //    if (ret == HAL_OK)
+  //    {
+  ////        is_VGA_detect();
+  ////        read_flash_checked();
+  ////        if (bufer_compare(flashBufferVGA128, i2c1ValueBuff128))
+  ////        {
+  ////            printf("Diff found \r\n");
+  ////            store_info_vga_flash(i2c1ValueBuff128);
+  ////        }
+  ////        else
+  ////        {
+  ////            printf("Diff not found \r\n");
+  ////        }
+  //    }
 }
 
 /*
@@ -184,34 +222,44 @@ void vga_init()
 */
 void vga_tasks()
 {
-    if (HAL_GetTick() - lastTimeTaskEDID > 1049)
+  uint8_t c;
+  if (HAL_GetTick() - lastTimeTaskEDID > 0)
+  {
+    lastTimeTaskEDID = HAL_GetTick();
+    if (is_VGA_detect()) // if have VGA
     {
-        lastTimeTaskEDID = HAL_GetTick();
-        // if vga device at output
-        if (is_VGA_detect()) // if have VGA
-        {
-            read_flash_checked(); // read local flash
-            if (bufer_compare(flashBufferVGA128, i2c1ValueBuff128))
-            {                                           // if VGA != localBuff
-                store_info_vga_flash(i2c1ValueBuff128); // storage new VGA EDID
-            }
-        }
-
-        // if vga device request from vga input
-        // check command is correct
-        // return buffer i2c1ValueBuff128
-
-        //        if (HAL_I2C_Slave_Receive_DMA(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128) != HAL_OK)
-        //        {
-        //            Error_Handler();
-        //        }
-        //
-        //        if (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY)
-        //            return;
-        //        if (HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128) != HAL_OK)
-        //        {
-        //            /* Transfer error in transmission process */
-        //            Error_Handler();
-        //        }
+      read_flash_checked();
+      if (bufer_compare(flashBufferVGA128, i2c1ValueBuff128, 128))
+      {                                         // if VGA != localBuff
+        store_info_vga_flash(i2c1ValueBuff128); // storage new VGA EDID
+      }
     }
+    
+    //    if (flagI2CRxCplt)
+    //    {
+    //      flagI2CRxCplt = 0;
+    //      printf("Rx complete \r\n");
+    //    }
+    
+    // if(HAL_I2C_AddrCallback()){
+    //   printf("I2C callback added\r\n");
+    // }
+    
+    if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY)
+    {
+      if (HAL_I2C_Slave_Receive(&hi2c1, &c, 1, 10) == HAL_OK)
+      {
+        HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
+      }
+      
+      
+    }
+  }
 }
+
+#if defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
+{
+  flagI2CRxCplt = 1;
+}
+#endif /*defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)*/
