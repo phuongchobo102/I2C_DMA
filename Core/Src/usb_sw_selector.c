@@ -4,6 +4,7 @@
 #include "usbd_customhid.h"
 #include "crc16_ibm.h"
 
+uint8_t *container;
 extern uint8_t flag_rx;
 extern uint8_t report_buffer[64];
 extern uint8_t tx_buffer[64];
@@ -17,7 +18,7 @@ static uint8_t elinkswitch_usb_in_buff[128];
 static uint8_t elinkswitch_usb_out_buff[128];
 static uint16_t elinkswitch_usb_in_length;
 static uint16_t elinkswitch_usb_out_length;
-////\
+////
 
 usb_msg_format_t *usb_msg;
 
@@ -85,8 +86,8 @@ void authenKVM(void)
           case USB_ACK:
             response_host.header = USB_HEADER;
             response_host.opcode = USB_ACK;
-            response_host.opcode_status = 0x01;
-            response_host.len = 5;
+            response_host.opcode_status = 0x00;
+            response_host.len = LEN_ACK_MSG;
             printf("Response USB_ACK \r\n");
             USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40); 
             
@@ -94,14 +95,15 @@ void authenKVM(void)
           case USB_AUTHEN_ING:
             response_host.header = USB_HEADER;
             response_host.opcode = USB_AUTHEN_ING;
-            response_host.opcode_status = 0x01;
+            response_host.opcode_status = 0x00;
+            response_host.len = LEN_AUTHEN_MSG;
             printf("Receive USB_AUTHEN_ING \r\n");
             
             break;            
           case USB_AUTHEN_FINISH:
             response_host.header = USB_HEADER;
             response_host.opcode = USB_AUTHEN_FINISH;
-            response_host.opcode_status = 0x01;
+            response_host.opcode_status = 0x00;
             printf("Receive USB_AUTHEN_FINISH \r\n");
             
             break;             
@@ -138,7 +140,7 @@ void authenKVM(void)
                 printf("0x%08x, ", swap[i]);
               AES_ECB_encrypt((const uint8_t*)swap, (const uint8_t*)key_aes, response_host.data, 16);
               AES_ECB_encrypt((const uint8_t*)UID, (const uint8_t*)key_aes, &response_host.data[16], 16);
-              response_host.len = 5 + 32;
+              response_host.len = LEN_ACK_MSG + 32;
               USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
               printf("Go to USB_AUTHEN_ING \r\n");
               switch_status = USB_AUTHEN_ING;              
@@ -151,21 +153,21 @@ void authenKVM(void)
             if(usb_msg->opcode == USB_AUTHEN_FINISH)
             {
                 AES_ECB_decrypt(usb_msg->data, (const uint8_t*)key_aes, tmp_1, 16);
-                
+                response_host.len = LEN_ACK_MSG;
                 USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
                 switch_status = USB_AUTHEN_FINISH;
                 //Notify
                elinkswitch_usb_trigger.authorized();
                 // compare UID                
-               if(strncmp((const char *)p_UID, (const char *)tmp_1, 4)==0)
-               {
-                 switch_status = USB_AUTHEN_FINISH;
-                 response_host.len = 5;
-                 USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
-                 //Notify
-                 elinkswitch_usb_trigger.authorized();
-               }
-               else
+//               if(strncmp((const char *)p_UID, (const char *)tmp_1, 4)==0)
+//               {
+//                 switch_status = USB_AUTHEN_FINISH;
+//                 response_host.len = 5;
+//                 USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+//                 //Notify
+//                 elinkswitch_usb_trigger.authorized();
+//               }
+//               else
                   printf("Wrong UID \r\n");
             }
             else
@@ -188,10 +190,14 @@ void authenKVM(void)
     }    // end if(flag_rx = 1)
 }
 
+uint8_t tmp_str[512];
+
 void process_usb_msg(usb_msg_format_t *usb_msg)
 {  
   uint8_t i;
   usb_msg_format_t response_host;  
+  
+  container = tmp_str;
   
   printf("process_usb_msg :0x%02x \r\n", usb_msg->opcode);
   
@@ -202,7 +208,8 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
       case USB_STATUS:
         response_host.header = USB_HEADER;
         response_host.opcode = USB_STATUS;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;
+        response_host.len = LEN_ACK_MSG;
         printf("Response USB_STATUS \r\n");
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
@@ -210,31 +217,16 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
       case USB_ACK:
         response_host.header = USB_HEADER;
         response_host.opcode = USB_ACK;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;
+        response_host.len = LEN_ACK_MSG;
         printf("Response USB_ACK \r\n");
-        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
-        break;
-        
-      case USB_WRT_EDID:
-        response_host.header = USB_HEADER;
-        response_host.opcode = USB_WRT_EDID;
-        response_host.opcode_status = 0x01;
-        printf("Response USB_WRT_EDID \r\n");
-        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
-        break;
-        
-      case USB_REPLY_EDID:
-        response_host.header = USB_HEADER;
-        response_host.opcode = USB_REPLY_EDID;
-        response_host.opcode_status = 0x01;
-        printf("Response USB_REPLY_EDID \r\n");
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
         break;
         
      case USB_GET_MOUSE_PORT_STATUS:
         response_host.header = USB_HEADER;
         response_host.opcode = USB_GET_MOUSE_PORT_STATUS;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;
         //Notify and get result
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_USB_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
         //ToDo: Retrieve data from elinkswitch_usb_out_buff and send to USB host
@@ -249,7 +241,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
       case USB_GET_VGA_PORT_STATUS:
         response_host.header = USB_HEADER;
         response_host.opcode = USB_GET_VGA_PORT_STATUS;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;
         //Notify and get result
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_VGA_PORTS_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
         //ToDo: Retrieve data from elinkswitch_usb_out_buff and send to USB host
@@ -264,7 +256,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
       case USB_SET_USB_PORT:
         response_host.header = USB_HEADER;
         response_host.opcode = USB_SET_USB_PORT;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;
         //Notify and get result
         elinkswitch_usb_in_buff[0] = usb_msg->data[0];
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_USB_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
@@ -278,7 +270,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
       case USB_SET_VGA_PORT:
         response_host.header = USB_HEADER;
         response_host.opcode = USB_SET_VGA_PORT;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;
         //Notify and get result
         elinkswitch_usb_in_buff[0] = usb_msg->data[0];
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_SET_VGA_PORTS,elinkswitch_usb_in_buff, 1,NULL, 0);
@@ -288,7 +280,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
       case USB_GET_CHANNEL:
        response_host.header = USB_HEADER;
         response_host.opcode = USB_GET_CHANNEL;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;
         //Notify and get result
         elinkswitch_usb_trigger.receive_usb_command(ELINKSWITCH_RECEIVED_USB_COMMAND_GET_CHANNEL_STATUS,NULL, 0,elinkswitch_usb_out_buff, &elinkswitch_usb_out_length);
         //ToDo: Retrieve data from elinkswitch_usb_out_buff and send to USB host
@@ -298,6 +290,49 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //        response_host.data[3] = elinkswitch_usb_out_buff[3];
         printf("Response USB_GET_CHANNEL_STATUS %d \r\n", elinkswitch_usb_out_buff[0]);
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+        break;
+        
+        case USB_REPLY_EDID:
+          response_host.header = USB_HEADER;
+          response_host.opcode = USB_REPLY_EDID;
+          response_host.opcode_status = 0x00;
+          printf("Response USB_REPLY_EDID \r\n");
+          USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+        break;
+        
+        case USB_WRT_EDID:
+          response_host.header = USB_HEADER;
+          response_host.opcode = USB_WRT_EDID;
+          response_host.opcode_status = 0x00;
+          printf("Response USB_WRT_EDID: %d \r\n", usb_msg->opcode_status);
+          if(usb_msg->opcode_status != 0x00)
+          {
+            memcpy(container+58*usb_msg->opcode_status, usb_msg->data, 58);
+            response_host.header = USB_HEADER;
+            response_host.opcode = USB_WRT_EDID;
+            response_host.opcode_status = usb_msg->opcode_status;
+            response_host.len = LEN_ACK_MSG;
+            
+            USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+            printf("Response USB_WRT_EDID %d \r\n", usb_msg->opcode_status);
+          }
+          else
+          {
+            memcpy(container+58*usb_msg->opcode_status, usb_msg->data, usb_msg->len);
+            response_host.header = USB_HEADER;
+            response_host.opcode = USB_WRT_EDID;
+            response_host.opcode_status = 0x00;
+            response_host.len = LEN_ACK_MSG;
+            printf("Response USB_ACK \r\n");
+            USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+            for(uint16_t j=0; j < 256; j++)
+            {                
+                printf("0x%02x, ", container[j]);
+                if(j%8 == 7)
+                  printf("\r\n");
+                
+            }
+          }
         break;
         
       default:
@@ -337,7 +372,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //            case USB_STATUS:
 //              response_host.header = USB_HEADER;
 //              response_host.opcode = USB_STATUS;
-//              response_host.opcode_status = 0x01;
+//              response_host.opcode_status = 0x00;
 //              printf("Response USB_STATUS \r\n");
 //              USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
 //              // your function
@@ -346,7 +381,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //            case USB_ACK:
 //              response_host.header = USB_HEADER;
 //              response_host.opcode = USB_ACK;
-//              response_host.opcode_status = 0x01;
+//              response_host.opcode_status = 0x00;
 //              printf("Response USB_ACK \r\n");
 //              USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
 //              // your function
@@ -355,7 +390,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //            case USB_WRT_EDID:
 //              response_host.header = USB_HEADER;
 //              response_host.opcode = USB_WRT_EDID;
-//              response_host.opcode_status = 0x01;
+//              response_host.opcode_status = 0x00;
 //              printf("Response USB_WRT_EDID \r\n");
 //              USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
 //              // your function
@@ -364,7 +399,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //            case USB_REPLY_EDID:
 //              response_host.header = USB_HEADER;
 //              response_host.opcode = USB_REPLY_EDID;
-//              response_host.opcode_status = 0x01;
+//              response_host.opcode_status = 0x00;
 //              printf("Response USB_REPLY_EDID \r\n");
 //              USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
 //              // your function
@@ -373,7 +408,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //           case USB_GET_MOUSE_PORT_STATUS:
 //              response_host.header = USB_HEADER;
 //              response_host.opcode = USB_GET_MOUSE_PORT_STATUS;
-//              response_host.opcode_status = 0x01;
+//              response_host.opcode_status = 0x00;
 //              printf("Response USB_GET_MOUSE_PORT_STATUS \r\n");
 //              USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
 //              // your function
@@ -382,7 +417,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //            case USB_GET_VGA_PORT_STATUS:
 //              response_host.header = USB_HEADER;
 //              response_host.opcode = USB_GET_VGA_PORT_STATUS;
-//              response_host.opcode_status = 0x01;
+//              response_host.opcode_status = 0x00;
 //              printf("Response USB_GET_VGA_PORT_STATUS \r\n");
 //              USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
 //              // your function
@@ -420,7 +455,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //          case USB_ACK:
 //            response_host.header = USB_HEADER;
 //            response_host.opcode = USB_ACK;
-//            response_host.opcode_status = 0x01;
+//            response_host.opcode_status = 0x00;
 //            printf("Response USB_ACK \r\n");
 //            USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);            
 //            
@@ -429,7 +464,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //          case USB_AUTHEN_ING:
 //            response_host.header = USB_HEADER;
 //            response_host.opcode = USB_AUTHEN_ING;
-//            response_host.opcode_status = 0x01;
+//            response_host.opcode_status = 0x00;
 //            printf("Receive USB_AUTHEN_ING \r\n");
 //            
 //            break;
@@ -437,7 +472,7 @@ void process_usb_msg(usb_msg_format_t *usb_msg)
 //          case USB_AUTHEN_FINISH:
 //            response_host.header = USB_HEADER;
 //            response_host.opcode = USB_AUTHEN_FINISH;
-//            response_host.opcode_status = 0x01;
+//            response_host.opcode_status = 0x00;
 //            printf("Receive USB_AUTHEN_FINISH \r\n");
 //            break;
 //             
