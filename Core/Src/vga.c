@@ -11,6 +11,7 @@ uint8_t ret;
 uint8_t i;
 uint8_t flagI2CRxCplt = 0;
 uint8_t iBufferCounter = 0;
+uint8_t flagSlaveRxCplt = 0;
 union crcValue
 {
   uint32_t crcValue32;
@@ -244,14 +245,20 @@ void vga_tasks()
     // if(HAL_I2C_AddrCallback()){
     //   printf("I2C callback added\r\n");
     // }
-    
+             HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
+
     if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY)
     {
-      if (HAL_I2C_Slave_Receive(&hi2c1, &c, 1, 10) == HAL_OK)
-      {
-        HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
+      // if (HAL_I2C_Slave_Receive(&hi2c1, &c, 1, 10) == HAL_OK)
+      // {
+      //   HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
+      // }
+      // HAL_I2C_Slave_Receive_IT(&hi2c1, &c, 1);
+      HAL_I2C_Slave_Transmit_IT(&hi2c1, "hello", 5);
+      if(flagSlaveRxCplt >0 ){
+        flagSlaveRxCplt = 0;
+        printf("Receive command from master, send out value \r\n");
       }
-      
       
     }
   }
@@ -263,3 +270,11 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
   flagI2CRxCplt = 1;
 }
 #endif /*defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)*/
+
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *I2cHandle){
+  flagSlaveRxCplt = 1;
+}
+
+void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *I2cHandle){
+  flagSlaveRxCplt = 1;
+}

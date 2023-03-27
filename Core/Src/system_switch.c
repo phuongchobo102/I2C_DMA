@@ -34,6 +34,7 @@ void system_switch(uint8_t channel)
     if (channel == 0)
     {
         system_disable();
+        printf("system disable \r\n");
     }
     else if (channel > 0 && channel < 5)
     {
@@ -41,6 +42,7 @@ void system_switch(uint8_t channel)
         HAL_GPIO_WritePin(USB_SW_SEL0_GPIO_Port, USB_SW_SEL0_Pin, (channel % 2));
         HAL_GPIO_WritePin(USB_SW_SEL1_GPIO_Port, USB_SW_SEL1_Pin, ((channel / 2) % 2));
         system_enable();
+        printf("system switch to channel %d \r\n", channel);
     }
 }
 

@@ -218,6 +218,7 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc);
   init_IS31FL3218();
   usb_kvm_switch_init();
+  system_switch_init();
   //    test_LED();
   /* USER CODE END 2 */
   /* Infinite loop */
@@ -239,6 +240,7 @@ int main(void)
     led_task();
     elinkswitch_task();
     vga_tasks();
+    system_switch_tasks();
     
     authenKVM();
  
@@ -421,7 +423,7 @@ static void MX_I2C1_Init(void)
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = I2C_TIMING;//0x2000090E;
-  hi2c1.Init.OwnAddress1 = 160;
+  hi2c1.Init.OwnAddress1 = 0xA0;//160;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
