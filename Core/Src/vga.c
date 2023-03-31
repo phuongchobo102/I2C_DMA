@@ -271,10 +271,10 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
 }
 #endif /*defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)*/
 
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *I2cHandle){
-  flagSlaveRxCplt = 1;
-}
-
-void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *I2cHandle){
-  flagSlaveRxCplt = 1;
-}
+//void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *I2cHandle){
+//  flagSlaveRxCplt = 1;
+//}
+//
+//void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *I2cHandle){
+//  flagSlaveRxCplt = 1;
+//}
