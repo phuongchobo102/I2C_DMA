@@ -96,17 +96,17 @@ uint8_t is_VGA_detect()
 //     printf("I2C RX complete \r\n");
 // }
 
-void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *I2cHandle)
-{
-  /** Error_Handler() function is called when error occurs.
-  * 1- When Slave don't acknowledge it's address, Master restarts communication.
-  * 2- When Master don't acknowledge the last data transferred, Slave don't care in this example.
-  */
-  if (HAL_I2C_GetError(I2cHandle) != HAL_I2C_ERROR_AF)
-  {
-    printf("I2C Error call back \r\n");
-  }
-}
+//void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *I2cHandle)
+//{
+//  /** Error_Handler() function is called when error occurs.
+//  * 1- When Slave don't acknowledge it's address, Master restarts communication.
+//  * 2- When Master don't acknowledge the last data transferred, Slave don't care in this example.
+//  */
+//  if (HAL_I2C_GetError(I2cHandle) != HAL_I2C_ERROR_AF)
+//  {
+//    printf("I2C Error call back \r\n");
+//  }
+//}
 /*
 //  function:       bufer_compare :
 //  parameters:             2 buffer
@@ -265,10 +265,10 @@ void vga_tasks()
 }
 
 #if defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
-{
-  flagI2CRxCplt = 1;
-}
+//void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
+//{
+//  flagI2CRxCplt = 1;
+//}
 #endif /*defined(I2C2_DMA_ENABLE) && (I2C2_DMA_ENABLE == 1)*/
 
 //void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *I2cHandle){

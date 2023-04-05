@@ -198,7 +198,7 @@ void DMA1_Channel2_3_IRQHandler(void)
 //	HAL_DMA_IRQHandler(hi2c2.hdmarx);
 //	HAL_DMA_IRQHandler(hi2c2.hdmatx);
 	HAL_DMA_IRQHandler(&hdma_i2c1_tx);
-  HAL_DMA_IRQHandler(&hdma_i2c1_rx);
+	HAL_DMA_IRQHandler(&hdma_i2c1_rx);
 }
 /**
   * @brief  This function handles I2C event and error interrupt request.  
@@ -208,8 +208,11 @@ void DMA1_Channel2_3_IRQHandler(void)
   */
 void I2C2_IRQHandler(void)
 {
-  HAL_I2C_EV_IRQHandler(&hi2c2);
-  HAL_I2C_ER_IRQHandler(&hi2c2);
+	if (hi2c2.Instance->ISR & (I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR)) {
+		HAL_I2C_EV_IRQHandler(&hi2c2);
+	}else {
+		HAL_I2C_ER_IRQHandler(&hi2c2);
+	}
 }
 
 void I2C1_IRQHandler(void)

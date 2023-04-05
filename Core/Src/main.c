@@ -38,6 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TEST_I2C1_SLAVE 	1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -77,6 +78,16 @@ uint8_t tx_buffer[64];     // Variable to store the output data
 uint8_t report_buffer[64]; // Variable to receive the report buffer
 uint8_t flag = 0;          // Variable to store the button flag
 uint8_t flag_rx = 0;       // Variable to store the reception flag
+
+#ifdef TEST_I2C1_SLAVE
+
+bool isI2C1Receive = true;
+bool isI2C1Transmit = false;
+
+uint8_t test_tx_buffer[32] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"};
+uint8_t test_rx_buffer[32] = {"abcdefghijklmnopqrstuvwxyz123456"};
+
+#endif /*TEST_I2C1_SLAVE*/
 
 // extern the USB handler
 extern USBD_HandleTypeDef hUsbDeviceFS;
@@ -177,6 +188,8 @@ int main(void)
 {
   char tmp = 1;
   char str;
+
+
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -186,14 +199,14 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_USB_DEVICE_Init();
-  MX_ADC_Init();
+//  MX_USB_DEVICE_Init();
+//  MX_ADC_Init();
   MX_I2C1_Init();
-  MX_I2C2_Init();
-  MX_SPI1_Init();
-  MX_SPI2_Init();
-  MX_USART1_UART_Init();
-  MX_CRC_Init();
+//  MX_I2C2_Init();
+//  MX_SPI1_Init();
+//  MX_SPI2_Init();
+//  MX_USART1_UART_Init();
+//  MX_CRC_Init();
 
   /* USER CODE BEGIN 2 */
   REVID = HAL_GetREVID();
@@ -214,14 +227,14 @@ int main(void)
   //  process_usb_msg();
 
   // init the system
-  system_switch_init();
-  elinkswitch_init();
-  elsgpio_init();
+//  system_switch_init();
+//  elinkswitch_init();
+//  elsgpio_init();
 //  authenKVM_init();
-  HAL_ADCEx_Calibration_Start(&hadc);
-  init_IS31FL3218();
-  usb_kvm_switch_init();
-  system_switch_init();
+//  HAL_ADCEx_Calibration_Start(&hadc);
+//  init_IS31FL3218();
+//  usb_kvm_switch_init();
+//  system_switch_init();
   //    test_LED();
   /* USER CODE END 2 */
   /* Infinite loop */
@@ -231,7 +244,7 @@ int main(void)
    init_WWDG();
 #endif
   //    test_LED();
-  vga_init();
+//  vga_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -239,13 +252,13 @@ int main(void)
   while (1)
   {
 
-    elsgpio_task();
-    led_task();
-    elinkswitch_task();
-    vga_tasks();
-    system_switch_tasks();
-    
-    authenKVM();
+//    elsgpio_task();
+//    led_task();
+//    elinkswitch_task();
+//    vga_tasks();
+//    system_switch_tasks();
+//
+//    authenKVM();
  
 #ifdef ENABLE_WATCHDOG
 
@@ -258,8 +271,30 @@ int main(void)
         Error_Handler();
       }
 #endif
-      
+
+#ifdef TEST_I2C1_SLAVE
+      if(isI2C1Receive)
+      {
+		  if(HAL_I2C_Slave_Receive_DMA(&hi2c1, (uint8_t *)test_rx_buffer, sizeof(test_rx_buffer)) != HAL_OK)
+		  {
+				  /* Transfer error in transmission process */
+				  Error_Handler();
+		  }
+		  isI2C1Receive = false;
+		  while(HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+		  while(HAL_I2C_GetError(&hi2c1) == HAL_I2C_ERROR_AF);
+      }else if(isI2C1Transmit)
+      {
+    	  if(HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t*)test_tx_buffer, sizeof(test_tx_buffer))!= HAL_OK)
+    	  {
+			  /* Transfer error in transmission process */
+			  Error_Handler();
+    	  }
+    	  isI2C1Transmit = false;
+    	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+      }
   }
+#endif /*TEST_I2C1_SLAVE*/
   /* USER CODE END 3 */
 }
 
@@ -425,7 +460,7 @@ static void MX_I2C1_Init(void)
 
 	  /* USER CODE END I2C1_Init 1 */
 	  hi2c1.Instance = I2C1;
-	  hi2c1.Init.Timing = 0x2000090E;
+	  hi2c1.Init.Timing = 0x00101D2D;//0x2000090E;
 	  hi2c1.Init.OwnAddress1 = 160;
 	  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
 	  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -654,13 +689,24 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+#ifndef TEST_I2C1_SLAVE
   HAL_GPIO_WritePin(GPIOC, SW_SEL0_Pin | SW_SEL1_Pin, GPIO_PIN_RESET);
-
+#else
+  ///Phu
+  HAL_GPIO_WritePin(GPIOC, SW_SEL0_Pin , GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOC, SW_SEL1_Pin, GPIO_PIN_RESET);
+#endif /* !TEST_I2C1_SLAVE*/
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, TLC_LATCH_Pin | LED_SHDN_Pin | GD_PWR_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+#ifndef TEST_I2C1_SLAVE
   HAL_GPIO_WritePin(GPIOA, KVMSW_EN_Pin | BUTTON_EDID_Pin, GPIO_PIN_RESET);
+#else
+  ///Phu
+  HAL_GPIO_WritePin(GPIOA, KVMSW_EN_Pin , GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, BUTTON_EDID_Pin, GPIO_PIN_RESET);
+#endif /* !TEST_I2C1_SLAVE*/
 
   /*Configure GPIO pin : BUTTON1_Pin */
   GPIO_InitStruct.Pin = BUTTON1_Pin;
@@ -739,12 +785,125 @@ static void MX_CRC_Init(void)
   /* USER CODE END CRC_Init 2 */
 }
 
-void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-//	flagTC = 1;
+
+void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Master TxCplt I2C1 \r\n");
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Master TxCplt I2C2 \r\n");
+	}
 }
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *I2cHandle) {
-	/* Toggle LED_GREEN: Transfer in reception process is correct */
-//  BSP_LED_Toggle(LED_GREEN);
+
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Master RxCplt I2C1 \r\n");
+//		if(i2c_test_phase == I2C_TEST_PHASE_6)
+//		{
+//			i2c_test_phase = I2C_TEST_PHASE_1;
+//		}
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Master RxCplt I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Slave TxCplt I2C1 \r\n");
+		isI2C1Receive = true;
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Slave TxCplt I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Slave RxCplt I2C1 \r\n");
+		isI2C1Transmit = true;
+//		if(HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)aI2CSlvTxBuffer, TXSLVBUFFERSIZE) != HAL_OK)
+		{
+
+		}
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Slave RxCplt I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Addr I2C1 \r\n");
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Addr I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Listen TxCplt I2C1 \r\n");
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Listen TxCplt I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Mem TxCplt I2C1 \r\n");
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Mem TxCplt I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Mem RxCplt I2C1 \r\n");
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Mem RxCplt I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Error I2C1 \r\n");
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Error I2C2 \r\n");
+	}
+}
+
+void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		printf("\r\n Abort I2C1 \r\n");
+	}else if(hi2c->Instance==I2C2)
+	{
+		printf("\r\n Abort I2C2 \r\n");
+	}
 }
 /* USER CODE END 4 */
 
