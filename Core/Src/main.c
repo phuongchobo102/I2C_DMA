@@ -84,7 +84,7 @@ uint8_t flag_rx = 0;       // Variable to store the reception flag
 bool isI2C1Receive = true;
 bool isI2C1Transmit = false;
 
-uint8_t test_tx_buffer[32] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"};
+uint8_t test_tx_buffer[128] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"};
 uint8_t test_rx_buffer[32] = {"abcdefghijklmnopqrstuvwxyz123456"};
 
 #endif /*TEST_I2C1_SLAVE*/
