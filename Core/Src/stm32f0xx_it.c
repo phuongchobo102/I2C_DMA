@@ -57,7 +57,10 @@
 
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_FS;
+extern DMA_HandleTypeDef hdma_adc;
+extern ADC_HandleTypeDef hadc;
 extern SMBUS_HandleTypeDef hsmbus1;
+extern I2C_HandleTypeDef hi2c2;
 /* USER CODE BEGIN EV */
 extern DMA_HandleTypeDef hdma_adc;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
@@ -149,6 +152,34 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles DMA1 channel 1 global interrupt.
+  */
+void DMA1_Channel1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc);
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles ADC interrupt.
+  */
+void ADC1_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC1_IRQn 0 */
+
+  /* USER CODE END ADC1_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc);
+  /* USER CODE BEGIN ADC1_IRQn 1 */
+
+  /* USER CODE END ADC1_IRQn 1 */
+}
+
+/**
   * @brief This function handles I2C1 event global interrupt / I2C1 wake-up interrupt through EXTI line 23.
   */
 void I2C1_IRQHandler(void)
@@ -167,6 +198,24 @@ void I2C1_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles I2C2 global interrupt.
+  */
+void I2C2_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C2_IRQn 0 */
+
+  /* USER CODE END I2C2_IRQn 0 */
+  if (hi2c2.Instance->ISR & (I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR)) {
+    HAL_I2C_ER_IRQHandler(&hi2c2);
+  } else {
+    HAL_I2C_EV_IRQHandler(&hi2c2);
+  }
+  /* USER CODE BEGIN I2C2_IRQn 1 */
+
+  /* USER CODE END I2C2_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB global interrupt / USB wake-up interrupt through EXTI line 18.
   */
 void USB_IRQHandler(void)
@@ -182,19 +231,19 @@ void USB_IRQHandler(void)
 
 /* USER CODE BEGIN 1 */
 
-/**
-  * @brief This function handles DMA1 channel 1 global interrupt.
-  */
-void DMA1_Channel1_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_adc);
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel1_IRQn 1 */
-}
+///**
+//  * @brief This function handles DMA1 channel 1 global interrupt.
+//  */
+//void DMA1_Channel1_IRQHandler(void)
+//{
+//  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
+//
+//  /* USER CODE END DMA1_Channel1_IRQn 0 */
+//  HAL_DMA_IRQHandler(&hdma_adc);
+//  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
+//
+//  /* USER CODE END DMA1_Channel1_IRQn 1 */
+//}
 
 //void DMA1_Channel2_3_IRQHandler(void)
 //{

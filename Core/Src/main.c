@@ -48,6 +48,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc;
+DMA_HandleTypeDef hdma_adc;
 
 CRC_HandleTypeDef hcrc;
 
@@ -115,6 +116,7 @@ uint32_t UID[4] = {0};
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC_Init(void);
 static void MX_I2C1_SMBUS_Init(void);
 static void MX_I2C2_Init(void);
@@ -207,6 +209,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USB_DEVICE_Init();
   MX_ADC_Init();
   MX_I2C1_SMBUS_Init();
@@ -215,7 +218,6 @@ int main(void)
   MX_SPI2_Init();
   MX_USART1_UART_Init();
   MX_CRC_Init();
-
   /* USER CODE BEGIN 2 */
   REVID = HAL_GetREVID();
   DEVID = HAL_GetDEVID();
@@ -684,7 +686,7 @@ static void MX_WWDG_Init(void)
 
   /* USER CODE END WWDG_Init 1 */
   hwwdg.Instance = WWDG;
-  hwwdg.Init.Prescaler = WWDG_PRESCALER_1;
+  hwwdg.Init.Prescaler = WWDG_PRESCALER_8;
   hwwdg.Init.Window = 0x7F;
   hwwdg.Init.Counter = 0x7F;
   hwwdg.Init.EWIMode = WWDG_EWI_DISABLE;
@@ -695,6 +697,22 @@ static void MX_WWDG_Init(void)
   /* USER CODE BEGIN WWDG_Init 2 */
 
   /* USER CODE END WWDG_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
