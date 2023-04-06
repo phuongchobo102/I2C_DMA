@@ -1625,7 +1625,7 @@ void HAL_SMBUS_EV_IRQHandler(SMBUS_HandleTypeDef *hsmbus)
     else
     {
       /* Nothing to do */
-      printf("\r\nTState=%d\r\n",hsmbus->State);
+//      printf("\r\nTState=%d\r\n",hsmbus->State);
     }
   }
 
@@ -1651,7 +1651,7 @@ void HAL_SMBUS_EV_IRQHandler(SMBUS_HandleTypeDef *hsmbus)
     else
     {
       /* Nothing to do */
-      printf("\r\nRState=%d\r\n",hsmbus->State);
+//      printf("\r\nRState=%d\r\n",hsmbus->State);
     }
   }
 
