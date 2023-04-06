@@ -191,7 +191,7 @@ void I2C1_IRQHandler(void)
     HAL_SMBUS_ER_IRQHandler(&hsmbus1);
   } else {
     HAL_SMBUS_EV_IRQHandler(&hsmbus1);
-    printf("\r\n SMBUS EV  \r\n");
+//    printf("\r\n SMBUS EV  \r\n");
   }
   /* USER CODE BEGIN I2C1_IRQn 1 */
 
