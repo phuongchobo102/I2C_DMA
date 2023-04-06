@@ -173,6 +173,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 
+#include <stdio.h>
 /** @addtogroup STM32F0xx_HAL_Driver
   * @{
   */
@@ -1624,6 +1625,7 @@ void HAL_SMBUS_EV_IRQHandler(SMBUS_HandleTypeDef *hsmbus)
     else
     {
       /* Nothing to do */
+      printf("\r\nTState=%d\r\n",hsmbus->State);
     }
   }
 
@@ -1649,6 +1651,7 @@ void HAL_SMBUS_EV_IRQHandler(SMBUS_HandleTypeDef *hsmbus)
     else
     {
       /* Nothing to do */
+      printf("\r\nRState=%d\r\n",hsmbus->State);
     }
   }
 
@@ -1660,6 +1663,7 @@ void HAL_SMBUS_EV_IRQHandler(SMBUS_HandleTypeDef *hsmbus)
        (SMBUS_CHECK_FLAG(tmpisrvalue, SMBUS_FLAG_STOPF) != RESET) ||
        (SMBUS_CHECK_FLAG(tmpisrvalue, SMBUS_FLAG_AF) != RESET)))
   {
+    printf("\r\nListen\r\n");
     if ((hsmbus->State & HAL_SMBUS_STATE_LISTEN) == HAL_SMBUS_STATE_LISTEN)
     {
       (void)SMBUS_Slave_ISR(hsmbus, tmpisrvalue);
@@ -1862,7 +1866,7 @@ static HAL_StatusTypeDef SMBUS_Master_ISR(SMBUS_HandleTypeDef *hsmbus, uint32_t 
 
   /* Process Locked */
   __HAL_LOCK(hsmbus);
-
+    printf("\r\nMs\r\n");
   if (SMBUS_CHECK_FLAG(StatusFlags, SMBUS_FLAG_AF) != RESET)
   {
     /* Clear NACK Flag */
@@ -2150,15 +2154,17 @@ static HAL_StatusTypeDef SMBUS_Slave_ISR(SMBUS_HandleTypeDef *hsmbus, uint32_t S
 
   /* Process Locked */
   __HAL_LOCK(hsmbus);
-
+    printf("\r\nSl\r\n");
   if (SMBUS_CHECK_FLAG(StatusFlags, SMBUS_FLAG_AF) != RESET)
   {
+    printf("\r\nAF\r\n");
     /* Check that SMBUS transfer finished */
     /* if yes, normal usecase, a NACK is sent by the HOST when Transfer is finished */
     /* Mean XferCount == 0*/
     /* So clear Flag NACKF only */
     if (hsmbus->XferCount == 0U)
     {
+      printf("\r\nCLKNACK\r\n");
       /* Clear NACK Flag */
       __HAL_SMBUS_CLEAR_FLAG(hsmbus, SMBUS_FLAG_AF);
 
@@ -2218,6 +2224,7 @@ static HAL_StatusTypeDef SMBUS_Slave_ISR(SMBUS_HandleTypeDef *hsmbus, uint32_t S
   {
     if ((hsmbus->State & HAL_SMBUS_STATE_SLAVE_BUSY_RX) == HAL_SMBUS_STATE_SLAVE_BUSY_RX)
     {
+      printf("\r\nBRX\r\n");
       /* Read data from RXDR */
       *hsmbus->pBuffPtr = (uint8_t)(hsmbus->Instance->RXDR);
 
@@ -2256,6 +2263,7 @@ static HAL_StatusTypeDef SMBUS_Slave_ISR(SMBUS_HandleTypeDef *hsmbus, uint32_t S
       }
       else
       {
+        printf("\r\nReload\r\n");
         /* Set Reload for next Bytes */
         SMBUS_TransferConfig(hsmbus, 0, 1,
                              SMBUS_RELOAD_MODE  | (hsmbus->XferOptions & SMBUS_SENDPEC_MODE),
@@ -2294,10 +2302,12 @@ static HAL_StatusTypeDef SMBUS_Slave_ISR(SMBUS_HandleTypeDef *hsmbus, uint32_t S
     else
     {
       /* Nothing to do */
+      printf("\r\n noth1\r\n");
     }
   }
   else if (SMBUS_CHECK_FLAG(StatusFlags, SMBUS_FLAG_TXIS) != RESET)
   {
+    printf("\r\nTXIS\r\n");
     /* Write data to TXDR only if XferCount not reach "0" */
     /* A TXIS flag can be set, during STOP treatment      */
     /* Check if all Data have already been sent */
@@ -2336,6 +2346,7 @@ static HAL_StatusTypeDef SMBUS_Slave_ISR(SMBUS_HandleTypeDef *hsmbus, uint32_t S
   else
   {
     /* Nothing to do */
+    printf("\r\n noth2\r\n");
   }
 
   /* Check if STOPF is set */
