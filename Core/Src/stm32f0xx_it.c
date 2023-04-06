@@ -22,6 +22,7 @@
 #include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,7 +57,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_FS;
-extern I2C_HandleTypeDef hi2c1;
+extern SMBUS_HandleTypeDef hsmbus1;
 /* USER CODE BEGIN EV */
 extern DMA_HandleTypeDef hdma_adc;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
@@ -148,6 +149,24 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles I2C1 event global interrupt / I2C1 wake-up interrupt through EXTI line 23.
+  */
+void I2C1_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C1_IRQn 0 */
+
+  /* USER CODE END I2C1_IRQn 0 */
+  if (hsmbus1.Instance->ISR & (SMBUS_FLAG_BERR | SMBUS_FLAG_ARLO | SMBUS_FLAG_OVR | SMBUS_FLAG_TIMEOUT | SMBUS_FLAG_ALERT | SMBUS_FLAG_PECERR)) {
+    HAL_SMBUS_ER_IRQHandler(&hsmbus1);
+  } else {
+    HAL_SMBUS_EV_IRQHandler(&hsmbus1);
+  }
+  /* USER CODE BEGIN I2C1_IRQn 1 */
+
+  /* USER CODE END I2C1_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB global interrupt / USB wake-up interrupt through EXTI line 18.
   */
 void USB_IRQHandler(void)
@@ -189,37 +208,3 @@ void DMA1_Channel1_IRQHandler(void)
 //  /* USER CODE END DMA1_Channel2_3_IRQn 1 */
 //}
 /* USER CODE END 1 */
-
-/**
-  * @brief This function handles DMA1 channel 2 3 global interrupt.
-  */
-void DMA1_Channel2_3_IRQHandler(void)
-{
-//	HAL_DMA_IRQHandler(hi2c2.hdmarx);
-//	HAL_DMA_IRQHandler(hi2c2.hdmatx);
-	HAL_DMA_IRQHandler(&hdma_i2c1_tx);
-	HAL_DMA_IRQHandler(&hdma_i2c1_rx);
-}
-/**
-  * @brief  This function handles I2C event and error interrupt request.  
-  * @param  None
-  * @retval None
-  * @Note   This function is redefined in "main.h" and related to I2C data transmission     
-  */
-void I2C2_IRQHandler(void)
-{
-	if (hi2c2.Instance->ISR & (I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR)) {
-		HAL_I2C_EV_IRQHandler(&hi2c2);
-	}else {
-		HAL_I2C_ER_IRQHandler(&hi2c2);
-	}
-}
-
-void I2C1_IRQHandler(void)
-{
-  if (hi2c1.Instance->ISR & (I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR)) {
-	HAL_I2C_ER_IRQHandler(&hi2c1);
-  } else {
-	HAL_I2C_EV_IRQHandler(&hi2c1);
-  }
-}
