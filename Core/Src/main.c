@@ -87,19 +87,56 @@ bool isI2C1Transmit = false;
 uint8_t test_tx_buffer[128] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"};
 uint8_t test_rx_buffer[32] = {"abcdefghijklmnopqrstuvwxyz123456"};
 
-enum {
-    I2C1RECEIVESTATE_READY,
-    I2C1RECEIVESTATE_LISTEN,
-    I2C1RECEIVESTATE_ADDR_1ST_WRITE,
-	I2C1RECEIVESTATE_ADDR_1ST_READ,
-	I2C1RECEIVESTATE_RECEIVED_CMD,
-    I2C1RECEIVESTATE_DO_READ,
-	I2C1RECEIVESTATE_DO_WRITE,
-	I2C1RECEIVESTATE_ADDR_2ND_WRITE,
-	I2C1RECEIVESTATE_WAIT_FOR_LISTENCPLT
-};
+typedef struct smbus_rx_struct {
+	uint8_t u8_state;
+	uint8_t u8_pre_state;
+	uint16_t u16_counter;
+}smbus_rx_t;
 
-uint8_t i2C1ReceiveState = I2C1RECEIVESTATE_READY;
+typedef struct smbus_tx_struct {
+	uint8_t u8_state;
+	uint8_t u8_pre_state;
+	uint16_t u16_counter;
+}smbus_tx_t;
+
+typedef struct smbus_instance_struct {
+	SMBUS_HandleTypeDef *p_hsmbus_inst;
+	uint8_t u8_state;
+	uint8_t u8_pre_state;
+	uint8_t u8_smb_type;
+	uint8_t u8_command;
+	smsbus_rx_t t_rx;
+	smsbus_tx_t t_tx;
+}smbus_instance_t;
+
+typedef enum smbus_slave_type_enum{
+    SMBUS_SLAVE_TYPE_QUICK_CMD,
+	SMBUS_SLAVE_TYPE_SEND_BYTE,
+	SMBUS_SLAVE_TYPE_RECV_BYTE,
+	SMBUS_SLAVE_TYPE_READ_BYTE,
+	SMBUS_SLAVE_TYPE_WRITE_BYTE,
+	SMBUS_SLAVE_TYPE_READ_BYTES,
+	SMBUS_SLAVE_TYPE_WRITE_BYTES,
+	SMBUS_SLAVE_TYPE_BLK_READ,
+	SMBUS_SLAVE_TYPE_BLK_WRITE,
+	SMBUS_SLAVE_TYPE_TOTAL
+}smbus_slave_type_e;
+
+enum smbus_slave_state_enum{
+    SMBUS_SLAVE_STATE_READY,
+    SMBUS_SLAVE_STATE_LISTEN,
+    SMBUS_SLAVE_STATE_ADDR_1ST_WRITE,
+	SMBUS_SLAVE_STATE_ADDR_1ST_READ,
+	SMBUS_SLAVE_STATE_RECEIVED_CMD,
+    SMBUS_SLAVE_STATE_DO_READ,
+	SMBUS_SLAVE_STATE_DO_WRITE,
+	SMBUS_SLAVE_STATE_ADDR_2ND_WRITE,
+	SMBUS_SLAVE_STATE_WAIT_FOR_LISTENCPLT
+}smbus_slave_state_e;
+
+uint8_t i2C1ReceiveState = SMBUS_SLAVE_STATE_READY;
+
+
 #endif /*TEST_I2C1_SLAVE*/
 
 // extern the USB handler
@@ -321,7 +358,7 @@ int main(void)
 				  Error_Handler();
 		  }
 
-    	  i2C1ReceiveState = I2C1RECEIVESTATE_LISTEN;
+    	  i2C1ReceiveState = SMBUS_SLAVE_STATE_LISTEN;
 //		  if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, I2C_CR2_RELOAD) != HAL_OK)
 //		  {
 //				  /* Transfer error in transmission process */
@@ -1061,9 +1098,9 @@ void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
     if(hsmbus->Instance==I2C1)
     {
         printf("TxCplt \r\n");
-        if(i2C1ReceiveState == I2C1RECEIVESTATE_DO_READ)
+        if(i2C1ReceiveState == SMBUS_SLAVE_STATE_DO_READ)
         {
-        	i2C1ReceiveState = I2C1RECEIVESTATE_WAIT_FOR_LISTENCPLT;
+        	i2C1ReceiveState = SMBUS_SLAVE_STATE_WAIT_FOR_LISTENCPLT;
         }
     }else
     {
@@ -1077,9 +1114,9 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
     {
         printf("RxCplt \r\n");
 //        isI2C1Transmit = true;
-        if(i2C1ReceiveState == I2C1RECEIVESTATE_ADDR_1ST_WRITE)
+        if(i2C1ReceiveState == SMBUS_SLAVE_STATE_ADDR_1ST_WRITE)
         {
-        	i2C1ReceiveState = I2C1RECEIVESTATE_RECEIVED_CMD;
+        	i2C1ReceiveState = SMBUS_SLAVE_STATE_RECEIVED_CMD;
         	//ToDo: Filter command here
         	if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
         	{
@@ -1088,9 +1125,9 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
         	}
 
         }
-        else if(i2C1ReceiveState == I2C1RECEIVESTATE_DO_WRITE)
+        else if(i2C1ReceiveState == SMBUS_SLAVE_STATE_DO_WRITE)
         {
-        	i2C1ReceiveState = I2C1RECEIVESTATE_WAIT_FOR_LISTENCPLT;
+        	i2C1ReceiveState = SMBUS_SLAVE_STATE_WAIT_FOR_LISTENCPLT;
         }else
         {
         	 printf("\r\n Err \r\n");
@@ -1111,28 +1148,28 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
         {
         	printf("WtD\r\n");
             /* Write direction*/
-            if(i2C1ReceiveState == I2C1RECEIVESTATE_LISTEN)
+            if(i2C1ReceiveState == SMBUS_SLAVE_STATE_LISTEN)
             {
             	printf("sd1stfr\r\n");
-            	i2C1ReceiveState = I2C1RECEIVESTATE_ADDR_1ST_WRITE;
+            	i2C1ReceiveState = SMBUS_SLAVE_STATE_ADDR_1ST_WRITE;
 				if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, SMBUS_FIRST_FRAME ) != HAL_OK)
 				{
 						  /* Transfer error in transmission process */
 					Error_Handler();
 				}
-            }else if(i2C1ReceiveState == I2C1RECEIVESTATE_RECEIVED_CMD)
+            }else if(i2C1ReceiveState == SMBUS_SLAVE_STATE_RECEIVED_CMD)
         	{
             	printf("\r\nDO_WRITE\r\n");
-            	i2C1ReceiveState = I2C1RECEIVESTATE_DO_WRITE;
+            	i2C1ReceiveState = SMBUS_SLAVE_STATE_DO_WRITE;
             	if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, SMBUS_SOFTEND_MODE) != HAL_OK)
 				{
 						  /* Transfer error in transmission process */
 					Error_Handler();
 				}
-        	}else if(i2C1ReceiveState == I2C1RECEIVESTATE_ADDR_1ST_WRITE)
+        	}else if(i2C1ReceiveState == SMBUS_SLAVE_STATE_ADDR_1ST_WRITE)
         	{
         		printf("sd1stfr\r\n");
-        		i2C1ReceiveState = I2C1RECEIVESTATE_ADDR_2ND_WRITE;
+        		i2C1ReceiveState = SMBUS_SLAVE_STATE_ADDR_2ND_WRITE;
         		if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, SMBUS_NEXT_FRAME) != HAL_OK)
 				{
 						  /* Transfer error in transmission process */
@@ -1151,7 +1188,7 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 //        	if(i2C1ReceiveState == I2C1RECEIVESTATE_RECEIVED_CMD)
         	{
 //        		printf("\r\nDO_READ\r\n");
-        		i2C1ReceiveState = I2C1RECEIVESTATE_DO_READ;
+        		i2C1ReceiveState = SMBUS_SLAVE_STATE_DO_READ;
         		if(HAL_SMBUS_Slave_Transmit_IT(&hsmbus1, (uint8_t *)test_tx_buffer, sizeof(test_tx_buffer), SMBUS_LAST_FRAME_NO_PEC) != HAL_OK)
 				  {
 						  /* Transfer error in transmission process */
@@ -1177,27 +1214,27 @@ void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
     if(hsmbus->Instance==I2C1)
     {
         printf("LstCplt \r\n");
-        if(i2C1ReceiveState == I2C1RECEIVESTATE_ADDR_1ST_WRITE)
+        if(i2C1ReceiveState == SMBUS_SLAVE_STATE_ADDR_1ST_WRITE)
         {
 //        	if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, SMBUS_NEXT_FRAME) != HAL_OK)
 //			{
 //					  /* Transfer error in transmission process */
 //				Error_Handler();
 //			}
-        	i2C1ReceiveState = I2C1RECEIVESTATE_LISTEN;
+        	i2C1ReceiveState = SMBUS_SLAVE_STATE_LISTEN;
         	isI2C1Receive = true;
         	printf("1st\r\n");
-        }if(i2C1ReceiveState == I2C1RECEIVESTATE_ADDR_2ND_WRITE)
+        }if(i2C1ReceiveState == SMBUS_SLAVE_STATE_ADDR_2ND_WRITE)
         {
 //        	if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, SMBUS_NEXT_FRAME) != HAL_OK)
 //			{
 //					  /* Transfer error in transmission process */
 //				Error_Handler();
 //			}
-        	i2C1ReceiveState = I2C1RECEIVESTATE_LISTEN;
+        	i2C1ReceiveState = SMBUS_SLAVE_STATE_LISTEN;
         	isI2C1Receive = true;
         	printf("2nd\r\n");
-        }else if(i2C1ReceiveState == I2C1RECEIVESTATE_WAIT_FOR_LISTENCPLT)
+        }else if(i2C1ReceiveState == SMBUS_SLAVE_STATE_WAIT_FOR_LISTENCPLT)
         {
 
         }
