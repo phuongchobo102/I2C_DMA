@@ -105,8 +105,8 @@ typedef struct smbus_instance_struct {
 	uint8_t u8_pre_state;
 	uint8_t u8_smb_type;
 	uint8_t u8_command;
-	smsbus_rx_t t_rx;
-	smsbus_tx_t t_tx;
+	smbus_rx_t t_rx;
+	smbus_tx_t t_tx;
 }smbus_instance_t;
 
 typedef enum smbus_slave_type_enum{
@@ -136,7 +136,7 @@ enum smbus_slave_state_enum{
 
 uint8_t i2C1ReceiveState = SMBUS_SLAVE_STATE_READY;
 
-
+smbus_instance_t t_smbus_i2c1;// = {.p_hsmbus_inst = &hsmbus1};
 #endif /*TEST_I2C1_SLAVE*/
 
 // extern the USB handler
@@ -299,6 +299,10 @@ int main(void)
 #ifdef ENABLE_WATCHDOG
   MX_WWDG_Init();
 #endif
+
+#ifdef TEST_I2C1_SLAVE
+  t_smbus_i2c1.p_hsmbus_inst = &hsmbus1;
+#endif/* TEST_I2C1_SLAVE*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
