@@ -357,6 +357,7 @@
                     <state>$PROJ_DIR$/../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy</state>
                     <state>$PROJ_DIR$/../Middlewares/ST/STM32_USB_Device_Library/Core/Inc</state>
                     <state>$PROJ_DIR$/../Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc</state>
+                    <state>$PROJ_DIR$/../Middlewares/ST/STM32_SMBus_Stack/Inc</state>
                     <state>$PROJ_DIR$/../Middlewares/lwbtn/Inc</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Device/ST/STM32F0xx/Include</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
@@ -2332,6 +2333,15 @@
             <name>lwbtn</name>
             <file>
                 <name>$PROJ_DIR$\..\Middlewares\lwbtn\Src\lwbtn.c</name>
+            </file>
+        </group>
+        <group>
+            <name>SMBUS</name>
+            <file>
+                <name>$PROJ_DIR$\..\Middlewares\ST\STM32_SMBus_Stack\src\stm32_PMBUS_stack.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Middlewares\ST\STM32_SMBus_Stack\src\stm32_SMBUS_stack.c</name>
             </file>
         </group>
         <group>
