@@ -39,7 +39,13 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TEST_I2C1_SLAVE 	1
+//#define TEST_I2C1_SLAVE 	1
+//#define TEST_I2C1_SMBUS_SLAVE 1
+
+
+#ifdef TEST_I2C1_SMBUS_SLAVE
+#define TEST_I2C1_SMBUS_SLAVE 	1
+#endif/* TEST_I2C1_SMBUS_SLAVE*/
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -79,7 +85,7 @@ uint8_t report_buffer[64]; // Variable to receive the report buffer
 uint8_t flag = 0;          // Variable to store the button flag
 uint8_t flag_rx = 0;       // Variable to store the reception flag
 
-#ifdef TEST_I2C1_SLAVE
+#ifdef TEST_I2C1_SMBUS_SLAVE
 
 bool isI2C1Receive = true;
 bool isI2C1Transmit = false;
@@ -157,7 +163,7 @@ typedef enum smbus_slave_tx_state_enum{
 //uint8_t i2C1ReceiveState = SMBUS_SLAVE_STATE_READY;
 
 smbus_instance_t t_smbus_i2c1;// = {.p_hsmbus_inst = &hsmbus1};
-#endif /*TEST_I2C1_SLAVE*/
+#endif /*TEST_I2C1_SMBUS_SLAVE*/
 
 // extern the USB handler
 extern USBD_HandleTypeDef hUsbDeviceFS;
@@ -320,13 +326,13 @@ int main(void)
   MX_WWDG_Init();
 #endif
 
-#ifdef TEST_I2C1_SLAVE
+#ifdef TEST_I2C1_SMBUS_SLAVE
   t_smbus_i2c1.p_hsmbus_inst = &hsmbus1;
   t_smbus_i2c1.t_rx.u16_buffer_size = sizeof(test_rx_buffer);
   t_smbus_i2c1.t_rx.u16_counter = 0;
   t_smbus_i2c1.t_tx.u16_buffer_size = sizeof(test_tx_buffer);
   t_smbus_i2c1.t_tx.u16_counter = 0;
-#endif/* TEST_I2C1_SLAVE*/
+#endif/* TEST_I2C1_SMBUS_SLAVE*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -356,7 +362,7 @@ int main(void)
       }
 #endif
 
-#ifdef TEST_I2C1_SLAVE
+#ifdef TEST_I2C1_SMBUS_SLAVE
 //      if(isI2C1Receive)
 //      {
 //		  if(HAL_I2C_Slave_Receive_DMA(&hi2c1, (uint8_t *)test_rx_buffer, sizeof(test_rx_buffer)) != HAL_OK)
@@ -413,7 +419,7 @@ int main(void)
     	  //while(hsmbus1.State != HAL_SMBUS_STATE_READY);
         while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY); 
       }
-#endif /*TEST_I2C1_SLAVE*/
+#endif /*TEST_I2C1_SMBUS_SLAVE*/
   }
 
   /* USER CODE END 3 */
@@ -846,24 +852,24 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-#ifndef TEST_I2C1_SLAVE
+#ifndef TEST_I2C1_SMBUS_SLAVE
   HAL_GPIO_WritePin(GPIOC, SW_SEL0_Pin | SW_SEL1_Pin, GPIO_PIN_RESET);
 #else
   ///Phu
   HAL_GPIO_WritePin(GPIOC, SW_SEL0_Pin , GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOC, SW_SEL1_Pin, GPIO_PIN_RESET);
-#endif /* !TEST_I2C1_SLAVE*/
+#endif /* !TEST_I2C1_SMBUS_SLAVE*/
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, TLC_LATCH_Pin | LED_SHDN_Pin | GD_PWR_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-#ifndef TEST_I2C1_SLAVE
+#ifndef TEST_I2C1_SMBUS_SLAVE
   HAL_GPIO_WritePin(GPIOA, KVMSW_EN_Pin | BUTTON_EDID_Pin, GPIO_PIN_RESET);
 #else
   ///Phu
   HAL_GPIO_WritePin(GPIOA, KVMSW_EN_Pin , GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOA, BUTTON_EDID_Pin, GPIO_PIN_RESET);
-#endif /* !TEST_I2C1_SLAVE*/
+#endif /* !TEST_I2C1_SMBUS_SLAVE*/
 
   /*Configure GPIO pin : BUTTON1_Pin */
   GPIO_InitStruct.Pin = BUTTON1_Pin;
@@ -975,7 +981,7 @@ void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
 	if(hi2c->Instance==I2C1)
 	{
 		printf("\r\n Slave TxCplt I2C1 \r\n");
-		isI2C1Receive = true;
+//		isI2C1Receive = true;
 	}else if(hi2c->Instance==I2C2)
 	{
 		printf("\r\n Slave TxCplt I2C2 \r\n");
@@ -987,7 +993,7 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	if(hi2c->Instance==I2C1)
 	{
 		printf("\r\n Slave RxCplt I2C1 \r\n");
-		isI2C1Transmit = true;
+//		isI2C1Transmit = true;
 //		if(HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)aI2CSlvTxBuffer, TXSLVBUFFERSIZE) != HAL_OK)
 		{
 
@@ -1070,7 +1076,7 @@ void HAL_I2C_SlaveRxCpltNonReceiveStopCallback(I2C_HandleTypeDef *hi2c)
     {
             printf("\r\n RxCpltNonStop \r\n");
             //__HAL_I2C_RESET_HANDLE_STATE(hi2c);
-            isI2C1Transmit = true;
+//            isI2C1Transmit = true;
     }
 }
 
@@ -1100,6 +1106,7 @@ void HAL_I2C_SlaveRxCpltNonReceiveStopCallback(I2C_HandleTypeDef *hi2c)
 //    }
 //}=> Defined already
 
+#ifdef TEST_I2C1_SMBUS_SLAVE
 void HAL_SMBUS_MasterTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
     if(hsmbus->Instance==I2C1)
@@ -1583,7 +1590,7 @@ void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
         printf("\r\n SMB2 ListenCplt \r\n");
     }
 }
-
+#endif /*TEST_I2C1_SMBUS_SLAVE*/
 //void HAL_SMBUS_ErrorCallback(SMBUS_HandleTypeDef *hsmbus)
 //{
 //    if(hsmbus->Instance==I2C1)
