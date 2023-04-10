@@ -30,6 +30,7 @@
 #include "aes.h"
 #include "usb_sw_selector.h"
 #include "system_switch.h"
+#include "i2c1_smbus_impl.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -288,7 +289,7 @@ int main(void)
 //  MX_DMA_Init();
 //  MX_USB_DEVICE_Init();
 //  MX_ADC_Init();
-  MX_I2C1_SMBUS_Init();
+//  MX_I2C1_SMBUS_Init();
 //  MX_I2C2_Init();
 //  MX_SPI1_Init();
 //  MX_SPI2_Init();
@@ -333,6 +334,7 @@ int main(void)
   t_smbus_i2c1.t_tx.u16_buffer_size = sizeof(test_tx_buffer);
   t_smbus_i2c1.t_tx.u16_counter = 0;
 #endif/* TEST_I2C1_SMBUS_SLAVE*/
+  i2c1_smbus_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -420,6 +422,7 @@ int main(void)
         while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY); 
       }
 #endif /*TEST_I2C1_SMBUS_SLAVE*/
+      i2c1_smbus_task();
   }
 
   /* USER CODE END 3 */
