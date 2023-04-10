@@ -43,7 +43,7 @@ extern "C" {
  * EXPORTED  FUNCTION PROTOTYPES
  ************************************/
 extern void i2c1_smbus_init(void);
-
+extern void i2c1_smbus_task(void);
 #ifdef __cplusplus
 }
 #endif

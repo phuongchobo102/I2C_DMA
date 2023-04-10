@@ -55,9 +55,9 @@ extern "C"
 /*<! Enable Alert HW signal */
 #define DENSE_CMD_TABLE
 /*<! Setting indicates that the command code does not equal the table index. */
-#define PMBUS12
+//#define PMBUS12
 /*<! Features introduced in PMBus v1.2 are included. */
-#define PMBUS13
+//#define PMBUS13
 /*<! Features introduced in PMBus v1.3 are included. */
 /* #define HOST1 */
 /*<! The target is a bus host. */

@@ -157,6 +157,12 @@ uint8_t get_current_usb(uint8_t channel);
 void set_current_vga_status(uint8_t channel, uint8_t status);
 void set_current_usb_status(uint8_t channel, uint8_t status);
 
+
+
+
+/* User can use this section to tailor I2C instance used and associated
+   resources */
+#define SMBUS1 I2C1
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
