@@ -2345,6 +2345,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Middlewares\ST\STM32_SMBus_Stack\src\stm32_SMBUS_stack.c</name>
+                <excluded>
+                    <configuration>STM32F070CB-ELINKGATE-Debug</configuration>
+                </excluded>
             </file>
         </group>
         <group>

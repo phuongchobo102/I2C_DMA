@@ -41,7 +41,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 //#define TEST_I2C1_SLAVE 	1
-//#define TEST_I2C1_SMBUS_SLAVE 1
+#define TEST_I2C1_SMBUS_SLAVE 1
 
 
 #ifdef TEST_I2C1_SMBUS_SLAVE
@@ -289,7 +289,7 @@ int main(void)
 //  MX_DMA_Init();
 //  MX_USB_DEVICE_Init();
 //  MX_ADC_Init();
-//  MX_I2C1_SMBUS_Init();
+  MX_I2C1_SMBUS_Init();
 //  MX_I2C2_Init();
 //  MX_SPI1_Init();
 //  MX_SPI2_Init();
@@ -333,8 +333,10 @@ int main(void)
   t_smbus_i2c1.t_rx.u16_counter = 0;
   t_smbus_i2c1.t_tx.u16_buffer_size = sizeof(test_tx_buffer);
   t_smbus_i2c1.t_tx.u16_counter = 0;
-#endif/* TEST_I2C1_SMBUS_SLAVE*/
+#else
   i2c1_smbus_init();
+#endif/* TEST_I2C1_SMBUS_SLAVE*/
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -421,8 +423,10 @@ int main(void)
     	  //while(hsmbus1.State != HAL_SMBUS_STATE_READY);
         while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY); 
       }
-#endif /*TEST_I2C1_SMBUS_SLAVE*/
+#else
       i2c1_smbus_task();
+#endif /*TEST_I2C1_SMBUS_SLAVE*/
+
   }
 
   /* USER CODE END 3 */

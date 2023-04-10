@@ -450,15 +450,15 @@ HAL_StatusTypeDef HAL_SMBUS_DeInit(SMBUS_HandleTypeDef *hsmbus)
   *                the configuration information for the specified SMBUS.
   * @retval None
   */
-__weak void HAL_SMBUS_MspInit(SMBUS_HandleTypeDef *hsmbus)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hsmbus);
-
-  /* NOTE : This function should not be modified, when the callback is needed,
-            the HAL_SMBUS_MspInit could be implemented in the user file
-   */
-}
+//__weak void HAL_SMBUS_MspInit(SMBUS_HandleTypeDef *hsmbus)
+//{
+//  /* Prevent unused argument(s) compilation warning */
+//  UNUSED(hsmbus);
+//
+//  /* NOTE : This function should not be modified, when the callback is needed,
+//            the HAL_SMBUS_MspInit could be implemented in the user file
+//   */
+//}
 
 /**
   * @brief DeInitialize the SMBUS MSP.

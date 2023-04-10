@@ -1007,6 +1007,9 @@ void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
   /*
     ...and return to listen mode
    */
+  /*Phu debug*/
+  printf("lstCpl\r\n");
+  /***/
   HAL_SMBUS_EnableListen_IT( hsmbus );
 
 #ifdef PMBUS13

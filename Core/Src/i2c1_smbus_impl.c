@@ -306,7 +306,7 @@ st_command_t const EDID_COMMANDS_TABLE[] =
 /************************************
  * PRIVATE & STATIC VARIABLES
  ************************************/
-SMBUS_HandleTypeDef    handle1;
+extern SMBUS_HandleTypeDef    hsmbus1;
 
 uint8_t       *piobuf;
 SMBUS_HandleTypeDef *phandle1;
@@ -640,47 +640,47 @@ static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext)
 void i2c1_smbus_init(void)
 {
 	/* SMBUS instance initialization - smbus 1. */
-  handle1.Instance = SMBUS1;
-  handle1.Init.Timing = SMBUS_TIMING_100K;
-  handle1.Init.AnalogFilter = SMBUS_ANALOGFILTER_ENABLE;
-  handle1.Init.AddressingMode = SMBUS_ADDRESSINGMODE_7BIT;
-#ifdef PMBUS13
-  handle1.Init.DualAddressMode = SMBUS_DUALADDRESS_ENABLE;
-  handle1.Init.OwnAddress2 = 0x40U;
-  handle1.Init.OwnAddress2Masks = SMBUS_OA2_MASK05;
-#else /* PMBUS13 */
-  handle1.Init.DualAddressMode = SMBUS_DUALADDRESS_DISABLE;
-  handle1.Init.OwnAddress2 = 0U;
-  handle1.Init.OwnAddress2Masks = SMBUS_OA2_NOMASK;
-#endif /* PMBUS13 */
-  handle1.Init.GeneralCallMode = SMBUS_GENERALCALL_DISABLE;
-  handle1.Init.NoStretchMode = SMBUS_NOSTRETCH_DISABLE;
-#ifdef ARP
-#ifdef DEV_PSA
-  handle1.Init.OwnAddress1 = SMBUS_ADDR_DEVICE;
-#else /* DEV_PSA */
-  handle1.Init.OwnAddress1 = 0U;
-#endif /* DEV_PSA */
-  handle1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_SLAVE_ARP;
-#else      /* ARP */
-  handle1.Init.OwnAddress1 = SMBUS_ADDR_DEVICE;
-  handle1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_SLAVE;
-#endif /* ARP */
-#ifdef USE_PEC
-  handle1.Init.PacketErrorCheckMode = SMBUS_PEC_ENABLE;
-#else
-  handle1.Init.PacketErrorCheckMode = SMBUS_PEC_DISABLE;
-#endif /* USE_PEC */
-#ifdef HOST1
-  handle1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_HOST;
-  handle1.Init.OwnAddress1 = 0U;
-#endif /* HOST1 */
-  handle1.Init.SMBusTimeout = SMBUS_TIMEOUT_DEFAULT;
-  handle1.pBuffPtr = context1.Buffer;
+//  hsmbus1.Instance = SMBUS1;
+//  hsmbus1.Init.Timing = SMBUS_TIMING_100K;
+//  hsmbus1.Init.AnalogFilter = SMBUS_ANALOGFILTER_ENABLE;
+//  hsmbus1.Init.AddressingMode = SMBUS_ADDRESSINGMODE_7BIT;
+//#ifdef PMBUS13
+//  hsmbus1.Init.DualAddressMode = SMBUS_DUALADDRESS_ENABLE;
+//  hsmbus1.Init.OwnAddress2 = 0x40U;
+//  hsmbus1.Init.OwnAddress2Masks = SMBUS_OA2_MASK05;
+//#else /* PMBUS13 */
+//  hsmbus1.Init.DualAddressMode = SMBUS_DUALADDRESS_DISABLE;
+//  hsmbus1.Init.OwnAddress2 = 0U;
+//  hsmbus1.Init.OwnAddress2Masks = SMBUS_OA2_NOMASK;
+//#endif /* PMBUS13 */
+//  hsmbus1.Init.GeneralCallMode = SMBUS_GENERALCALL_DISABLE;
+//  hsmbus1.Init.NoStretchMode = SMBUS_NOSTRETCH_DISABLE;
+//#ifdef ARP
+//#ifdef DEV_PSA
+//  hsmbus1.Init.OwnAddress1 = SMBUS_ADDR_DEVICE;
+//#else /* DEV_PSA */
+//  hsmbus1.Init.OwnAddress1 = 0U;
+//#endif /* DEV_PSA */
+//  hsmbus1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_SLAVE_ARP;
+//#else      /* ARP */
+//  hsmbus1.Init.OwnAddress1 = SMBUS_ADDR_DEVICE;
+//  hsmbus1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_SLAVE;
+//#endif /* ARP */
+//#ifdef USE_PEC
+//  hsmbus1.Init.PacketErrorCheckMode = SMBUS_PEC_ENABLE;
+//#else
+//  hsmbus1.Init.PacketErrorCheckMode = SMBUS_PEC_DISABLE;
+//#endif /* USE_PEC */
+//#ifdef HOST1
+//  hsmbus1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_HOST;
+//  hsmbus1.Init.OwnAddress1 = 0U;
+//#endif /* HOST1 */
+//  hsmbus1.Init.SMBusTimeout = SMBUS_TIMEOUT_DEFAULT;
+  hsmbus1.pBuffPtr = context1.Buffer;
 
-  phandle1 = &handle1;
+  phandle1 = &hsmbus1;
 
-  HAL_SMBUS_Init( phandle1 );
+//  HAL_SMBUS_Init( phandle1 );
 
   context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
   context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
