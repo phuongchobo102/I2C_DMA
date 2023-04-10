@@ -41,7 +41,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 //#define TEST_I2C1_SLAVE 	1
-#define TEST_I2C1_SMBUS_SLAVE 1
+//#define TEST_I2C1_SMBUS_SLAVE 1
 
 
 #ifdef TEST_I2C1_SMBUS_SLAVE
@@ -334,7 +334,7 @@ int main(void)
   t_smbus_i2c1.t_tx.u16_buffer_size = sizeof(test_tx_buffer);
   t_smbus_i2c1.t_tx.u16_counter = 0;
 #else
-  i2c1_smbus_init();
+//  i2c1_smbus_init();
 #endif/* TEST_I2C1_SMBUS_SLAVE*/
 
   /* USER CODE END 2 */
@@ -424,7 +424,7 @@ int main(void)
         while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY); 
       }
 #else
-      i2c1_smbus_task();
+//      i2c1_smbus_task();
 #endif /*TEST_I2C1_SMBUS_SLAVE*/
 
   }

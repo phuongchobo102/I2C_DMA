@@ -18,7 +18,7 @@ extern "C" {
 /************************************
  * INCLUDES
  ************************************/
-#include "stm32_PMBUS_stack.h"
+#include "stm32_SMBUS_stack.h"
 /************************************
  * EXPORTED PREPROCESSOR DEFINES
  ************************************/
