@@ -762,7 +762,7 @@ int main(void)
 //  //  context1.CMD_tableSize = PMBUS_CMD_TBL_SIZE;
 //  //#endif /* TEST4 */
 //  //#endif /* TEST5 */
-//    context1.Device = &hsmbus1;//phandle1;
+    context1.Device = &hsmbus1;//phandle1;
 //    //ToDo: check the preset byte
 //    context1.SRByte = 0x55U;
 //    context1.CurrentCommand = NULL;
@@ -778,7 +778,7 @@ int main(void)
 //  #endif /* HOST1 */
 //  #else /* ARP */
 ////    context1.StateMachine = SMBUS_SMS_ARP_AR;
-////    context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
+	context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
 //  #endif /* ARP */
 //  #ifdef USE_PEC
 //    context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
