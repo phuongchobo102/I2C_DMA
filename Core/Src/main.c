@@ -785,7 +785,7 @@ int main(void)
 //  #endif
     pcontext1 = &context1;
 //
-//    STACK_SMBUS_Init( pcontext1 );
+    STACK_SMBUS_Init( pcontext1 );
     
 //    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
 //    	  {
