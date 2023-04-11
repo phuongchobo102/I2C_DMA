@@ -36,6 +36,7 @@ extern "C" {
 #include "flash.h"
 #include "vga.h"
 
+#include "i2c1_smbus_impl.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

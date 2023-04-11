@@ -1583,11 +1583,11 @@ HAL_StatusTypeDef STACK_SMBUS_Init( SMBUS_StackHandleTypeDef *pStackContext )
   /*
     the device listens for common commands, the host for notify protocol
    */
-  if ( result == STACK_OK )
-  {
-    return HAL_SMBUS_EnableListen_IT( pStackContext->Device );
-  }
-  else
+//  if ( result == STACK_OK )
+//  {
+//    return HAL_SMBUS_EnableListen_IT( pStackContext->Device );
+//  }
+//  else
   {
     return result;
   }
