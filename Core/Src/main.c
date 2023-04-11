@@ -765,7 +765,7 @@ int main(void)
     context1.Device = &hsmbus1;//phandle1;
 //    //ToDo: check the preset byte
 //    context1.SRByte = 0x55U;
-//    context1.CurrentCommand = NULL;
+    context1.CurrentCommand = NULL;
 //  #ifdef ARP
 //    context1.StateMachine = SMBUS_SMS_NONE;
 //  #ifdef DEV_PSA
@@ -783,7 +783,7 @@ int main(void)
 //  #ifdef USE_PEC
 //    context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
 //  #endif
-//    pcontext1 = &context1;
+    pcontext1 = &context1;
 //
 //    STACK_SMBUS_Init( pcontext1 );
     
