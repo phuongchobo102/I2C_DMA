@@ -1157,7 +1157,7 @@
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>GEndianModeBE</name>
@@ -2186,6 +2186,9 @@
                 </file>
                 <file>
                     <name>$PROJ_DIR$\..\Core\Src\i2c1_smbus_impl.c</name>
+                    <excluded>
+                        <configuration>STM32F070CB-ELINKGATE-Release</configuration>
+                    </excluded>
                 </file>
                 <file>
                     <name>$PROJ_DIR$\..\Core\Src\i2c_EDID.c</name>
@@ -2352,7 +2355,6 @@
                 <name>$PROJ_DIR$\..\Middlewares\ST\STM32_SMBus_Stack\src\stm32_SMBUS_stack.c</name>
                 <excluded>
                     <configuration>STM32F070CB-ELINKGATE-Debug</configuration>
-                    <configuration>STM32F070CB-ELINKGATE-Release</configuration>
                 </excluded>
             </file>
         </group>

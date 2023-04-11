@@ -42,6 +42,11 @@
 #define TEST_I2C1_SLAVE 	1
 #define TEST_SMBUS_IMPL
 #define TEST_EDID_DELL_EXAMPLE
+
+#define USE_PEC
+
+//#define TEST_SMBUS_SELF_IMPL
+
 #define EDID_COMMANDS_TABBLE_SIZE         		((uint8_t)256)
 /* USER CODE END PD */
 
@@ -630,6 +635,8 @@ HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackCo
     				isFind = true;
 #ifdef TEST_EDID_DELL_EXAMPLE
     				*piobuf = atest_edid[i];
+                                return STACK_OK;
+//    				memcpy(piobuf,&atest_edid[i],pStackContext->CurrentCommand->cmnd_master_Rx_size);
 //    				piobuf++;
 //    				*piobuf = atest_edid[i];
 //    				printf("%x\r\n",*piobuf);
@@ -799,9 +806,9 @@ int main(void)
 ////    context1.StateMachine = SMBUS_SMS_ARP_AR;
 	context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
 //  #endif /* ARP */
-//  #ifdef USE_PEC
-//    context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
-//  #endif
+#ifdef USE_PEC
+context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
+#endif
     pcontext1 = &context1;
 //
     STACK_SMBUS_Init( pcontext1 );
@@ -1150,6 +1157,9 @@ static void MX_I2C1_SMBUS_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN I2C1_Init 2 */
+#ifdef USE_PEC
+  hsmbus1.Init.PacketErrorCheckMode = SMBUS_PEC_ENABLE;
+#endif /* USE_PEC */
 
   /* USER CODE END I2C1_Init 2 */
 
@@ -1639,7 +1649,7 @@ void HAL_I2C_SlaveRxCpltNonReceiveStopCallback(I2C_HandleTypeDef *hi2c)
 //        printf("\r\n SMB2 ER_IRQ \r\n");
 //    }
 //}=> Defined already
-
+#ifdef TEST_SMBUS_SELF_IMPL
 void HAL_SMBUS_MasterTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
 //    if(hsmbus->Instance==I2C1)
@@ -1690,7 +1700,7 @@ void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 //	printf("C\r\n");
 	HAL_SMBUS_ListenCpltCallback(hsmbus);
 }
-
+#endif  /*TEST_SMBUS_SELF_IMPL*/
 //void HAL_SMBUS_ErrorCallback(SMBUS_HandleTypeDef *hsmbus)
 //{
 //    if(hsmbus->Instance==I2C1)
