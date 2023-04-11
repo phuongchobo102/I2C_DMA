@@ -617,14 +617,23 @@ HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackCo
     if ((pStackContext->CurrentCommand->cmnd_query & READ_OR_WRITE ) == READ_OR_WRITE )
 	{
 //    	*piobuf = (pStackContext->CurrentCommand->cmnd_master_Rx_size) - 1U;
+    	bool isFind = false;
+    	static uint8_t dummy = 0;
     	for(uint8_t i = 0; i < 256; i++)
     	{
-    		if(pStackContext->CurrentCommand == (st_command_t *)&EDID_COMMANDS_TABLE[i])
+    		//if(pStackContext->CurrentCommand == (st_command_t *)&EDID_COMMANDS_TABLE[i])
+    		//if(pStackContext->CurrentCommand->cmnd_code == ((st_command_t *)&EDID_COMMANDS_TABLE[i])->cmnd_code)
+    		if(pStackContext->CurrentCommand->cmnd_code == EDID_COMMANDS_TABLE[i].cmnd_code)
     		{
     			if ((pStackContext->CurrentCommand->cmnd_query & READ ) == READ )
     			{
+    				isFind = true;
 #ifdef TEST_EDID_DELL_EXAMPLE
     				*piobuf = atest_edid[i];
+//    				piobuf++;
+//    				*piobuf = atest_edid[i];
+//    				printf("%x\r\n",*piobuf);
+//    				printf("m\n");
 #endif /*TEST_EDID_DELL_EXAMPLE*/
     				//ToDo: copy data into piobuff to transfer to host
 //    				*piobuf =
@@ -639,6 +648,15 @@ HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackCo
                         break;
     		}
     	}
+    	if(!isFind)
+    	{
+    		*piobuf = dummy;
+    		dummy++;
+            printf("n\r\n");
+    	}
+	}else
+	{
+		printf("u\r\n");
 	}
 
   }
@@ -765,7 +783,7 @@ int main(void)
 //  //#endif /* TEST5 */
     context1.Device = &hsmbus1;//phandle1;
 //    //ToDo: check the preset byte
-//    context1.SRByte = 0x55U;
+    context1.SRByte = 0x55U;
     context1.CurrentCommand = NULL;
 //  #ifdef ARP
 //    context1.StateMachine = SMBUS_SMS_NONE;
