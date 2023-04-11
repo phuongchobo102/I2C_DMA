@@ -39,7 +39,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TEST_I2C1_SLAVE 	1
+//#define TEST_I2C1_SLAVE 	1
+#define TEST_SMBUS_IMPL
+#define TEST_EDID_DELL_EXAMPLE
+#define EDID_COMMANDS_TABBLE_SIZE         		((uint8_t)256)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -79,6 +82,298 @@ uint8_t report_buffer[64]; // Variable to receive the report buffer
 uint8_t flag = 0;          // Variable to store the button flag
 uint8_t flag_rx = 0;       // Variable to store the reception flag
 
+
+#ifdef TEST_SMBUS_IMPL
+uint8_t       *piobuf;
+SMBUS_HandleTypeDef *phandle1;
+SMBUS_StackHandleTypeDef *pcontext1;
+SMBUS_StackHandleTypeDef context1;
+uint32_t i2c1_smbus_lastTime;
+
+
+
+st_command_t const EDID_COMMANDS_TABLE[] =
+{
+	{ 0x00, READ_OR_WRITE, 0, 1 },											/* code 00 */
+	{ 0x01, READ_OR_WRITE, 0, 1 },	                        				/* code 01 */
+	{ 0x02, READ_OR_WRITE, 0, 1 },	                    					/* code 02 */
+	{ 0x03, READ_OR_WRITE, 0, 1 },	                             			/* code 03 */
+	{ 0x04, READ_OR_WRITE, 0, 1 },                              			/* code 04 */
+	{ 0x05, READ_OR_WRITE, 0, 1 },                      					/* code 05 */
+	{ 0x06, READ_OR_WRITE, 0, 1 },                      					/* code 06 */
+	{ 0x07, READ_OR_WRITE, 0, 1 },                        					/* code 07 */
+	{ 0x08, READ_OR_WRITE, 0, 1 },                        					/* code 08 */
+	{ 0x09, READ_OR_WRITE, 0, 1 },                        					/* code 09 */
+	{ 0x0A, READ_OR_WRITE, 0, 1 },                      					/* code 0A */
+	{ 0x0B, READ_OR_WRITE, 0, 1 },                      					/* code 0B */
+	{ 0x0C, READ_OR_WRITE, 0, 1 },                        					/* code 0C */
+	{ 0x0D, READ_OR_WRITE, 0, 1 },                        					/* code 0D */
+	{ 0x0E, READ_OR_WRITE, 0, 1 },                        					/* code 0E */
+	{ 0x0F, READ_OR_WRITE, 0, 1 },											/* code 0F */
+	{ 0x10, READ_OR_WRITE, 0, 1 },											/* code 10 */
+	{ 0x11, READ_OR_WRITE, 0, 1 },                          				/* code 11 */
+	{ 0x12, READ_OR_WRITE, 0, 1 },                          				/* code 12 */
+	{ 0x13, READ_OR_WRITE, 0, 1 },                          				/* code 13 */
+	{ 0x14, READ_OR_WRITE, 0, 1 },                       					/* code 14 */
+	{ 0x15, READ_OR_WRITE, 0, 1 },											/* code 15 */
+	{ 0x16, READ_OR_WRITE, 0, 1 },                           				/* code 16 */
+	{ 0x17, READ_OR_WRITE, 0, 1 },											/* code 17 */
+	{ 0x18, READ_OR_WRITE, 0, 1 },                          				/* code 18 */
+	{ 0x19, READ_OR_WRITE, 0, 1 },                                  		/* code 19 */
+	{ 0x1A, READ_OR_WRITE, 0, 1 },                               			/* code 1A */
+	{ 0x1B, READ_OR_WRITE, 0, 1 },                      					/* code 1B */
+	{ 0x1C, READ_OR_WRITE, 0, 1 },                               			/* code 1C */
+	{ 0x1D, READ_OR_WRITE, 0, 1 },                      					/* code 1D */
+	{ 0x1E, READ_OR_WRITE, 0, 1 },                               			/* code 1E */
+	{ 0x1F, READ_OR_WRITE, 0, 1 },                      					/* code 1F */
+	{ 0x20, READ_OR_WRITE, 0, 1 },											/* code 20 */
+	{ 0x21, READ_OR_WRITE, 0, 1 },											/* code 21 */
+	{ 0x22, READ_OR_WRITE, 0, 1 },											/* code 22 */
+	{ 0x23, READ_OR_WRITE, 0, 1 },											/* code 23 */
+	{ 0x24, READ_OR_WRITE, 0, 1 },											/* code 24 */
+	{ 0x25, READ_OR_WRITE, 0, 1 },											/* code 25 */
+	{ 0x26, READ_OR_WRITE, 0, 1 },											/* code 26 */
+	{ 0x27, READ_OR_WRITE, 0, 1 },											/* code 27 */
+	{ 0x28, READ_OR_WRITE, 0, 1 },											/* code 28 */
+	{ 0x29, READ_OR_WRITE, 0, 1 },											/* code 29 */
+	{ 0x2A, READ_OR_WRITE, 0, 1 },											/* code 2A */
+	{ 0x2B, READ_OR_WRITE, 0, 1 },											/* code 2B */
+	{ 0x2C, READ_OR_WRITE, 0, 1 },											/* code 2C */
+	{ 0x2D, READ_OR_WRITE, 0, 1 },											/* code 2D */
+	{ 0x2E, READ_OR_WRITE, 0, 1 },											/* code 2E */
+	{ 0x2F, READ_OR_WRITE, 0, 1 },											/* code 2F */
+	{ 0x30, READ_OR_WRITE, 0, 1 },											/* code 30 */
+	{ 0x31, READ_OR_WRITE, 0, 1 },											/* code 31 */
+	{ 0x32, READ_OR_WRITE, 0, 1 },											/* code 32 */
+	{ 0x33, READ_OR_WRITE, 0, 1 },											/* code 33 */
+	{ 0x34, READ_OR_WRITE, 0, 1 },											/* code 34 */
+	{ 0x35, READ_OR_WRITE, 0, 1 },											/* code 35 */
+	{ 0x36, READ_OR_WRITE, 0, 1 },											/* code 36 */
+	{ 0x37, READ_OR_WRITE, 0, 1 },											/* code 37 */
+	{ 0x38, READ_OR_WRITE, 0, 1 },											/* code 38 */
+	{ 0x39, READ_OR_WRITE, 0, 1 },											/* code 39 */
+	{ 0x3A, READ_OR_WRITE, 0, 1 },											/* code 3A */
+	{ 0x3B, READ_OR_WRITE, 0, 1 },											/* code 3B */
+	{ 0x3C, READ_OR_WRITE, 0, 1 },											/* code 3C */
+	{ 0x3D, READ_OR_WRITE, 0, 1 },											/* code 3D */
+	{ 0x3E, READ_OR_WRITE, 0, 1 },											/* code 3E */
+	{ 0x3F, READ_OR_WRITE, 0, 1 },											/* code 3F */
+	{ 0x40, READ_OR_WRITE, 0, 1 },											/* code 40 */
+	{ 0x41, READ_OR_WRITE, 0, 1 },											/* code 41 */
+	{ 0x42, READ_OR_WRITE, 0, 1 },											/* code 42 */
+	{ 0x43, READ_OR_WRITE, 0, 1 },											/* code 43 */
+	{ 0x44, READ_OR_WRITE, 0, 1 },											/* code 44 */
+	{ 0x45, READ_OR_WRITE, 0, 1 },											/* code 45 */
+	{ 0x46, READ_OR_WRITE, 0, 1 },											/* code 46 */
+	{ 0x47, READ_OR_WRITE, 0, 1 },											/* code 47 */
+	{ 0x48, READ_OR_WRITE, 0, 1 },											/* code 48 */
+	{ 0x49, READ_OR_WRITE, 0, 1 },											/* code 49 */
+	{ 0x4A, READ_OR_WRITE, 0, 1 },											/* code 4A */
+	{ 0x4B, READ_OR_WRITE, 0, 1 },											/* code 4B */
+	{ 0x4C, READ_OR_WRITE, 0, 1 },											/* code 4C */
+	{ 0x4D, READ_OR_WRITE, 0, 1 },											/* code 4D */
+	{ 0x4E, READ_OR_WRITE, 0, 1 },											/* code 4E */
+	{ 0x4F, READ_OR_WRITE, 0, 1 },											/* code 4F */
+	{ 0x50, READ_OR_WRITE, 0, 1 },											/* code 50 */
+	{ 0x51, READ_OR_WRITE, 0, 1 },											/* code 51 */
+	{ 0x52, READ_OR_WRITE, 0, 1 },											/* code 52 */
+	{ 0x53, READ_OR_WRITE, 0, 1 },											/* code 53 */
+	{ 0x54, READ_OR_WRITE, 0, 1 },											/* code 54 */
+	{ 0x55, READ_OR_WRITE, 0, 1 },											/* code 55 */
+	{ 0x56, READ_OR_WRITE, 0, 1 },											/* code 56 */
+	{ 0x57, READ_OR_WRITE, 0, 1 },											/* code 57 */
+	{ 0x58, READ_OR_WRITE, 0, 1 },											/* code 58 */
+	{ 0x59, READ_OR_WRITE, 0, 1 },											/* code 59 */
+	{ 0x5A, READ_OR_WRITE, 0, 1 },											/* code 5A */
+	{ 0x5B, READ_OR_WRITE, 0, 1 },											/* code 5B */
+	{ 0x5C, READ_OR_WRITE, 0, 1 },											/* code 5C */
+	{ 0x5D, READ_OR_WRITE, 0, 1 },											/* code 5D */
+	{ 0x5E, READ_OR_WRITE, 0, 1 },											/* code 5E */
+	{ 0x5F, READ_OR_WRITE, 0, 1 },											/* code 5F */
+	{ 0x60, READ_OR_WRITE, 0, 1 },											/* code 60 */
+	{ 0x61, READ_OR_WRITE, 0, 1 },											/* code 61 */
+	{ 0x62, READ_OR_WRITE, 0, 1 },											/* code 62 */
+	{ 0x63, READ_OR_WRITE, 0, 1 },											/* code 63 */
+	{ 0x64, READ_OR_WRITE, 0, 1 },											/* code 64 */
+	{ 0x65, READ_OR_WRITE, 0, 1 },											/* code 65 */
+	{ 0x66, READ_OR_WRITE, 0, 1 },											/* code 66 */
+	{ 0x67, READ_OR_WRITE, 0, 1 },											/* code 67 */
+	{ 0x68, READ_OR_WRITE, 0, 1 },											/* code 68 */
+	{ 0x69, READ_OR_WRITE, 0, 1 },											/* code 69 */
+	{ 0x6A, READ_OR_WRITE, 0, 1 },											/* code 6A */
+	{ 0x6B, READ_OR_WRITE, 0, 1 },											/* code 6B */
+	{ 0x6C, READ_OR_WRITE, 0, 1 },											/* code 6C */
+	{ 0x6D, READ_OR_WRITE, 0, 1 },											/* code 6D */
+	{ 0x6E, READ_OR_WRITE, 0, 1 },											/* code 6E */
+	{ 0x6F, READ_OR_WRITE, 0, 1 },											/* code 6F */
+	{ 0x70, READ_OR_WRITE, 0, 1 },											/* code 70 */
+	{ 0x71, READ_OR_WRITE, 0, 1 },											/* code 71 */
+	{ 0x72, READ_OR_WRITE, 0, 1 },											/* code 72 */
+	{ 0x73, READ_OR_WRITE, 0, 1 },											/* code 73 */
+	{ 0x74, READ_OR_WRITE, 0, 1 },											/* code 74 */
+	{ 0x75, READ_OR_WRITE, 0, 1 },											/* code 75 */
+	{ 0x76, READ_OR_WRITE, 0, 1 },											/* code 76 */
+	{ 0x77, READ_OR_WRITE, 0, 1 },											/* code 77 */
+	{ 0x78, READ_OR_WRITE, 0, 1 },											/* code 78 */
+	{ 0x79, READ_OR_WRITE, 0, 1 },											/* code 79 */
+	{ 0x7A, READ_OR_WRITE, 0, 1 },											/* code 7A */
+	{ 0x7B, READ_OR_WRITE, 0, 1 },											/* code 7B */
+	{ 0x7C, READ_OR_WRITE, 0, 1 },											/* code 7C */
+	{ 0x7D, READ_OR_WRITE, 0, 1 },											/* code 7D */
+	{ 0x7E, READ_OR_WRITE, 0, 1 },											/* code 7E */
+	{ 0x7F, READ_OR_WRITE, 0, 1 },											/* code 7F */
+	{ 0x80, READ_OR_WRITE, 0, 1 },											/* code 80 */
+	{ 0x81, READ_OR_WRITE, 0, 1 },											/* code 81 */
+	{ 0x82, READ_OR_WRITE, 0, 1 },											/* code 82 */
+	{ 0x83, READ_OR_WRITE, 0, 1 },											/* code 83 */
+	{ 0x84, READ_OR_WRITE, 0, 1 },											/* code 84 */
+	{ 0x85, READ_OR_WRITE, 0, 1 },											/* code 85 */
+	{ 0x86, READ_OR_WRITE, 0, 1 },											/* code 86 */
+	{ 0x87, READ_OR_WRITE, 0, 1 },											/* code 87 */
+	{ 0x88, READ_OR_WRITE, 0, 1 },											/* code 88 */
+	{ 0x89, READ_OR_WRITE, 0, 1 },											/* code 89 */
+	{ 0x8A, READ_OR_WRITE, 0, 1 },											/* code 8A */
+	{ 0x8B, READ_OR_WRITE, 0, 1 },											/* code 8B */
+	{ 0x8C, READ_OR_WRITE, 0, 1 },											/* code 8C */
+	{ 0x8D, READ_OR_WRITE, 0, 1 },											/* code 8D */
+	{ 0x8E, READ_OR_WRITE, 0, 1 },											/* code 8E */
+	{ 0x8F, READ_OR_WRITE, 0, 1 },											/* code 8F */
+	{ 0x90, READ_OR_WRITE, 0, 1 },											/* code 90 */
+	{ 0x91, READ_OR_WRITE, 0, 1 },											/* code 91 */
+	{ 0x92, READ_OR_WRITE, 0, 1 },											/* code 92 */
+	{ 0x93, READ_OR_WRITE, 0, 1 },											/* code 93 */
+	{ 0x94, READ_OR_WRITE, 0, 1 },											/* code 94 */
+	{ 0x95, READ_OR_WRITE, 0, 1 },											/* code 95 */
+	{ 0x96, READ_OR_WRITE, 0, 1 },											/* code 96 */
+	{ 0x97, READ_OR_WRITE, 0, 1 },											/* code 97 */
+	{ 0x98, READ_OR_WRITE, 0, 1 },											/* code 98 */
+	{ 0x99, READ_OR_WRITE, 0, 1 },											/* code 99 */
+	{ 0x9A, READ_OR_WRITE, 0, 1 },											/* code 9A */
+	{ 0x9B, READ_OR_WRITE, 0, 1 },											/* code 9B */
+	{ 0x9C, READ_OR_WRITE, 0, 1 },											/* code 9C */
+	{ 0x9D, READ_OR_WRITE, 0, 1 },											/* code 9D */
+	{ 0x9E, READ_OR_WRITE, 0, 1 },											/* code 9E */
+	{ 0x9F, READ_OR_WRITE, 0, 1 },											/* code 9F */
+	{ 0xA0, READ_OR_WRITE, 0, 1 },											/* code A0 */
+	{ 0xA1, READ_OR_WRITE, 0, 1 },											/* code A1 */
+	{ 0xA2, READ_OR_WRITE, 0, 1 },											/* code A2 */
+	{ 0xA3, READ_OR_WRITE, 0, 1 },											/* code A3 */
+	{ 0xA4, READ_OR_WRITE, 0, 1 },											/* code A4 */
+	{ 0xA5, READ_OR_WRITE, 0, 1 },											/* code A5 */
+	{ 0xA6, READ_OR_WRITE, 0, 1 },											/* code A6 */
+	{ 0xA7, READ_OR_WRITE, 0, 1 },											/* code A7 */
+	{ 0xA8, READ_OR_WRITE, 0, 1 },											/* code A8 */
+	{ 0xA9, READ_OR_WRITE, 0, 1 },											/* code A9 */
+	{ 0xAA, READ_OR_WRITE, 0, 1 },											/* code AA */
+	{ 0xAB, READ_OR_WRITE, 0, 1 },											/* code AB */
+	{ 0xAC, READ_OR_WRITE, 0, 1 },											/* code AC */
+	{ 0xAD, READ_OR_WRITE, 0, 1 },											/* code AD */
+	{ 0xAE, READ_OR_WRITE, 0, 1 },											/* code AE */
+	{ 0xAF, READ_OR_WRITE, 0, 1 },											/* code AF */
+	{ 0xB0, READ_OR_WRITE, 0, 1 },											/* code B0 */
+	{ 0xB1, READ_OR_WRITE, 0, 1 },											/* code B1 */
+	{ 0xB2, READ_OR_WRITE, 0, 1 },											/* code B2 */
+	{ 0xB3, READ_OR_WRITE, 0, 1 },											/* code B3 */
+	{ 0xB4, READ_OR_WRITE, 0, 1 },											/* code B4 */
+	{ 0xB5, READ_OR_WRITE, 0, 1 },											/* code B5 */
+	{ 0xB6, READ_OR_WRITE, 0, 1 },											/* code B6 */
+	{ 0xB7, READ_OR_WRITE, 0, 1 },											/* code B7 */
+	{ 0xB8, READ_OR_WRITE, 0, 1 },											/* code B8 */
+	{ 0xB9, READ_OR_WRITE, 0, 1 },											/* code B9 */
+	{ 0xBA, READ_OR_WRITE, 0, 1 },											/* code BA */
+	{ 0xBB, READ_OR_WRITE, 0, 1 },											/* code BB */
+	{ 0xBC, READ_OR_WRITE, 0, 1 },											/* code BC */
+	{ 0xBD, READ_OR_WRITE, 0, 1 },											/* code BD */
+	{ 0xBE, READ_OR_WRITE, 0, 1 },											/* code BE */
+	{ 0xBF, READ_OR_WRITE, 0, 1 },											/* code BF */
+	{ 0xC0, READ_OR_WRITE, 0, 1 },											/* code C0 */
+	{ 0xC1, READ_OR_WRITE, 0, 1 },											/* code C1 */
+	{ 0xC2, READ_OR_WRITE, 0, 1 },											/* code C2 */
+	{ 0xC3, READ_OR_WRITE, 0, 1 },											/* code C3 */
+	{ 0xC4, READ_OR_WRITE, 0, 1 },											/* code C4 */
+	{ 0xC5, READ_OR_WRITE, 0, 1 },											/* code C5 */
+	{ 0xC6, READ_OR_WRITE, 0, 1 },											/* code C6 */
+	{ 0xC7, READ_OR_WRITE, 0, 1 },											/* code C7 */
+	{ 0xC8, READ_OR_WRITE, 0, 1 },											/* code C8 */
+	{ 0xC9, READ_OR_WRITE, 0, 1 },											/* code C9 */
+	{ 0xCA, READ_OR_WRITE, 0, 1 },											/* code CA */
+	{ 0xCB, READ_OR_WRITE, 0, 1 },											/* code CB */
+	{ 0xCC, READ_OR_WRITE, 0, 1 },											/* code CC */
+	{ 0xCD, READ_OR_WRITE, 0, 1 },											/* code CD */
+	{ 0xCE, READ_OR_WRITE, 0, 1 },											/* code CE */
+	{ 0xCF, READ_OR_WRITE, 0, 1 },											/* code CF */
+	{ 0xD0, READ_OR_WRITE, 0, 1 },											/* code D0 */
+	{ 0xD1, READ_OR_WRITE, 0, 1 },											/* code D1 */
+	{ 0xD2, READ_OR_WRITE, 0, 1 },											/* code D2 */
+	{ 0xD3, READ_OR_WRITE, 0, 1 },											/* code D3 */
+	{ 0xD4, READ_OR_WRITE, 0, 1 },											/* code D4 */
+	{ 0xD5, READ_OR_WRITE, 0, 1 },											/* code D5 */
+	{ 0xD6, READ_OR_WRITE, 0, 1 },											/* code D6 */
+	{ 0xD7, READ_OR_WRITE, 0, 1 },											/* code D7 */
+	{ 0xD8, READ_OR_WRITE, 0, 1 },											/* code D8 */
+	{ 0xD9, READ_OR_WRITE, 0, 1 },											/* code D9 */
+	{ 0xDA, READ_OR_WRITE, 0, 1 },											/* code DA */
+	{ 0xDB, READ_OR_WRITE, 0, 1 },											/* code DB */
+	{ 0xDC, READ_OR_WRITE, 0, 1 },											/* code DC */
+	{ 0xDD, READ_OR_WRITE, 0, 1 },											/* code DD */
+	{ 0xDE, READ_OR_WRITE, 0, 1 },											/* code DE */
+	{ 0xDF, READ_OR_WRITE, 0, 1 },											/* code DF */
+	{ 0xE0, READ_OR_WRITE, 0, 1 },											/* code E0 */
+	{ 0xE1, READ_OR_WRITE, 0, 1 },											/* code E1 */
+	{ 0xE2, READ_OR_WRITE, 0, 1 },											/* code E2 */
+	{ 0xE3, READ_OR_WRITE, 0, 1 },											/* code E3 */
+	{ 0xE4, READ_OR_WRITE, 0, 1 },											/* code E4 */
+	{ 0xE5, READ_OR_WRITE, 0, 1 },											/* code E5 */
+	{ 0xE6, READ_OR_WRITE, 0, 1 },											/* code E6 */
+	{ 0xE7, READ_OR_WRITE, 0, 1 },											/* code E7 */
+	{ 0xE8, READ_OR_WRITE, 0, 1 },											/* code E8 */
+	{ 0xE9, READ_OR_WRITE, 0, 1 },											/* code E9 */
+	{ 0xEA, READ_OR_WRITE, 0, 1 },											/* code EA */
+	{ 0xEB, READ_OR_WRITE, 0, 1 },											/* code EB */
+	{ 0xEC, READ_OR_WRITE, 0, 1 },											/* code EC */
+	{ 0xED, READ_OR_WRITE, 0, 1 },											/* code ED */
+	{ 0xEE, READ_OR_WRITE, 0, 1 },											/* code EE */
+	{ 0xEF, READ_OR_WRITE, 0, 1 },											/* code EF */
+	{ 0xF0, READ_OR_WRITE, 0, 1 },											/* code F0 */
+	{ 0xF1, READ_OR_WRITE, 0, 1 },											/* code F1 */
+	{ 0xF2, READ_OR_WRITE, 0, 1 },											/* code F2 */
+	{ 0xF3, READ_OR_WRITE, 0, 1 },											/* code F3 */
+	{ 0xF4, READ_OR_WRITE, 0, 1 },											/* code F4 */
+	{ 0xF5, READ_OR_WRITE, 0, 1 },											/* code F5 */
+	{ 0xF6, READ_OR_WRITE, 0, 1 },											/* code F6 */
+	{ 0xF7, READ_OR_WRITE, 0, 1 },											/* code F7 */
+	{ 0xF8, READ_OR_WRITE, 0, 1 },											/* code F8 */
+	{ 0xF9, READ_OR_WRITE, 0, 1 },											/* code F9 */
+	{ 0xFA, READ_OR_WRITE, 0, 1 },											/* code FA */
+	{ 0xFB, READ_OR_WRITE, 0, 1 },											/* code FB */
+	{ 0xFC, READ_OR_WRITE, 0, 1 },											/* code FC */
+	{ 0xFD, READ_OR_WRITE, 0, 1 },											/* code FD */
+	{ 0xFE, READ_OR_WRITE, 0, 1 },											/* code FE */
+	{ 0xFF, READ_OR_WRITE, 0, 1 },											/* code FF */
+};
+
+
+#if defined(TEST_EDID_DELL_EXAMPLE)
+uint8_t atest_edid[] = {
+		0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x10, 0xAC, 0x11, 0x20, 0x45, 0x31, 0x58, 0x34,
+		0x20, 0x1E, 0x01, 0x03, 0x80, 0x35, 0x1E, 0x78, 0x2A, 0xA3, 0xA5, 0xA7, 0x56, 0x51, 0x9C, 0x22,
+		0x0F, 0x50, 0x54, 0xA5, 0x4B, 0x00, 0x71, 0x4F, 0x81, 0x80, 0xA9, 0xC0, 0xD1, 0xC0, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A, 0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
+		0x45, 0x00, 0x0F, 0x28, 0x21, 0x00, 0x00, 0x1E, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x38, 0x51, 0x50,
+		0x58, 0x4A, 0x33, 0x33, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x44,
+		0x45, 0x4C, 0x4C, 0x20, 0x44, 0x32, 0x34, 0x32, 0x31, 0x48, 0x0A, 0x20, 0x00, 0x00, 0x00, 0xFD,
+		0x00, 0x38, 0x4C, 0x1E, 0x53, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x69,
+		0x02, 0x03, 0x1E, 0xF1, 0x4F, 0x90, 0x05, 0x04, 0x03, 0x02, 0x07, 0x16, 0x10, 0x06, 0x00, 0x12,
+		0x15, 0x13, 0x14, 0x1F, 0x23, 0x09, 0x07, 0x07, 0x65, 0x03, 0x0C, 0x00, 0x10, 0x00, 0x02, 0x3A,
+		0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C, 0x45, 0x00, 0x0F, 0x28, 0x21, 0x00, 0x00, 0x1E,
+		0x01, 0x1D, 0x80, 0x18, 0x71, 0x1C, 0x16, 0x20, 0x58, 0x2C, 0x25, 0x00, 0x0F, 0x28, 0x21, 0x00,
+		0x00, 0x9E, 0x01, 0x1D, 0x00, 0x72, 0x51, 0xD0, 0x1E, 0x20, 0x6E, 0x28, 0x55, 0x00, 0x0F, 0x28,
+		0x21, 0x00, 0x00, 0x1E, 0x8C, 0x0A, 0xD0, 0x8A, 0x20, 0xE0, 0x2D, 0x10, 0x10, 0x3E, 0x96, 0x00,
+		0x0F, 0x28, 0x21, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8F
+}; //DEL2011_A37291D73923
+#endif /*TEST_EDID_DELL_EXAMPLE*/
+#endif 				/*TEST_SMBUS_IMPL*/
 #ifdef TEST_I2C1_SLAVE
 
 bool isI2C1Receive = true;
@@ -196,7 +491,10 @@ static void MX_USART1_UART_Init(void);
 static void MX_CRC_Init(void);
 static void MX_WWDG_Init(void);
 /* USER CODE BEGIN PFP */
-
+#ifdef TEST_SMBUS_IMPL
+HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackContext );
+static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext);
+#endif /*TEST_SMBUS_IMPL*/
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -247,6 +545,127 @@ void set_current_usb_status(uint8_t channel, uint8_t status)
   if (channel < 5 && channel >= 0)
     usbStatus[channel] = status;
 }
+
+
+
+#ifdef TEST_SMBUS_IMPL
+/**
+  * @brief  Callback function notifying slave about command incoming, implementation
+    is supporting extended command defined by PMBus
+  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
+  *                the configuration information for the specified SMBUS.
+  * @retval HAL_StatusTypeDef response code. Equal STACK_OK if success, any other value means problem
+  */
+HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackContext )
+{
+  uint8_t       *piobuf = NULL;
+
+  /* accessing the IO buffer */
+  piobuf = STACK_SMBUS_GetBuffer( pStackContext );
+
+  if ( piobuf == NULL )
+  {
+    pStackContext->StateMachine |= SMBUS_SMS_ERROR;
+  }
+//  else if ( pStackContext->CurrentCommand == (st_command_t *)&HOST_NOTIFY_PROTOCOL )
+//  {
+//    /* host notify command */
+//    if ( pStackContext->Buffer[0] == SMBUS_ADDR_DEFAULT )
+//    {
+//      /* Usually the Host notify is used for ARP, but may not be limited to it */
+//#ifdef ARP
+//#ifdef HOST1
+//      /* case of ARP notify */
+//      ARP_process = 1U;
+//#endif /* HOST1 */
+//#endif /* ARP */
+//    }
+//  }
+  else    /* Normal device command execution */
+  {
+    /* Zone config command example implementation */
+#ifdef PMBUS13
+    if ( pStackContext->CurrentCommand->cmnd_code == PMBC_ZONE_CONFIG )
+    {
+      pStackContext->TheZone.writeZone = pStackContext->Buffer[1];
+      pStackContext->TheZone.readZone = pStackContext->Buffer[2];
+    }
+    else if ( pStackContext->CurrentCommand->cmnd_code == PMBC_ZONE_ACTIVE )
+    {
+      pStackContext->TheZone.activeWriteZone = pStackContext->Buffer[1];
+      pStackContext->TheZone.activeReadZone = pStackContext->Buffer[2];
+    }
+
+#endif /* PMBUS13 */
+    /*
+      first step is to see if we have a case of extended command
+    */
+//    if ( pStackContext->CurrentCommand->cmnd_code == PMBC_PMBUS_COMMAND_EXT )
+//    {
+////      BSP_LED_On(LED_GREEN);
+//    }
+//    else /* regular command case */
+//    {
+////      BSP_LED_On(LED_GREEN);
+//      if ((pStackContext->CurrentCommand->cmnd_query & BLOCK ) == BLOCK )
+//      {
+//        *piobuf = (pStackContext->CurrentCommand->cmnd_master_Rx_size) - 1U;
+//        /* byte size of reply for block read command */
+//        /* One byte for size, rest are [size] of data */
+//      }
+//    }
+    if ((pStackContext->CurrentCommand->cmnd_query & READ_OR_WRITE ) == READ_OR_WRITE )
+	{
+//    	*piobuf = (pStackContext->CurrentCommand->cmnd_master_Rx_size) - 1U;
+    	for(uint8_t i = 0; i < 256; i++)
+    	{
+    		if(pStackContext->CurrentCommand == (st_command_t *)&EDID_COMMANDS_TABLE[i])
+    		{
+    			if ((pStackContext->CurrentCommand->cmnd_query & READ ) == READ )
+    			{
+#ifdef TEST_EDID_DELL_EXAMPLE
+    				*piobuf = atest_edid[i];
+#endif /*TEST_EDID_DELL_EXAMPLE*/
+    				//ToDo: copy data into piobuff to transfer to host
+//    				*piobuf =
+    			}else if ((pStackContext->CurrentCommand->cmnd_query & WRITE ) == WRITE )
+    			{
+    				//ToDo: get data from piobuff and then process it
+//    				*piobuf =
+    			}else
+    			{
+    				pStackContext->StateMachine |=  SMBUS_SMS_IGNORED;
+    			}
+    		}
+    	}
+	}
+
+  }
+  return STACK_OK;
+}
+
+/**
+  * @brief  Stub of an error treatment function - set to ignore most errors
+  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
+  *                the configuration information for the specified SMBUS.
+  * @retval None
+  */
+static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext)
+{
+  if ( ( STACK_SMBUS_IsBlockingError(pStackContext) ) || ( STACK_SMBUS_IsCmdError( pStackContext ) ) )
+  {
+    /* No action, error symptoms are ignored */
+    pStackContext->StateMachine &= ~(SMBUS_ERROR_CRITICAL | SMBUS_COM_ERROR);
+  }
+  else if ((pStackContext->StateMachine & SMBUS_SMS_ERR_PECERR ) ==
+           SMBUS_SMS_ERR_PECERR ) /* PEC error, we won't wait for any more action */
+  {
+    pStackContext->StateMachine |= SMBUS_SMS_READY;
+    pStackContext->CurrentCommand = NULL;
+    pStackContext->StateMachine &= ~(SMBUS_SMS_ACTIVE_MASK | SMBUS_SMS_ERR_PECERR);
+  }
+}
+#endif  /*TEST_SMBUS_IMPL*/
 /* USER CODE END 0 */
 
 /**
@@ -327,6 +746,66 @@ int main(void)
   t_smbus_i2c1.t_tx.u16_buffer_size = sizeof(test_tx_buffer);
   t_smbus_i2c1.t_tx.u16_counter = 0;
 #endif/* TEST_I2C1_SLAVE*/
+#ifdef TEST_SMBUS_IMPL
+//  hsmbus1.pBuffPtr = context1.Buffer;
+//
+//  phandle1 = &hsmbus1;
+//
+////  /HAL_SMBUS_Init( phandle1 );
+//
+//    context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
+//    context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
+//  //#ifndef TEST4
+//  //#ifndef TEST5
+//  //  /* Most tests do not use actual PMBUS commands */
+//  //  context1.CMD_table = (st_command_t *) & PMBUS_COMMANDS_TEST[0];
+//  //  context1.CMD_tableSize = PMBUS_CMD_TBL_SIZE;
+//  //#endif /* TEST4 */
+//  //#endif /* TEST5 */
+//    context1.Device = &hsmbus1;//phandle1;
+//    //ToDo: check the preset byte
+//    context1.SRByte = 0x55U;
+//    context1.CurrentCommand = NULL;
+//  #ifdef ARP
+//    context1.StateMachine = SMBUS_SMS_NONE;
+//  #ifdef DEV_PSA
+//    context1.OwnAddress = SMBUS_ADDR_DEVICE;
+//  #else /* DEV_PSA */
+//    context1.OwnAddress = 0U;
+//  #endif /* DEV_PSA */
+//  #ifndef  HOST1
+//    context1.ARP_UDID = (uint8_t *) &UDID;
+//  #endif /* HOST1 */
+//  #else /* ARP */
+////    context1.StateMachine = SMBUS_SMS_ARP_AR;
+////    context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
+//  #endif /* ARP */
+//  #ifdef USE_PEC
+//    context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
+//  #endif
+//    pcontext1 = &context1;
+//
+//    STACK_SMBUS_Init( pcontext1 );
+    
+    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
+    	  {
+				  /* Transfer error in transmission process */
+				  Error_Handler();
+		  }
+
+    /*Read buffer 1st time*/
+
+//    piobuf = STACK_SMBUS_GetBuffer( pcontext1 );
+//    if (piobuf != NULL )
+//    {
+//      for (uint8_t index = 0U; index < STACK_NBYTE_SIZE; index++)
+//      {
+//        piobuf[index] = (uint8_t)index;
+//      }
+//    }
+
+    i2c1_smbus_lastTime = 0;
+#endif /*TEST_SMBUS_IMPL*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -414,6 +893,42 @@ int main(void)
         while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY); 
       }
 #endif /*TEST_I2C1_SLAVE*/
+
+#ifdef TEST_SMBUS_IMPL
+  if (HAL_GetTick() - i2c1_smbus_lastTime > 200)
+	{
+	  i2c1_smbus_lastTime = HAL_GetTick();
+
+
+
+	  /* Periodically checking error state of the stack */
+		Error_Check( &context1 );
+
+		/* Periodically checking for Quick command */
+		if ( context1.StateMachine & ( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R ) )
+		{
+			/* Todo: Indicate status */
+  //	  	  	BSP_LED_On(LED_GREEN);
+			context1.StateMachine &= ~( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R );
+		}
+
+		/* Todo: Indicate status */
+  //	  	BSP_LED_Off(LED_GREEN);
+
+		/* Cleaning arbitration loss flag */
+		context1.StateMachine &= ~SMBUS_SMS_ERR_ARLO;
+
+  //	  	if (buttonpress == 1U)
+  //	  	{
+  //#ifdef ALERT
+  //	  	  STACK_SMBUS_SendAlert( pcontext1 );
+  //#else /* ALERT */
+  //	  	  STACK_SMBUS_NotifyHost( pcontext1 );
+  //#endif /* DEV_ALERT */
+  //	  	  buttonpress = 0U;
+  //	  	}
+	}
+#endif	/*TEST_SMBUS_IMPL*/
   }
 
   /* USER CODE END 3 */
@@ -975,7 +1490,9 @@ void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
 	if(hi2c->Instance==I2C1)
 	{
 		printf("\r\n Slave TxCplt I2C1 \r\n");
+#ifdef TEST_I2C1_SLAVE
 		isI2C1Receive = true;
+#endif /*TEST_I2C1_SLAVE*/
 	}else if(hi2c->Instance==I2C2)
 	{
 		printf("\r\n Slave TxCplt I2C2 \r\n");
@@ -987,7 +1504,9 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	if(hi2c->Instance==I2C1)
 	{
 		printf("\r\n Slave RxCplt I2C1 \r\n");
+#ifdef TEST_I2C1_SLAVE
 		isI2C1Transmit = true;
+#endif /*TEST_I2C1_SLAVE*/
 //		if(HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)aI2CSlvTxBuffer, TXSLVBUFFERSIZE) != HAL_OK)
 		{
 
@@ -1071,7 +1590,9 @@ void HAL_I2C_SlaveRxCpltNonReceiveStopCallback(I2C_HandleTypeDef *hi2c)
     {
             printf("\r\n RxCpltNonStop \r\n");
             //__HAL_I2C_RESET_HANDLE_STATE(hi2c);
+#ifdef TEST_I2C1_SLAVE
             isI2C1Transmit = true;
+#endif /*TEST_I2C1_SLAVE*/
     }
 }
 
@@ -1234,6 +1755,7 @@ void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 //    {
 //        printf("\r\n SMB2 SlaveTxCplt \r\n");
 //    }
+	printf("T");
 	Defer_HAL_SMBUS_SlaveTxCpltCallback(hsmbus);
 }
 
@@ -1391,6 +1913,7 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 //    {
 //        printf("\r\n SMB2 SlaveRxCplt \r\n");
 //    }
+	printf("R");
 	Defer_HAL_SMBUS_SlaveRxCpltCallback(hsmbus);
 }
 
@@ -1522,6 +2045,7 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 //    {
 //        printf("\r\n SMB2 Addr \r\n");
 //    }
+	printf("A");
 	Defer_HAL_SMBUS_AddrCallback(hsmbus,  TransferDirection,  AddrMatchCode);
 }
 
@@ -1588,8 +2112,8 @@ void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 //    {
 //        printf("\r\n SMB2 ListenCplt \r\n");
 //    }
+	printf("C\r\n");
 	HAL_SMBUS_ListenCpltCallback(hsmbus);
-	printf("LstC\r\n");
 }
 
 //void HAL_SMBUS_ErrorCallback(SMBUS_HandleTypeDef *hsmbus)
