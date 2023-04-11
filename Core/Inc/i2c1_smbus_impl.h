@@ -42,8 +42,12 @@ extern "C" {
 /************************************
  * EXPORTED  FUNCTION PROTOTYPES
  ************************************/
-extern void i2c1_smbus_init(void);
-extern void i2c1_smbus_task(void);
+extern void Defer_HAL_SMBUS_MasterTxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
+extern void Defer_HAL_SMBUS_MasterRxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
+extern void Defer_HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
+extern void Defer_HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
+extern void Defer_HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode);
+extern void Defer_HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus);
 #ifdef __cplusplus
 }
 #endif
