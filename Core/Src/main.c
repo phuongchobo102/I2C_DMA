@@ -40,7 +40,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define TEST_I2C1_SLAVE 	1
-//#define TEST_SMBUS_IMPL
+#define TEST_SMBUS_IMPL
 #define TEST_EDID_DELL_EXAMPLE
 #define EDID_COMMANDS_TABBLE_SIZE         		((uint8_t)256)
 /* USER CODE END PD */
@@ -747,14 +747,14 @@ int main(void)
   t_smbus_i2c1.t_tx.u16_counter = 0;
 #endif/* TEST_I2C1_SLAVE*/
 #ifdef TEST_SMBUS_IMPL
-//  hsmbus1.pBuffPtr = context1.Buffer;
-//
-//  phandle1 = &hsmbus1;
+  hsmbus1.pBuffPtr = context1.Buffer;
+
+  phandle1 = &hsmbus1;
 //
 ////  /HAL_SMBUS_Init( phandle1 );
 //
-//    context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
-//    context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
+    context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
+    context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
 //  //#ifndef TEST4
 //  //#ifndef TEST5
 //  //  /* Most tests do not use actual PMBUS commands */
@@ -787,11 +787,11 @@ int main(void)
 //
 //    STACK_SMBUS_Init( pcontext1 );
     
-    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
-    	  {
-				  /* Transfer error in transmission process */
-				  Error_Handler();
-		  }
+//    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
+//    	  {
+//				  /* Transfer error in transmission process */
+//				  Error_Handler();
+//		  }
 
     /*Read buffer 1st time*/
 
@@ -804,7 +804,7 @@ int main(void)
 //      }
 //    }
 
-    i2c1_smbus_lastTime = 0;
+    i2c1_smbus_lastTime = HAL_GetTick();
 #endif /*TEST_SMBUS_IMPL*/
   /* USER CODE END 2 */
 
