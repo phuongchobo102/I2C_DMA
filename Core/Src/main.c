@@ -39,7 +39,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TEST_I2C1_SLAVE 	1
+#define TEST_I2C1_SLAVE 	1    /*This one must enable to test I2C1 Slave or SMBus*/
 #define TEST_SMBUS_IMPL
 #define TEST_EDID_DELL_EXAMPLE
 
@@ -380,83 +380,83 @@ uint8_t atest_edid[] = {
 #endif /*TEST_EDID_DELL_EXAMPLE*/
 #endif 				/*TEST_SMBUS_IMPL*/
 #ifdef TEST_I2C1_SLAVE
-
-bool isI2C1Receive = false;
-bool isI2C1Transmit = false;
-
-uint8_t test_tx_buffer[128] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"};
-uint8_t test_rx_buffer[128] = {"abcdefghijklmnopqrstuvwxyz123456"};
-
-typedef struct smbus_rx_struct {
-	uint8_t u8_state;
-	uint8_t u8_pre_state;
-	uint16_t u16_counter;
-	uint16_t u16_buffer_size;
-	uint16_t u16_buffer_index;
-}smbus_rx_t;
-
-typedef struct smbus_tx_struct {
-	uint8_t u8_state;
-	uint8_t u8_pre_state;
-	uint16_t u16_counter;
-	uint16_t u16_buffer_size;
-	uint16_t u16_buffer_index;
-}smbus_tx_t;
-
-typedef struct smbus_instance_struct {
-	SMBUS_HandleTypeDef *p_hsmbus_inst;
-	uint8_t u8_state;
-	uint8_t u8_pre_state;
-	uint8_t u8_smb_type;
-	uint8_t u8_command;
-	smbus_rx_t t_rx;
-	smbus_tx_t t_tx;
-}smbus_instance_t;
-
-typedef enum smbus_slave_type_enum{
-    SMBUS_SLAVE_TYPE_QUICK_CMD,
-	SMBUS_SLAVE_TYPE_SEND_BYTE,
-	SMBUS_SLAVE_TYPE_RECV_BYTE,
-	SMBUS_SLAVE_TYPE_READ_BYTE,
-	SMBUS_SLAVE_TYPE_WRITE_BYTE,
-	SMBUS_SLAVE_TYPE_READ_BYTES,
-	SMBUS_SLAVE_TYPE_WRITE_BYTES,
-	SMBUS_SLAVE_TYPE_BLK_READ,
-	SMBUS_SLAVE_TYPE_BLK_WRITE,
-	SMBUS_SLAVE_TYPE_TOTAL
-}smbus_slave_type_e;
-
-typedef enum smbus_slave_state_enum{
-    SMBUS_SLAVE_STATE_READY,
-    SMBUS_SLAVE_STATE_LISTEN,
-    SMBUS_SLAVE_STATE_ADDR_1ST_WRITE,
-	SMBUS_SLAVE_STATE_ADDR_1ST_READ,
-	SMBUS_SLAVE_STATE_RECEIVED_1ST_BYTE,
-	SMBUS_SLAVE_STATE_ADDR_2ND_READ,
-    SMBUS_SLAVE_STATE_DO_RX_FOR_WR_CMD,
-	SMBUS_SLAVE_STATE_DO_TX_FOR_RD_CMD,
-	SMBUS_SLAVE_STATE_WAIT_FOR_LISTENCPLT,
-	SMBUS_SLAVE_STATE_LISTENCPLT
-}smbus_slave_state_e;
-
-typedef enum smbus_slave_rx_state_enum{
-    SMBUS_SLAVE_RX_STATE_1ST,
-	SMBUS_SLAVE_RX_STATE_NEXT,
-	SMBUS_SLAVE_RX_STATE_END
-}smbus_slave_rx_state_e;
-
-typedef enum smbus_slave_tx_state_enum{
-    SMBUS_SLAVE_TX_STATE_1ST,
-	SMBUS_SLAVE_TX_STATE_NEXT,
-	SMBUS_SLAVE_TX_STATE_END,
-	SMBUS_SLAVE_TX_STATE_1ST_2BYTES,
-	SMBUS_SLAVE_TX_STATE_NEXT_2BYTES,
-	SMBUS_SLAVE_TX_STATE_END_2BYTES
-}smbus_slave_tx_state_e;
-
-//uint8_t i2C1ReceiveState = SMBUS_SLAVE_STATE_READY;
-
-smbus_instance_t t_smbus_i2c1;// = {.p_hsmbus_inst = &hsmbus1};
+//
+//bool isI2C1Receive = false;
+//bool isI2C1Transmit = false;
+//
+//uint8_t test_tx_buffer[128] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"};
+//uint8_t test_rx_buffer[128] = {"abcdefghijklmnopqrstuvwxyz123456"};
+//
+//typedef struct smbus_rx_struct {
+//	uint8_t u8_state;
+//	uint8_t u8_pre_state;
+//	uint16_t u16_counter;
+//	uint16_t u16_buffer_size;
+//	uint16_t u16_buffer_index;
+//}smbus_rx_t;
+//
+//typedef struct smbus_tx_struct {
+//	uint8_t u8_state;
+//	uint8_t u8_pre_state;
+//	uint16_t u16_counter;
+//	uint16_t u16_buffer_size;
+//	uint16_t u16_buffer_index;
+//}smbus_tx_t;
+//
+//typedef struct smbus_instance_struct {
+//	SMBUS_HandleTypeDef *p_hsmbus_inst;
+//	uint8_t u8_state;
+//	uint8_t u8_pre_state;
+//	uint8_t u8_smb_type;
+//	uint8_t u8_command;
+//	smbus_rx_t t_rx;
+//	smbus_tx_t t_tx;
+//}smbus_instance_t;
+//
+//typedef enum smbus_slave_type_enum{
+//    SMBUS_SLAVE_TYPE_QUICK_CMD,
+//	SMBUS_SLAVE_TYPE_SEND_BYTE,
+//	SMBUS_SLAVE_TYPE_RECV_BYTE,
+//	SMBUS_SLAVE_TYPE_READ_BYTE,
+//	SMBUS_SLAVE_TYPE_WRITE_BYTE,
+//	SMBUS_SLAVE_TYPE_READ_BYTES,
+//	SMBUS_SLAVE_TYPE_WRITE_BYTES,
+//	SMBUS_SLAVE_TYPE_BLK_READ,
+//	SMBUS_SLAVE_TYPE_BLK_WRITE,
+//	SMBUS_SLAVE_TYPE_TOTAL
+//}smbus_slave_type_e;
+//
+//typedef enum smbus_slave_state_enum{
+//    SMBUS_SLAVE_STATE_READY,
+//    SMBUS_SLAVE_STATE_LISTEN,
+//    SMBUS_SLAVE_STATE_ADDR_1ST_WRITE,
+//	SMBUS_SLAVE_STATE_ADDR_1ST_READ,
+//	SMBUS_SLAVE_STATE_RECEIVED_1ST_BYTE,
+//	SMBUS_SLAVE_STATE_ADDR_2ND_READ,
+//    SMBUS_SLAVE_STATE_DO_RX_FOR_WR_CMD,
+//	SMBUS_SLAVE_STATE_DO_TX_FOR_RD_CMD,
+//	SMBUS_SLAVE_STATE_WAIT_FOR_LISTENCPLT,
+//	SMBUS_SLAVE_STATE_LISTENCPLT
+//}smbus_slave_state_e;
+//
+//typedef enum smbus_slave_rx_state_enum{
+//    SMBUS_SLAVE_RX_STATE_1ST,
+//	SMBUS_SLAVE_RX_STATE_NEXT,
+//	SMBUS_SLAVE_RX_STATE_END
+//}smbus_slave_rx_state_e;
+//
+//typedef enum smbus_slave_tx_state_enum{
+//    SMBUS_SLAVE_TX_STATE_1ST,
+//	SMBUS_SLAVE_TX_STATE_NEXT,
+//	SMBUS_SLAVE_TX_STATE_END,
+//	SMBUS_SLAVE_TX_STATE_1ST_2BYTES,
+//	SMBUS_SLAVE_TX_STATE_NEXT_2BYTES,
+//	SMBUS_SLAVE_TX_STATE_END_2BYTES
+//}smbus_slave_tx_state_e;
+//
+////uint8_t i2C1ReceiveState = SMBUS_SLAVE_STATE_READY;
+//
+//smbus_instance_t t_smbus_i2c1;// = {.p_hsmbus_inst = &hsmbus1};
 #endif /*TEST_I2C1_SLAVE*/
 
 // extern the USB handler
@@ -799,12 +799,12 @@ static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext)
   * @retval int
   */
 
-void __write(){}
- void __lseek(){}
- void __close(){}
- int remove(char const* a){
- return 1;
- }
+//void __write(){}
+// void __lseek(){}
+// void __close(){}
+// int remove(char const* a){
+// return 1;
+// }
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -859,14 +859,14 @@ int main(void)
   //  process_usb_msg();
 
   // init the system
-//  system_switch_init();
-//  elinkswitch_init();
-//  elsgpio_init();
-//  authenKVM_init();
-//  HAL_ADCEx_Calibration_Start(&hadc);
-//  init_IS31FL3218();
-//  usb_kvm_switch_init();
-//  system_switch_init();
+  system_switch_init();
+  elinkswitch_init();
+  elsgpio_init();
+  authenKVM_init();
+  HAL_ADCEx_Calibration_Start(&hadc);
+  init_IS31FL3218();
+  usb_kvm_switch_init();
+  system_switch_init();
   //    test_LED();
 #ifdef ENABLE_WATCHDOG
   MX_WWDG_Init();
@@ -949,13 +949,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//    elsgpio_task();
-//    led_task();
-//    elinkswitch_task();
+    elsgpio_task();
+    led_task();
+    elinkswitch_task();
 //    vga_tasks();
-//    system_switch_tasks();
-//
-//    authenKVM();
+    system_switch_tasks();
+
+    authenKVM();
  
 #ifdef ENABLE_WATCHDOG
 
@@ -1596,7 +1596,7 @@ void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
 	{
 		printf("\r\n Slave TxCplt I2C1 \r\n");
 #ifdef TEST_I2C1_SLAVE
-		isI2C1Receive = true;
+//		isI2C1Receive = true;
 #endif /*TEST_I2C1_SLAVE*/
 	}else if(hi2c->Instance==I2C2)
 	{
@@ -1610,7 +1610,7 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	{
 		printf("\r\n Slave RxCplt I2C1 \r\n");
 #ifdef TEST_I2C1_SLAVE
-		isI2C1Transmit = true;
+//		isI2C1Transmit = true;
 #endif /*TEST_I2C1_SLAVE*/
 //		if(HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)aI2CSlvTxBuffer, TXSLVBUFFERSIZE) != HAL_OK)
 		{
@@ -1695,7 +1695,7 @@ void HAL_I2C_SlaveRxCpltNonReceiveStopCallback(I2C_HandleTypeDef *hi2c)
             printf("\r\n RxCpltNonStop \r\n");
             //__HAL_I2C_RESET_HANDLE_STATE(hi2c);
 #ifdef TEST_I2C1_SLAVE
-            isI2C1Transmit = true;
+//            isI2C1Transmit = true;
 #endif /*TEST_I2C1_SLAVE*/
     }
 }
