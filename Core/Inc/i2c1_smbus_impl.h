@@ -34,20 +34,24 @@ extern "C" {
  /************************************
  * EXPORTED CONSTANTS
  ************************************/
-
+extern st_command_t const EDID_COMMANDS_TABLE[];
 /************************************
  * EXPORTED VARIABLES
  ************************************/
+extern uint8_t       *piobuf;
+extern SMBUS_HandleTypeDef *phandle1;
+extern SMBUS_StackHandleTypeDef *pcontext1;
+extern SMBUS_StackHandleTypeDef context1;
+extern uint32_t i2c1_smbus_lastTime;
+
+
+
 
 /************************************
  * EXPORTED  FUNCTION PROTOTYPES
  ************************************/
-extern void Defer_HAL_SMBUS_MasterTxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
-extern void Defer_HAL_SMBUS_MasterRxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
-extern void Defer_HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
-extern void Defer_HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus);
-extern void Defer_HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode);
-extern void Defer_HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus);
+extern void i2c1_smbus_init(SMBUS_HandleTypeDef* hsmbus);
+extern void i2c1_smbus_task(void);
 #ifdef __cplusplus
 }
 #endif

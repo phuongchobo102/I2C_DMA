@@ -11,1938 +11,745 @@
  * INCLUDES
  ************************************/
 #include "i2c1_smbus_impl.h"
-/**
-  ******************************************************************************
-  * @file    stm32_SMBUS_stack.c
-  * @author  MCD Application Team
-  * @version V2.0.2
-  * @date    31-Oct-2017
-  * @brief   This file provides a set of functions needed to manage the SMBUS STACK.
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************
-  */
+#include "main.h"
+/************************************
+ * PRIVATE PREPROCESSOR DEFINES
+ ************************************/
+ /* Use following constants to set up speed of your interface (48MHz clock)*/
+#define SMBUS_TIMING_10K                      ((uint32_t)0xB042C3C7) /* 10kHz speed */
+#define SMBUS_TIMING_100K                     ((uint32_t)0xB0420F13) /* 100kHz speed */
+#define SMBUS_TIMING_400K                     ((uint32_t)0x50330309) /* 400kHz speed */
+#define SMBUS_TIMING_1M                       ((uint32_t)0x50100103) /* 1MHz speed */
+#define SMBUS_TIMEOUT_DEFAULT                 ((uint32_t)0x80618061)
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32_SMBUS_stack.h"
-#include "stm32_PMBUS_stack.h"
 
-/** @addtogroup STM32_SMBUS_STACK
-  * @{
-  */
 
-/** @defgroup STM32_SMBUS_STACK_Defines
-  * @{
-  */
-#define SMBUS_INSTANCES_COUNT   ((uint8_t)2)  /*!< how many stacks can we run in parallel, initialized */
 
-/**
-  * @}
-  */
+#define TEST_SMBUS_IMPL
+#define TEST_EDID_DELL_EXAMPLE
 
-#ifdef PMBUS13
-/** @defgroup STM32_SMBUS_STACK_Constants SMBus stack data constants
-  * @{
-  */
-const SMBUS_ZoneStateTypeDef ZERO_ZONE = {0, 0, 0, 0};
-/*!<
-    Zone structure init value - no zone
- */
-#endif
+#define USE_PEC
 
-st_command_t ALERT_RESPONSE = {0, READ, 0, 1};
-/*!<
-    dedicated command definition for the alert response protocol:
- */
+//#define TEST_SMBUS_SELF_IMPL
 
-st_command_t HOST_NOTIFY_PROTOCOL = { 0, WRITE, 3, 0};
-/*!<
-    dedicated command definition for the host notify protocol:
- */
+#define EDID_COMMANDS_TABBLE_SIZE         		((uint8_t)256)
+ /************************************
+ * PRIVATE MACROS
+ ************************************/
 
-st_command_t PMBUS_COMMANDS_ARP[] =
+/************************************
+ * PRIVATE TYPEDEFS
+ ************************************/
+
+ /************************************
+ * EXPORTED VARIABLES DEFINITION
+ ************************************/
+
+/************************************
+ * PRIVATE & STATIC CONSTANTS
+ ************************************/
+/* ----------- definition of PMBUS commands ---------------- */
+#ifdef TEST_SMBUS_IMPL
+uint8_t       *piobuf;
+SMBUS_HandleTypeDef *phandle1;
+SMBUS_StackHandleTypeDef *pcontext1;
+SMBUS_StackHandleTypeDef context1;
+uint32_t i2c1_smbus_lastTime;
+
+
+
+st_command_t const EDID_COMMANDS_TABLE[] =
 {
-  { SMBUS_ARP_CC_PREPARE, WRITE, 1, 0 },
-  { SMBUS_ARP_CC_RESET, WRITE, 1, 0 },
-  { SMBUS_ARP_CC_GET_ID, BLOCK_READ, 1, 18 },
-#ifdef  HOST1
-  { SMBUS_ARP_CC_ASSIGN, BLOCK_WRITE, 18, 0 },
-#else
-  { SMBUS_ARP_CC_ASSIGN, BLOCK_WRITE, 1, 0 }, /* really it is 19 bytes written, but we need this command to be treated in a special way */
-#endif
+	{ 0x00, READ_OR_WRITE, 0, 1 },											/* code 00 */
+	{ 0x01, READ_OR_WRITE, 0, 1 },	                        				/* code 01 */
+	{ 0x02, READ_OR_WRITE, 0, 1 },	                    					/* code 02 */
+	{ 0x03, READ_OR_WRITE, 0, 1 },	                             			/* code 03 */
+	{ 0x04, READ_OR_WRITE, 0, 1 },                              			/* code 04 */
+	{ 0x05, READ_OR_WRITE, 0, 1 },                      					/* code 05 */
+	{ 0x06, READ_OR_WRITE, 0, 1 },                      					/* code 06 */
+	{ 0x07, READ_OR_WRITE, 0, 1 },                        					/* code 07 */
+	{ 0x08, READ_OR_WRITE, 0, 1 },                        					/* code 08 */
+	{ 0x09, READ_OR_WRITE, 0, 1 },                        					/* code 09 */
+	{ 0x0A, READ_OR_WRITE, 0, 1 },                      					/* code 0A */
+	{ 0x0B, READ_OR_WRITE, 0, 1 },                      					/* code 0B */
+	{ 0x0C, READ_OR_WRITE, 0, 1 },                        					/* code 0C */
+	{ 0x0D, READ_OR_WRITE, 0, 1 },                        					/* code 0D */
+	{ 0x0E, READ_OR_WRITE, 0, 1 },                        					/* code 0E */
+	{ 0x0F, READ_OR_WRITE, 0, 1 },											/* code 0F */
+	{ 0x10, READ_OR_WRITE, 0, 1 },											/* code 10 */
+	{ 0x11, READ_OR_WRITE, 0, 1 },                          				/* code 11 */
+	{ 0x12, READ_OR_WRITE, 0, 1 },                          				/* code 12 */
+	{ 0x13, READ_OR_WRITE, 0, 1 },                          				/* code 13 */
+	{ 0x14, READ_OR_WRITE, 0, 1 },                       					/* code 14 */
+	{ 0x15, READ_OR_WRITE, 0, 1 },											/* code 15 */
+	{ 0x16, READ_OR_WRITE, 0, 1 },                           				/* code 16 */
+	{ 0x17, READ_OR_WRITE, 0, 1 },											/* code 17 */
+	{ 0x18, READ_OR_WRITE, 0, 1 },                          				/* code 18 */
+	{ 0x19, READ_OR_WRITE, 0, 1 },                                  		/* code 19 */
+	{ 0x1A, READ_OR_WRITE, 0, 1 },                               			/* code 1A */
+	{ 0x1B, READ_OR_WRITE, 0, 1 },                      					/* code 1B */
+	{ 0x1C, READ_OR_WRITE, 0, 1 },                               			/* code 1C */
+	{ 0x1D, READ_OR_WRITE, 0, 1 },                      					/* code 1D */
+	{ 0x1E, READ_OR_WRITE, 0, 1 },                               			/* code 1E */
+	{ 0x1F, READ_OR_WRITE, 0, 1 },                      					/* code 1F */
+	{ 0x20, READ_OR_WRITE, 0, 1 },											/* code 20 */
+	{ 0x21, READ_OR_WRITE, 0, 1 },											/* code 21 */
+	{ 0x22, READ_OR_WRITE, 0, 1 },											/* code 22 */
+	{ 0x23, READ_OR_WRITE, 0, 1 },											/* code 23 */
+	{ 0x24, READ_OR_WRITE, 0, 1 },											/* code 24 */
+	{ 0x25, READ_OR_WRITE, 0, 1 },											/* code 25 */
+	{ 0x26, READ_OR_WRITE, 0, 1 },											/* code 26 */
+	{ 0x27, READ_OR_WRITE, 0, 1 },											/* code 27 */
+	{ 0x28, READ_OR_WRITE, 0, 1 },											/* code 28 */
+	{ 0x29, READ_OR_WRITE, 0, 1 },											/* code 29 */
+	{ 0x2A, READ_OR_WRITE, 0, 1 },											/* code 2A */
+	{ 0x2B, READ_OR_WRITE, 0, 1 },											/* code 2B */
+	{ 0x2C, READ_OR_WRITE, 0, 1 },											/* code 2C */
+	{ 0x2D, READ_OR_WRITE, 0, 1 },											/* code 2D */
+	{ 0x2E, READ_OR_WRITE, 0, 1 },											/* code 2E */
+	{ 0x2F, READ_OR_WRITE, 0, 1 },											/* code 2F */
+	{ 0x30, READ_OR_WRITE, 0, 1 },											/* code 30 */
+	{ 0x31, READ_OR_WRITE, 0, 1 },											/* code 31 */
+	{ 0x32, READ_OR_WRITE, 0, 1 },											/* code 32 */
+	{ 0x33, READ_OR_WRITE, 0, 1 },											/* code 33 */
+	{ 0x34, READ_OR_WRITE, 0, 1 },											/* code 34 */
+	{ 0x35, READ_OR_WRITE, 0, 1 },											/* code 35 */
+	{ 0x36, READ_OR_WRITE, 0, 1 },											/* code 36 */
+	{ 0x37, READ_OR_WRITE, 0, 1 },											/* code 37 */
+	{ 0x38, READ_OR_WRITE, 0, 1 },											/* code 38 */
+	{ 0x39, READ_OR_WRITE, 0, 1 },											/* code 39 */
+	{ 0x3A, READ_OR_WRITE, 0, 1 },											/* code 3A */
+	{ 0x3B, READ_OR_WRITE, 0, 1 },											/* code 3B */
+	{ 0x3C, READ_OR_WRITE, 0, 1 },											/* code 3C */
+	{ 0x3D, READ_OR_WRITE, 0, 1 },											/* code 3D */
+	{ 0x3E, READ_OR_WRITE, 0, 1 },											/* code 3E */
+	{ 0x3F, READ_OR_WRITE, 0, 1 },											/* code 3F */
+	{ 0x40, READ_OR_WRITE, 0, 1 },											/* code 40 */
+	{ 0x41, READ_OR_WRITE, 0, 1 },											/* code 41 */
+	{ 0x42, READ_OR_WRITE, 0, 1 },											/* code 42 */
+	{ 0x43, READ_OR_WRITE, 0, 1 },											/* code 43 */
+	{ 0x44, READ_OR_WRITE, 0, 1 },											/* code 44 */
+	{ 0x45, READ_OR_WRITE, 0, 1 },											/* code 45 */
+	{ 0x46, READ_OR_WRITE, 0, 1 },											/* code 46 */
+	{ 0x47, READ_OR_WRITE, 0, 1 },											/* code 47 */
+	{ 0x48, READ_OR_WRITE, 0, 1 },											/* code 48 */
+	{ 0x49, READ_OR_WRITE, 0, 1 },											/* code 49 */
+	{ 0x4A, READ_OR_WRITE, 0, 1 },											/* code 4A */
+	{ 0x4B, READ_OR_WRITE, 0, 1 },											/* code 4B */
+	{ 0x4C, READ_OR_WRITE, 0, 1 },											/* code 4C */
+	{ 0x4D, READ_OR_WRITE, 0, 1 },											/* code 4D */
+	{ 0x4E, READ_OR_WRITE, 0, 1 },											/* code 4E */
+	{ 0x4F, READ_OR_WRITE, 0, 1 },											/* code 4F */
+	{ 0x50, READ_OR_WRITE, 0, 1 },											/* code 50 */
+	{ 0x51, READ_OR_WRITE, 0, 1 },											/* code 51 */
+	{ 0x52, READ_OR_WRITE, 0, 1 },											/* code 52 */
+	{ 0x53, READ_OR_WRITE, 0, 1 },											/* code 53 */
+	{ 0x54, READ_OR_WRITE, 0, 1 },											/* code 54 */
+	{ 0x55, READ_OR_WRITE, 0, 1 },											/* code 55 */
+	{ 0x56, READ_OR_WRITE, 0, 1 },											/* code 56 */
+	{ 0x57, READ_OR_WRITE, 0, 1 },											/* code 57 */
+	{ 0x58, READ_OR_WRITE, 0, 1 },											/* code 58 */
+	{ 0x59, READ_OR_WRITE, 0, 1 },											/* code 59 */
+	{ 0x5A, READ_OR_WRITE, 0, 1 },											/* code 5A */
+	{ 0x5B, READ_OR_WRITE, 0, 1 },											/* code 5B */
+	{ 0x5C, READ_OR_WRITE, 0, 1 },											/* code 5C */
+	{ 0x5D, READ_OR_WRITE, 0, 1 },											/* code 5D */
+	{ 0x5E, READ_OR_WRITE, 0, 1 },											/* code 5E */
+	{ 0x5F, READ_OR_WRITE, 0, 1 },											/* code 5F */
+	{ 0x60, READ_OR_WRITE, 0, 1 },											/* code 60 */
+	{ 0x61, READ_OR_WRITE, 0, 1 },											/* code 61 */
+	{ 0x62, READ_OR_WRITE, 0, 1 },											/* code 62 */
+	{ 0x63, READ_OR_WRITE, 0, 1 },											/* code 63 */
+	{ 0x64, READ_OR_WRITE, 0, 1 },											/* code 64 */
+	{ 0x65, READ_OR_WRITE, 0, 1 },											/* code 65 */
+	{ 0x66, READ_OR_WRITE, 0, 1 },											/* code 66 */
+	{ 0x67, READ_OR_WRITE, 0, 1 },											/* code 67 */
+	{ 0x68, READ_OR_WRITE, 0, 1 },											/* code 68 */
+	{ 0x69, READ_OR_WRITE, 0, 1 },											/* code 69 */
+	{ 0x6A, READ_OR_WRITE, 0, 1 },											/* code 6A */
+	{ 0x6B, READ_OR_WRITE, 0, 1 },											/* code 6B */
+	{ 0x6C, READ_OR_WRITE, 0, 1 },											/* code 6C */
+	{ 0x6D, READ_OR_WRITE, 0, 1 },											/* code 6D */
+	{ 0x6E, READ_OR_WRITE, 0, 1 },											/* code 6E */
+	{ 0x6F, READ_OR_WRITE, 0, 1 },											/* code 6F */
+	{ 0x70, READ_OR_WRITE, 0, 1 },											/* code 70 */
+	{ 0x71, READ_OR_WRITE, 0, 1 },											/* code 71 */
+	{ 0x72, READ_OR_WRITE, 0, 1 },											/* code 72 */
+	{ 0x73, READ_OR_WRITE, 0, 1 },											/* code 73 */
+	{ 0x74, READ_OR_WRITE, 0, 1 },											/* code 74 */
+	{ 0x75, READ_OR_WRITE, 0, 1 },											/* code 75 */
+	{ 0x76, READ_OR_WRITE, 0, 1 },											/* code 76 */
+	{ 0x77, READ_OR_WRITE, 0, 1 },											/* code 77 */
+	{ 0x78, READ_OR_WRITE, 0, 1 },											/* code 78 */
+	{ 0x79, READ_OR_WRITE, 0, 1 },											/* code 79 */
+	{ 0x7A, READ_OR_WRITE, 0, 1 },											/* code 7A */
+	{ 0x7B, READ_OR_WRITE, 0, 1 },											/* code 7B */
+	{ 0x7C, READ_OR_WRITE, 0, 1 },											/* code 7C */
+	{ 0x7D, READ_OR_WRITE, 0, 1 },											/* code 7D */
+	{ 0x7E, READ_OR_WRITE, 0, 1 },											/* code 7E */
+	{ 0x7F, READ_OR_WRITE, 0, 1 },											/* code 7F */
+	{ 0x80, READ_OR_WRITE, 0, 1 },											/* code 80 */
+	{ 0x81, READ_OR_WRITE, 0, 1 },											/* code 81 */
+	{ 0x82, READ_OR_WRITE, 0, 1 },											/* code 82 */
+	{ 0x83, READ_OR_WRITE, 0, 1 },											/* code 83 */
+	{ 0x84, READ_OR_WRITE, 0, 1 },											/* code 84 */
+	{ 0x85, READ_OR_WRITE, 0, 1 },											/* code 85 */
+	{ 0x86, READ_OR_WRITE, 0, 1 },											/* code 86 */
+	{ 0x87, READ_OR_WRITE, 0, 1 },											/* code 87 */
+	{ 0x88, READ_OR_WRITE, 0, 1 },											/* code 88 */
+	{ 0x89, READ_OR_WRITE, 0, 1 },											/* code 89 */
+	{ 0x8A, READ_OR_WRITE, 0, 1 },											/* code 8A */
+	{ 0x8B, READ_OR_WRITE, 0, 1 },											/* code 8B */
+	{ 0x8C, READ_OR_WRITE, 0, 1 },											/* code 8C */
+	{ 0x8D, READ_OR_WRITE, 0, 1 },											/* code 8D */
+	{ 0x8E, READ_OR_WRITE, 0, 1 },											/* code 8E */
+	{ 0x8F, READ_OR_WRITE, 0, 1 },											/* code 8F */
+	{ 0x90, READ_OR_WRITE, 0, 1 },											/* code 90 */
+	{ 0x91, READ_OR_WRITE, 0, 1 },											/* code 91 */
+	{ 0x92, READ_OR_WRITE, 0, 1 },											/* code 92 */
+	{ 0x93, READ_OR_WRITE, 0, 1 },											/* code 93 */
+	{ 0x94, READ_OR_WRITE, 0, 1 },											/* code 94 */
+	{ 0x95, READ_OR_WRITE, 0, 1 },											/* code 95 */
+	{ 0x96, READ_OR_WRITE, 0, 1 },											/* code 96 */
+	{ 0x97, READ_OR_WRITE, 0, 1 },											/* code 97 */
+	{ 0x98, READ_OR_WRITE, 0, 1 },											/* code 98 */
+	{ 0x99, READ_OR_WRITE, 0, 1 },											/* code 99 */
+	{ 0x9A, READ_OR_WRITE, 0, 1 },											/* code 9A */
+	{ 0x9B, READ_OR_WRITE, 0, 1 },											/* code 9B */
+	{ 0x9C, READ_OR_WRITE, 0, 1 },											/* code 9C */
+	{ 0x9D, READ_OR_WRITE, 0, 1 },											/* code 9D */
+	{ 0x9E, READ_OR_WRITE, 0, 1 },											/* code 9E */
+	{ 0x9F, READ_OR_WRITE, 0, 1 },											/* code 9F */
+	{ 0xA0, READ_OR_WRITE, 0, 1 },											/* code A0 */
+	{ 0xA1, READ_OR_WRITE, 0, 1 },											/* code A1 */
+	{ 0xA2, READ_OR_WRITE, 0, 1 },											/* code A2 */
+	{ 0xA3, READ_OR_WRITE, 0, 1 },											/* code A3 */
+	{ 0xA4, READ_OR_WRITE, 0, 1 },											/* code A4 */
+	{ 0xA5, READ_OR_WRITE, 0, 1 },											/* code A5 */
+	{ 0xA6, READ_OR_WRITE, 0, 1 },											/* code A6 */
+	{ 0xA7, READ_OR_WRITE, 0, 1 },											/* code A7 */
+	{ 0xA8, READ_OR_WRITE, 0, 1 },											/* code A8 */
+	{ 0xA9, READ_OR_WRITE, 0, 1 },											/* code A9 */
+	{ 0xAA, READ_OR_WRITE, 0, 1 },											/* code AA */
+	{ 0xAB, READ_OR_WRITE, 0, 1 },											/* code AB */
+	{ 0xAC, READ_OR_WRITE, 0, 1 },											/* code AC */
+	{ 0xAD, READ_OR_WRITE, 0, 1 },											/* code AD */
+	{ 0xAE, READ_OR_WRITE, 0, 1 },											/* code AE */
+	{ 0xAF, READ_OR_WRITE, 0, 1 },											/* code AF */
+	{ 0xB0, READ_OR_WRITE, 0, 1 },											/* code B0 */
+	{ 0xB1, READ_OR_WRITE, 0, 1 },											/* code B1 */
+	{ 0xB2, READ_OR_WRITE, 0, 1 },											/* code B2 */
+	{ 0xB3, READ_OR_WRITE, 0, 1 },											/* code B3 */
+	{ 0xB4, READ_OR_WRITE, 0, 1 },											/* code B4 */
+	{ 0xB5, READ_OR_WRITE, 0, 1 },											/* code B5 */
+	{ 0xB6, READ_OR_WRITE, 0, 1 },											/* code B6 */
+	{ 0xB7, READ_OR_WRITE, 0, 1 },											/* code B7 */
+	{ 0xB8, READ_OR_WRITE, 0, 1 },											/* code B8 */
+	{ 0xB9, READ_OR_WRITE, 0, 1 },											/* code B9 */
+	{ 0xBA, READ_OR_WRITE, 0, 1 },											/* code BA */
+	{ 0xBB, READ_OR_WRITE, 0, 1 },											/* code BB */
+	{ 0xBC, READ_OR_WRITE, 0, 1 },											/* code BC */
+	{ 0xBD, READ_OR_WRITE, 0, 1 },											/* code BD */
+	{ 0xBE, READ_OR_WRITE, 0, 1 },											/* code BE */
+	{ 0xBF, READ_OR_WRITE, 0, 1 },											/* code BF */
+	{ 0xC0, READ_OR_WRITE, 0, 1 },											/* code C0 */
+	{ 0xC1, READ_OR_WRITE, 0, 1 },											/* code C1 */
+	{ 0xC2, READ_OR_WRITE, 0, 1 },											/* code C2 */
+	{ 0xC3, READ_OR_WRITE, 0, 1 },											/* code C3 */
+	{ 0xC4, READ_OR_WRITE, 0, 1 },											/* code C4 */
+	{ 0xC5, READ_OR_WRITE, 0, 1 },											/* code C5 */
+	{ 0xC6, READ_OR_WRITE, 0, 1 },											/* code C6 */
+	{ 0xC7, READ_OR_WRITE, 0, 1 },											/* code C7 */
+	{ 0xC8, READ_OR_WRITE, 0, 1 },											/* code C8 */
+	{ 0xC9, READ_OR_WRITE, 0, 1 },											/* code C9 */
+	{ 0xCA, READ_OR_WRITE, 0, 1 },											/* code CA */
+	{ 0xCB, READ_OR_WRITE, 0, 1 },											/* code CB */
+	{ 0xCC, READ_OR_WRITE, 0, 1 },											/* code CC */
+	{ 0xCD, READ_OR_WRITE, 0, 1 },											/* code CD */
+	{ 0xCE, READ_OR_WRITE, 0, 1 },											/* code CE */
+	{ 0xCF, READ_OR_WRITE, 0, 1 },											/* code CF */
+	{ 0xD0, READ_OR_WRITE, 0, 1 },											/* code D0 */
+	{ 0xD1, READ_OR_WRITE, 0, 1 },											/* code D1 */
+	{ 0xD2, READ_OR_WRITE, 0, 1 },											/* code D2 */
+	{ 0xD3, READ_OR_WRITE, 0, 1 },											/* code D3 */
+	{ 0xD4, READ_OR_WRITE, 0, 1 },											/* code D4 */
+	{ 0xD5, READ_OR_WRITE, 0, 1 },											/* code D5 */
+	{ 0xD6, READ_OR_WRITE, 0, 1 },											/* code D6 */
+	{ 0xD7, READ_OR_WRITE, 0, 1 },											/* code D7 */
+	{ 0xD8, READ_OR_WRITE, 0, 1 },											/* code D8 */
+	{ 0xD9, READ_OR_WRITE, 0, 1 },											/* code D9 */
+	{ 0xDA, READ_OR_WRITE, 0, 1 },											/* code DA */
+	{ 0xDB, READ_OR_WRITE, 0, 1 },											/* code DB */
+	{ 0xDC, READ_OR_WRITE, 0, 1 },											/* code DC */
+	{ 0xDD, READ_OR_WRITE, 0, 1 },											/* code DD */
+	{ 0xDE, READ_OR_WRITE, 0, 1 },											/* code DE */
+	{ 0xDF, READ_OR_WRITE, 0, 1 },											/* code DF */
+	{ 0xE0, READ_OR_WRITE, 0, 1 },											/* code E0 */
+	{ 0xE1, READ_OR_WRITE, 0, 1 },											/* code E1 */
+	{ 0xE2, READ_OR_WRITE, 0, 1 },											/* code E2 */
+	{ 0xE3, READ_OR_WRITE, 0, 1 },											/* code E3 */
+	{ 0xE4, READ_OR_WRITE, 0, 1 },											/* code E4 */
+	{ 0xE5, READ_OR_WRITE, 0, 1 },											/* code E5 */
+	{ 0xE6, READ_OR_WRITE, 0, 1 },											/* code E6 */
+	{ 0xE7, READ_OR_WRITE, 0, 1 },											/* code E7 */
+	{ 0xE8, READ_OR_WRITE, 0, 1 },											/* code E8 */
+	{ 0xE9, READ_OR_WRITE, 0, 1 },											/* code E9 */
+	{ 0xEA, READ_OR_WRITE, 0, 1 },											/* code EA */
+	{ 0xEB, READ_OR_WRITE, 0, 1 },											/* code EB */
+	{ 0xEC, READ_OR_WRITE, 0, 1 },											/* code EC */
+	{ 0xED, READ_OR_WRITE, 0, 1 },											/* code ED */
+	{ 0xEE, READ_OR_WRITE, 0, 1 },											/* code EE */
+	{ 0xEF, READ_OR_WRITE, 0, 1 },											/* code EF */
+	{ 0xF0, READ_OR_WRITE, 0, 1 },											/* code F0 */
+	{ 0xF1, READ_OR_WRITE, 0, 1 },											/* code F1 */
+	{ 0xF2, READ_OR_WRITE, 0, 1 },											/* code F2 */
+	{ 0xF3, READ_OR_WRITE, 0, 1 },											/* code F3 */
+	{ 0xF4, READ_OR_WRITE, 0, 1 },											/* code F4 */
+	{ 0xF5, READ_OR_WRITE, 0, 1 },											/* code F5 */
+	{ 0xF6, READ_OR_WRITE, 0, 1 },											/* code F6 */
+	{ 0xF7, READ_OR_WRITE, 0, 1 },											/* code F7 */
+	{ 0xF8, READ_OR_WRITE, 0, 1 },											/* code F8 */
+	{ 0xF9, READ_OR_WRITE, 0, 1 },											/* code F9 */
+	{ 0xFA, READ_OR_WRITE, 0, 1 },											/* code FA */
+	{ 0xFB, READ_OR_WRITE, 0, 1 },											/* code FB */
+	{ 0xFC, READ_OR_WRITE, 0, 1 },											/* code FC */
+	{ 0xFD, READ_OR_WRITE, 0, 1 },											/* code FD */
+	{ 0xFE, READ_OR_WRITE, 0, 1 },											/* code FE */
+	{ 0xFF, READ_OR_WRITE, 0, 1 },											/* code FF */
 };
-/*!<
-    dedicated command definition table for the address resolution protocol:
- */
 
+
+#if defined(TEST_EDID_DELL_EXAMPLE)
+uint8_t atest_edid[] = {
+		0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x10, 0xAC, 0x11, 0x20, 0x45, 0x31, 0x58, 0x34,
+		0x20, 0x1E, 0x01, 0x03, 0x80, 0x35, 0x1E, 0x78, 0x2A, 0xA3, 0xA5, 0xA7, 0x56, 0x51, 0x9C, 0x22,
+		0x0F, 0x50, 0x54, 0xA5, 0x4B, 0x00, 0x71, 0x4F, 0x81, 0x80, 0xA9, 0xC0, 0xD1, 0xC0, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A, 0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
+		0x45, 0x00, 0x0F, 0x28, 0x21, 0x00, 0x00, 0x1E, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x38, 0x51, 0x50,
+		0x58, 0x4A, 0x33, 0x33, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x44,
+		0x45, 0x4C, 0x4C, 0x20, 0x44, 0x32, 0x34, 0x32, 0x31, 0x48, 0x0A, 0x20, 0x00, 0x00, 0x00, 0xFD,
+		0x00, 0x38, 0x4C, 0x1E, 0x53, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x69,
+		0x02, 0x03, 0x1E, 0xF1, 0x4F, 0x90, 0x05, 0x04, 0x03, 0x02, 0x07, 0x16, 0x10, 0x06, 0x00, 0x12,
+		0x15, 0x13, 0x14, 0x1F, 0x23, 0x09, 0x07, 0x07, 0x65, 0x03, 0x0C, 0x00, 0x10, 0x00, 0x02, 0x3A,
+		0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C, 0x45, 0x00, 0x0F, 0x28, 0x21, 0x00, 0x00, 0x1E,
+		0x01, 0x1D, 0x80, 0x18, 0x71, 0x1C, 0x16, 0x20, 0x58, 0x2C, 0x25, 0x00, 0x0F, 0x28, 0x21, 0x00,
+		0x00, 0x9E, 0x01, 0x1D, 0x00, 0x72, 0x51, 0xD0, 0x1E, 0x20, 0x6E, 0x28, 0x55, 0x00, 0x0F, 0x28,
+		0x21, 0x00, 0x00, 0x1E, 0x8C, 0x0A, 0xD0, 0x8A, 0x20, 0xE0, 0x2D, 0x10, 0x10, 0x3E, 0x96, 0x00,
+		0x0F, 0x28, 0x21, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8F
+}; //DEL2011_A37291D73923
+#endif /*TEST_EDID_DELL_EXAMPLE*/
+#endif 				/*TEST_SMBUS_IMPL*/
+/************************************
+ * GLOBAL VARIABLES
+ ************************************/
+
+/************************************
+ * PRIVATE&STATIC FUNCTION PROTOTYPES
+ ************************************/
+
+/************************************
+ * PRIVATE & STATIC FUNCTIONS
+ ************************************/
 /**
-  * @}
-  */
-
-/** @defgroup STM32_SMBUS_STACK_Variables
-  * @{
-  */
-
-/**
-  A list in which the SMBUS stack instances are registered. The purpose is to
-  identify correct working context for each action. The rule is that no more than
-  one instance per physical interface is possible
- */
-SMBUS_StackHandleTypeDef *SMBUSInstancesList[SMBUS_INSTANCES_COUNT];
-
-/**
-  * @}
-  */
-
-/** @defgroup STM32_SMBUS_STACK_Interfaces
-  * @{
-  */
-
-/**
-  * @brief  SMBUS stack identification based on HW resource.
-  * @param  hsmbus : Pointer to a SMBUS_HandleTypeDef structure that contains
+  * @brief  Callback function notifying about extended command incoming, implementation
+    is supporting extended command defined by PMBus
+  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
   *                the configuration information for the specified SMBUS.
-  * @retval Pointer to relevant stack instance.
+  * @retval HAL_StatusTypeDef response code. Equal STACK_OK if success, any other value means problem
   */
-SMBUS_StackHandleTypeDef *STACK_SMBUS_ResolveContext( SMBUS_HandleTypeDef *hsmbus )
-{
-  SMBUS_StackHandleTypeDef *pSelected = NULL;
-  uint32_t index = 0U;
-
-  /*
-    Basically match the physical device with stack instance
-   */
-  do
-  {
-    /*
-      The loop is searching for the first stack context instance initialized to
-      use the actual HAL Driver handle
-     */
-    pSelected = SMBUSInstancesList[index];
-    if  ( pSelected->Device != hsmbus )
-    {
-      pSelected = NULL;
-    }
-    index++;
-  } while ((index < SMBUS_INSTANCES_COUNT ) && ( pSelected == NULL ));
-
-  /*
-    Error - no identified stack instance
-   */
-  return pSelected;
-}
+//HAL_StatusTypeDef STACK_SMBUS_ExtendCommand( SMBUS_StackHandleTypeDef *pStackContext )
+//{
+//  uint16_t       size = 0U;
+//  uint8_t       *piobuf = NULL;
+//
+//  /* accessing the IO buffer */
+//  piobuf = STACK_SMBUS_GetBuffer( pStackContext );
+//
+//  /*
+//    Extended command must be identified by the value of the actual command code
+//   */
+//  switch ( piobuf[0] )
+//  {
+//    case 0:
+//      pStackContext->CurrentCommand = (st_command_t *) & EXTENDED_READ_BYTE;
+//      break;
+//    case 1:
+//      pStackContext->CurrentCommand = (st_command_t *) & EXTENDED_READ_WORD;
+//      break;
+//    case 2:
+//      pStackContext->CurrentCommand = (st_command_t *) & EXTENDED_WRITE_BYTE;
+//      /*
+//        size of the bytes yet to be received
+//       */
+//      size = 1U;
+//      break;
+//    case 3:
+//      pStackContext->CurrentCommand = (st_command_t *) & EXTENDED_WRITE_WORD;
+//      size = 2U;
+//      break;
+//    default:
+//      pStackContext->StateMachine |= SMBUS_SMS_ERROR;
+//      return STACK_ERROR;
+//  }
+//
+//  /*
+//    reading the remaining data (stack won't do that for us this time
+//  */
+//  if ((pStackContext->CurrentCommand->cmnd_query & WRITE) == WRITE )
+//  {
+//    /*
+//      To make sure the executecommand is called again once the remaining data
+//      is in the buffer
+//    */
+//    STACK_PMBUS_ExtendExecution(pStackContext);
+//
+//    /*
+//    PEC byte y/n?
+//    */
+//    if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
+//    {
+//      size += PEC_SIZE;
+//    }
+//
+//    /*
+//      asking the HAL for more bytes to receive
+//    */
+//    pStackContext->Byte_count += size;
+//    HAL_SMBUS_Slave_Receive_IT( pStackContext->Device, &(pStackContext->Buffer[2]), size, SMBUS_NEXT_FRAME );
+//  }
+//
+//  return STACK_OK;
+//}
 
 /**
-  * @brief  Master Tx Transfer completed callbacks.
-  * @param  hsmbus : Pointer to a SMBUS_HandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-void Defer_HAL_SMBUS_MasterTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
-{
-  SMBUS_StackHandleTypeDef    *pStackContext;
-  uint16_t              size;
-
-  /*
-    Resolve which stack serves the port that initiated callback
-   */
-  pStackContext = STACK_SMBUS_ResolveContext( hsmbus );
-
-  /* Transmission phase is completed */
-  pStackContext->StateMachine &= ~SMBUS_SMS_TRANSMIT;
-
-  /*
-    NOTE - optionally clear the buffer here
-  */
-
-#ifdef PMBUS13
-  /* If this is a READ_ZONE, then it gets special treatment.
-    Only simple status read is supported in this example */
-  if ( pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ )
-  {
-    /* Requesting next response */
-    STACK_PMBUS_MasterZoneReadStatusCont(pStackContext);
-    return;
-  }
-#endif
-
-  /*
-   Is there data to receive after transfer?
-   check if the command includes reading phase and if application that invoked
-   the command cared for receiving data from the slave
-  */
-  if ( pStackContext->CurrentCommand != 0U )
-  {
-    if (
-      ( ( pStackContext->CurrentCommand->cmnd_query & BLOCK ) == BLOCK ) && \
-      (
-        ( ( pStackContext->CurrentCommand->cmnd_query & PROCESS_CALL ) == PROCESS_CALL ) || \
-        ( ( pStackContext->OpMode & READ ) == READ )
-      )
-    )
-    {
-      /*
-        the amount of data to be read is yet to be sent by the slave - reading the byte count now:
-      */
-      pStackContext->StateMachine |= SMBUS_SMS_RECEIVE | SMBUS_SMS_PROCESSING;
-      HAL_SMBUS_Master_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), 1U, SMBUS_NEXT_FRAME );
-    }
-    else if ((pStackContext->CurrentCommand->cmnd_master_Rx_size > 0U ) && (( pStackContext->OpMode & WRITE ) == 0U ))
-    {
-      /*
-        the amount of data to be read is known and determined by the command code
-      */
-      pStackContext->StateMachine |= SMBUS_SMS_RECEIVE;
-      size = pStackContext->CurrentCommand->cmnd_master_Rx_size;
-      if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
-      {
-        size += 1U;
-      }
-      HAL_SMBUS_Master_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), size,
-                                   SMBUS_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
-    }
-    else
-    {
-      /*
-        There was an alert during command that we could not treat before
-       */
-      STACK_SMBUS_ReadyIfNoAlert( pStackContext );
-    }
-  }
-  else
-  {
-    /*
-      There was an alert during command that we could not treat before
-     */
-    STACK_SMBUS_ReadyIfNoAlert( pStackContext );
-  }
-}
-
-/**
-  * @brief  Master Rx Transfer completed callbacks.
-  * @param  hsmbus : Pointer to a SMBUS_HandleTypeDef structure that contains
+  * @brief  a version of the default SMBUS implementation with support for
+  *       PMBus extended command
+  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
   *                the configuration information for the specified SMBUS.
   * @retval None
   */
-void Defer_HAL_SMBUS_MasterRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
+//void STACK_SMBUS_LocateCommand( SMBUS_StackHandleTypeDef *pStackContext )
+//{
+//  uint8_t       commandCode = pStackContext->Buffer[0];
+//#ifdef DENSE_CMD_TBL
+//  uint32_t      current, low, top;
+//#endif
+//
+//#ifdef ARP
+//  if ( pStackContext->StateMachine & SMBUS_SMS_ARP_AM )
+//  {
+//    STACK_SMBUS_LocateCommandARP( pStackContext, commandCode );
+//  }
+//  else
+//#endif /* ARP treatment */
+//
+//    if (commandCode == PMBC_PMBUS_COMMAND_EXT)
+//    {
+//      /*
+//        May not be exactly read byte, but the stack cannot know for sure
+//       */
+//      pStackContext->CurrentCommand = (st_command_t*)&EXTENDED_READ_BYTE;
+//    }
+//    else
+//    {
+//      /*
+//        Code searching for command based on command code
+//        */
+//#ifdef DENSE_CMD_TBL
+//
+//      /*
+//        initializing the command code search - the table must have all commands sorted, but there may be gaps
+//       */
+//      low = 0U;
+//      top = pStackContext->CMD_tableSize - 1U;
+//      pStackContext->CurrentCommand = NULL;
+//
+//      while ( top >= low )
+//      {
+//        /*
+//          Pick interval half
+//         */
+//        current = ( low + top ) >> 1U;
+//        if (pStackContext->CMD_table[current].cmnd_code == commandCode)
+//        {
+//          /*
+//            we have found our command
+//           */
+//          pStackContext->CurrentCommand = &(pStackContext->CMD_table[current]);
+//          return;
+//        }
+//        else if (pStackContext->CMD_table[current].cmnd_code < commandCode)
+//        {
+//          /*
+//            Look at upper half
+//          */
+//          low = current + 1U;
+//        }
+//        else
+//        {
+//          top = current - 1U;
+//        }
+//      }
+//#else
+//      /*
+//      Simple command table - command code equals the table index
+//      */
+//      pStackContext->CurrentCommand = &(pStackContext->CMD_table[commandCode]);
+//
+//      /* a sanity check */
+//      if ( pStackContext->CurrentCommand->cmnd_code != commandCode )
+//      {
+//        pStackContext->CurrentCommand = NULL;
+//      }
+//#endif /* DENSE_CMD_TBL */
+//    }
+//}
+
+/**
+  * @brief  Callback function notifying slave about command incoming, implementation
+    is supporting extended command defined by PMBus
+  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
+  *                the configuration information for the specified SMBUS.
+  * @retval HAL_StatusTypeDef response code. Equal STACK_OK if success, any other value means problem
+  */
+HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackContext )
 {
-  SMBUS_StackHandleTypeDef *pStackContext;
-  uint8_t            size;
+  uint8_t       *piobuf = NULL;
 
-  /*
-    Resolve which stack serves the port that initiated callback
-   */
-  pStackContext = STACK_SMBUS_ResolveContext( hsmbus );
+  /* accessing the IO buffer */
+//  printf("e\r\n");
+  piobuf = STACK_SMBUS_GetBuffer( pStackContext );
 
-#ifdef PMBUS13
-  /* If this is a READ_ZONE, then it gets special treatment.
-    Only simple status read is supported in this example */
-  if ( pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ )
-  {
-    /* Fail-safe stopping the Zone Read on empty answer */
-    if ( pStackContext->Buffer[0] != 0xFFU )
-    {
-      pStackContext->Device->PreviousState = HAL_SMBUS_STATE_MASTER_BUSY_TX;
-      STACK_PMBUS_MasterZoneReadStatusCont(pStackContext);
-    }
-    else
-    {
-      /*
-        There could be an alert during command that we could not treat before
-      */
-      STACK_SMBUS_ReadyIfNoAlert( pStackContext );
-    }
-    return;
-  }
-#endif
-
-  if (( pStackContext->StateMachine & SMBUS_SMS_RECEIVE ) == SMBUS_SMS_RECEIVE )
-  {
-    /*
-      Reception completed
-     */
-    pStackContext->StateMachine &= ~SMBUS_SMS_RECEIVE;
-
-    /*
-      A case of block transfer follow-up follows
-     */
-    if (
-      (( pStackContext->CurrentCommand->cmnd_query & BLOCK ) == BLOCK ) &&
-      (( pStackContext->StateMachine & SMBUS_SMS_PROCESSING ) == SMBUS_SMS_PROCESSING)
-    )
-    {
-      /*
-        the amount of data to be read was sent by the slave - it is on position 1 of the IO buffer
-        is limited to STACK_NBYTE_SIZE
-      */
-      if ( pStackContext->Buffer[1] > STACK_NBYTE_SIZE )
-      {
-        pStackContext->Buffer[1] = STACK_NBYTE_SIZE;
-      }
-
-      if (  pStackContext->Buffer[1] == 0U )
-      {
-        /*
-        special case - slave indicates it has no further data to send
-        We generate stop and close the frame
-        */
-        STACK_SMBUS_ReadyIfNoAlert( pStackContext );
-      }
-      else
-      {
-        /*
-          This will conclude the block processing, we clear the flag
-         */
-        pStackContext->StateMachine &= ~SMBUS_SMS_PROCESSING;
-
-        /*
-          Reception next
-          Usually there is something left to be read, we continue on position 2 of the IO buffer
-         */
-        pStackContext->StateMachine |= SMBUS_SMS_RECEIVE;
-        size = pStackContext->Buffer[1];
-        /* Applying upper limit on read size */
-        if ( size > pStackContext->CurrentCommand->cmnd_master_Rx_size )
-        {
-          size = pStackContext->CurrentCommand->cmnd_master_Rx_size;
-        }
-        HAL_SMBUS_Master_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[2]), (uint16_t)size,
-                                     SMBUS_LAST_FRAME_NO_PEC  | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
-      }
-    }
-    else
-    {
-      /*
-        There could be an alert during command that we could not treat before
-      */
-      STACK_SMBUS_ReadyIfNoAlert( pStackContext );
-    }
-  }
-  else
+  if ( piobuf == NULL )
   {
     pStackContext->StateMachine |= SMBUS_SMS_ERROR;
   }
-  /* Program should not reach this statement */
-}
-
-/** @brief  Slave Tx Transfer completed callbacks.
-  * @param  hsmbus: Pointer to a SMBUS_HandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-void Defer_HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
-{
-  SMBUS_StackHandleTypeDef *pStackContext;
-
-  /*
-    Resolve which stack serves the port that initiated callback
-   */
-  pStackContext = STACK_SMBUS_ResolveContext( hsmbus );
-
-  /*
-    Completed transmission means this was not a quick command read but actual read.
-    We need to record this by clearing the flag.
-   */
-  pStackContext->StateMachine &= ~SMBUS_SMS_TRANSMIT;
-
-#ifdef  PMBUS13
-  /*
-    A case of Zone read - this slave devide has transmitted its data, will ignore further reads
-   */
-  if (pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ)
+//  else if ( pStackContext->CurrentCommand == (st_command_t *)&HOST_NOTIFY_PROTOCOL )
+//  {
+//    /* host notify command */
+//    if ( pStackContext->Buffer[0] == SMBUS_ADDR_DEFAULT )
+//    {
+//      /* Usually the Host notify is used for ARP, but may not be limited to it */
+//#ifdef ARP
+//#ifdef HOST1
+//      /* case of ARP notify */
+//      ARP_process = 1U;
+//#endif /* HOST1 */
+//#endif /* ARP */
+//    }
+//  }
+  else    /* Normal device command execution */
   {
-    __SMBUS_ZONE_DISABLE(hsmbus);
-    pStackContext->StateMachine |= SMBUS_SMS_ZONE_READ;
-  }
-#endif
-}
-
-/**
-  * @brief  Slave Rx Transfer completed callbacks.
-  * @param  hsmbus : Pointer to a SMBUS_HandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-void Defer_HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
-{
-  SMBUS_StackHandleTypeDef *pStackContext;
-  uint32_t       size;
-  uint32_t       xFerOptions = SMBUS_NEXT_FRAME;
-
-  /*
-    Resolve which stack serves the port that initiated callback
-   */
-  pStackContext = STACK_SMBUS_ResolveContext( hsmbus );
-
-  if (( pStackContext->StateMachine & SMBUS_SMS_IGNORED ) == SMBUS_SMS_IGNORED )
-  {
-    __HAL_SMBUS_GENERATE_NACK( hsmbus );
-    /* TCR may still stretch the SCL */
-    if (( hsmbus->Instance->ISR & I2C_ISR_TCR ) == I2C_ISR_TCR )
-    {
-      hsmbus->Instance->CR2 |= (((uint32_t) 1U << 16U ) & I2C_CR2_NBYTES);
-    }
-  }
-  else
-  {
-    /*
-      Case of no command identified yet
-    */
-    if ( pStackContext->CurrentCommand == NULL )
-    {
-      pStackContext->StateMachine &= ~SMBUS_SMS_RECEIVE;
-
-      /*
-        Reception completed, now we locate what command was received
-      */
+    /* Zone config command example implementation */
 #ifdef PMBUS13
-      /*
-        Testing for an exception in the specification - the Zone Read has no
-        traditional command code
-      */
-      if (pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ )
-      {
-        /*
-         Example implementation follows, modify if needed.
-        */
-        if ( pStackContext->TheZone.readZone == pStackContext->TheZone.activeReadZone )
-        {
-          /* This slave device will respond to this Zone Read call */
-          pStackContext->CurrentCommand = (st_command_t *) &ZONE_READ_COMMAND;
-        }
-        else
-        {
-          /* This slave device will not respond to this Zone Read call */
-          pStackContext->StateMachine |= SMBUS_SMS_IGNORED;
-          pStackContext->StateMachine |= SMBUS_SMS_ZONE_READ;
-        }
-      }
-      else
-      {
-#endif
-        STACK_SMBUS_LocateCommand( pStackContext );
-#ifdef PMBUS13
-      }
-#endif
-
-      /*
-      Unknown command case - send NACK
-      */
-      if ( pStackContext->CurrentCommand == NULL )
-      {
-        pStackContext->StateMachine |= SMBUS_SMS_IGNORED;
-        __HAL_SMBUS_GENERATE_NACK( hsmbus );
-        /* TCR may still stretch the SCL */
-        if (( hsmbus->Instance->ISR & I2C_ISR_TCR ) == I2C_ISR_TCR )
-        {
-          hsmbus->Instance->CR2 |= (((uint32_t) 1 << 16 ) & I2C_CR2_NBYTES);
-        }
-        /*
-        NOTE - Marking this case as error is optional, depends on application needs
-        */
-      }
-      else
-      {
-        /*
-          process call or block write case - read number of bytes
-        */
-        if (
-          (( pStackContext->CurrentCommand->cmnd_query & BLOCK_WRITE ) == BLOCK_WRITE ) ||
-          ( pStackContext->CurrentCommand->cmnd_query == BLK_PRC_CALL )
-        )
-        {
-          /*
-          Making the book-keeping and initiating the transaction.
-          */
-          pStackContext->Byte_count++;
-          pStackContext->StateMachine |= SMBUS_SMS_RECEIVE | SMBUS_SMS_PROCESSING;
-          HAL_SMBUS_Slave_Receive_IT( hsmbus, &(pStackContext->Buffer[1]), 1U, xFerOptions );
-        }
-        else
-        {
-          /*
-            otherwise size of data is fixed
-            - TODO - this "read" condition is not perfect, and may fail with READ_OR_WRITE + PEC cases
-          */
-          if (( pStackContext->CurrentCommand->cmnd_query & WRITE ) == WRITE )
-          {
-            /*
-            This is going to be the last frame (simple write case)
-            */
-            size = pStackContext->CurrentCommand->cmnd_master_Tx_size;
-            if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
-            {
-              size += PEC_SIZE;
-            }
-            xFerOptions = SMBUS_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
-          }
-          else
-          {
-            /*
-            There will be a read phase to follow, no PEC.
-            */
-            size = pStackContext->CurrentCommand->cmnd_master_Tx_size;
-          }
-
-          /* the case of having 2 byte long command code (or zone read)*/
-          if (
-            (pStackContext->CurrentCommand->cmnd_code == SMBUS_COMMAND_EXT ) ||
-            (pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ )
-          )
-          {
-            xFerOptions = 0U;
-          }
-          /*
-            anything left to receive?
-          */
-          if ( size > 1U )
-          {
-            pStackContext->Byte_count += (uint16_t)size - 1U;
-            pStackContext->StateMachine |= SMBUS_SMS_RECEIVE;
-            HAL_SMBUS_Slave_Receive_IT( hsmbus, &(pStackContext->Buffer[1]), (uint16_t)size - 1U, xFerOptions );
-            /*
-              command code byte subtracted from the command Tx size - it was received already
-            */
-          }
-          else
-          {
-            /* release the stretch */
-            pStackContext->Device->Instance->CR2 |= 0x0001000U;
-          }
-        }
-      }
-    }
-    else /* CurrentCommand != NULL */
+    if ( pStackContext->CurrentCommand->cmnd_code == PMBC_ZONE_CONFIG )
     {
-      /*
-        A case of block reading continuation - reading the remaining data
-      */
-      if (( pStackContext->StateMachine & SMBUS_SMS_PROCESSING) == SMBUS_SMS_PROCESSING)
-      {
-
-#ifdef ARP
-        /*
-          special case of assign address - byte-by-byte reception and comparison
-          */
-        if (
-          (( pStackContext->StateMachine & SMBUS_SMS_ARP_AM ) == SMBUS_SMS_ARP_AM ) &&
-          ( pStackContext->CurrentCommand == &(PMBUS_COMMANDS_ARP[3]))
-        )
-        {
-          /* Retieving the current position */
-          size = pStackContext->Byte_count - 1U;
-          size++;
-
-          /* If address received, we execute the command implementation */
-          if ( size > 18U )
-          {
-            STACK_SMBUS_ExecuteCommandARP( pStackContext );
-
-            /*
-              Command finished, marking the state
-            */
-            pStackContext->StateMachine &= ~(SMBUS_SMS_RECEIVE | SMBUS_SMS_PROCESSING);
-            pStackContext->StateMachine |= SMBUS_SMS_RESPONSE_READY;
-            /* Getting PEC byte of the command */
-            pStackContext->Byte_count = (uint16_t)size + 1U;
-          }
-          /* comparing the UDID with the buffer, NACK if not match */
-          else if ((size > 2U) && ( pStackContext->Buffer[size - 1U] != pStackContext->ARP_UDID[size - 3U] ))
-          {
-            pStackContext->StateMachine |= SMBUS_SMS_IGNORED;
-            pStackContext->StateMachine &= ~(SMBUS_SMS_RECEIVE | SMBUS_SMS_PROCESSING);
-            __HAL_SMBUS_GENERATE_NACK( hsmbus );
-            /* TCR may still stretch the SCL */
-            if (( hsmbus->Instance->ISR & I2C_ISR_TCR ) == I2C_ISR_TCR )
-            {
-              hsmbus->Instance->CR2 |= (((uint32_t) 1U << 16U ) & I2C_CR2_NBYTES);
-            }
-          }
-          /* Getting next byte of the command */
-          else if (size == 18U )
-          {
-            pStackContext->Byte_count = (uint16_t)size + 2U;
-            xFerOptions = SMBUS_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
-            HAL_SMBUS_Slave_Receive_IT( hsmbus, &(pStackContext->Buffer[size]), 1U + PEC_SIZE, xFerOptions );
-          }
-          else
-          {
-            pStackContext->Byte_count = (uint16_t)size + 1U;
-            HAL_SMBUS_Slave_Receive_IT( hsmbus, &(pStackContext->Buffer[size]), 1U, SMBUS_NEXT_FRAME );
-          }
-
-        }
-        else
-#endif /* ARP */
-
-        {
-          /*
-            size of remaining data has been alredy read to the buffer on position 1
-            is limited to STACK_NBYTE_SIZE
-          */
-          size = pStackContext->Buffer[1];
-          if ( size > STACK_NBYTE_SIZE )
-          {
-            size = STACK_NBYTE_SIZE;
-          }
-
-          /*
-            A case of block reading continuation - remaining data ( size read )
-          */
-          if ( size != 0U )
-          {
-            /*
-              size does not include PEC byte, we receive remaining data with size correction
-              exception is process call - the PEC is not transmitted on write phase
-            */
-            if (
-              ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE) &&
-              ((pStackContext->CurrentCommand->cmnd_query & PROCESS_CALL) == 0U )
-            )
-            {
-              size += PEC_SIZE;
-              pStackContext->Byte_count += (uint16_t)size;
-              HAL_SMBUS_Slave_Receive_IT( hsmbus, &(pStackContext->Buffer[2]), (uint16_t)size,
-                                          SMBUS_LAST_FRAME_NO_PEC + (pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) );
-            }
-            else
-            {
-              pStackContext->Byte_count += (uint16_t)size;
-              HAL_SMBUS_Slave_Receive_IT( hsmbus, &(pStackContext->Buffer[2]), (uint16_t)size,
-                                          SMBUS_LAST_FRAME_NO_PEC );
-            }
-          }
-
-          pStackContext->StateMachine &= ~(SMBUS_SMS_RECEIVE | SMBUS_SMS_PROCESSING);
-          /*
-            reception completed, and the processing flag is cleared to indicate the
-            next reception can execute the command code
-          */
-        }
-      }
-      else if (pStackContext->CurrentCommand->cmnd_code == SMBUS_COMMAND_EXT )
-      {
-        pStackContext->StateMachine &= ~SMBUS_SMS_RECEIVE;
-        STACK_SMBUS_ExtendCommand( pStackContext );
-      }
-      else
-      {
-        pStackContext->StateMachine &= ~SMBUS_SMS_RECEIVE;
-#ifdef PMBUS13
-        if (pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ )
-        {
-          STACK_PMBUS_ZoneReadCallback( pStackContext, 1U );
-        }
-#endif
-      }
+      pStackContext->TheZone.writeZone = pStackContext->Buffer[1];
+      pStackContext->TheZone.readZone = pStackContext->Buffer[2];
     }
-  }
-}
-
-/**
-  * @brief  Address Match callbacks.
-  * @param  hsmbus : Pointer to a SMBUS_HandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @param  TransferDirection: Master request Transfer Direction (Write/Read)
-  * @param  AddrMatchCode: Address Match Code
-  * @retval None
-  */
-void Defer_HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
-{
-  SMBUS_StackHandleTypeDef *pStackContext;
-  uint16_t           size;
-  uint8_t            response;
-  uint32_t           result = STACK_OK;
-
-  /*
-    Resolve which stack serves the port that initiated callback
-   */
-  pStackContext = STACK_SMBUS_ResolveContext( hsmbus );
-
-  /*
-     Clear the history of command records - if flag was not cleared yet, the application probably doesn't need it
-   */
-  pStackContext->StateMachine &= ~( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R );
-
-  /*
-    First normalize address - bit-shift it
-   */
-  AddrMatchCode = AddrMatchCode << 1U;
-
-  /*
-    Check for host notify protocol ( we are host and being addressed )
-   */
-  if (
-    (( pStackContext->Device->Instance->CR1 & SMBUS_PERIPHERAL_MODE_SMBUS_HOST ) == SMBUS_PERIPHERAL_MODE_SMBUS_HOST) &&
-    ( AddrMatchCode == SMBUS_ADDR_HOST ) &&
-    ( TransferDirection == 0U )
-  )
-  {
-    /*
-      In this case we know exactly the frame is 3B long, we are taking a short-cut.
-     */
-    pStackContext->StateMachine &= ~SMBUS_SMS_READY;
-    pStackContext->Byte_count = 3U;
-    HAL_SMBUS_Slave_Receive_IT( hsmbus, pStackContext->Buffer, 3U, SMBUS_FIRST_AND_LAST_FRAME_NO_PEC );
-    pStackContext->CurrentCommand = &HOST_NOTIFY_PROTOCOL;
-  }
-
-  /*
-    Try match for ARA - alert response is checked, but only in case it is us, who issued the signal ( I2C_CR1_ALERTEN )
-   */
-  else if ( ( AddrMatchCode == SMBUS_ADDR_ARA ) && (TransferDirection != 0U)
-            && (((pStackContext->Device->Instance->CR1) & I2C_CR1_ALERTEN ) == I2C_CR1_ALERTEN ) )
-  {
-    /*
-      The ready (listen) state is over, transition to transmission of alert address
-     */
-    pStackContext->StateMachine &= ~SMBUS_SMS_READY;
-    pStackContext->StateMachine |= SMBUS_SMS_TRANSMIT;
-    pStackContext->Byte_count = 1U;
-    HAL_SMBUS_Slave_Transmit_IT( hsmbus, &(pStackContext->OwnAddress), 1U,
-                                 SMBUS_FIRST_AND_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
-
-    /*
-      Turn off the alert signal
-     */
-    pStackContext->Device->Instance->CR1 &= ~I2C_CR1_ALERTEN;
-  }
-  else
-  {
-    /*
-      Address may not be precisely the same - callback to accept the address
-    */
-    if ( STACK_SMBUS_AddrAccpt( pStackContext, AddrMatchCode) != SUCCESS )
+    else if ( pStackContext->CurrentCommand->cmnd_code == PMBC_ZONE_ACTIVE )
     {
-      /* This is the best way not to block the line */
-      __HAL_SMBUS_GENERATE_NACK( hsmbus );
-      hsmbus->Instance->ICR |= I2C_ICR_ADDRCF;
-      HAL_SMBUS_EnableListen_IT( hsmbus );
-      /* sometimes writing 0xFF to TXDR helps too */
+      pStackContext->TheZone.activeWriteZone = pStackContext->Buffer[1];
+      pStackContext->TheZone.activeReadZone = pStackContext->Buffer[2];
     }
-    else
-    {
-      /* Remembering the addres ot the currently processed command */
-      pStackContext->SlaveAddress = AddrMatchCode;
 
-      /*
-        Read part
-      */
-      if ( TransferDirection != 0U )
-      {
-        /* There may have been a write command programmed into the stack. */
-        /* Many commands are read/write */
-        /* this is a read case, write is cancelled */
-        pStackContext->Device->State &= ~HAL_SMBUS_STATE_SLAVE_BUSY_RX;
-
-        /* Here we test for a condition when the address match is part of an already ignored read/process call command */
-        if (
-          (( pStackContext->StateMachine & SMBUS_SMS_IGNORED ) == SMBUS_SMS_IGNORED) && \
-          (( pStackContext->CurrentCommand->cmnd_query & ( READ | PROCESS_CALL ) ) != 0U )
-        )
-        {
-          /* This is the best way not to block the line */
-          hsmbus->Instance->TXDR = 0xFFU;
-          /* TODO - find a clean way how to abstain from blocking the bus */
-
-          if (( hsmbus->Instance->ISR & I2C_ISR_TCR ) == I2C_ISR_TCR )
-          {
-            hsmbus->Instance->CR2 |= (((uint32_t) 1 << 16 ) & I2C_CR2_NBYTES);
-          }
-          __HAL_SMBUS_GENERATE_NACK( hsmbus );
-          hsmbus->Instance->ICR |= I2C_ICR_ADDRCF;
-          pStackContext->StateMachine &= ~(SMBUS_SMS_IGNORED | SMBUS_SMS_ARP_AM);
-          HAL_SMBUS_EnableListen_IT( hsmbus );
-          /* sometimes writing 0xFF to TXDR helps too */
-        }
-        else
-        {
-          /* else stack makes sure the ignored flag is down */
-          pStackContext->StateMachine &= ~SMBUS_SMS_IGNORED;
-
-          /*
-            If the response is not ready yet, but the read is was preceded by write.
-           */
-          if (( pStackContext->StateMachine & ( SMBUS_SMS_READY | SMBUS_SMS_RESPONSE_READY ) ) == 0U )
-          {
-            /*
-              this is a case of read command - we must execute it first (callback)
-            */
-            if (( (pStackContext->StateMachine) & SMBUS_SMS_ARP_AM ) == SMBUS_SMS_ARP_AM )
-            {
-              /*
-                An ARP command ( determined based on address )
-              */
-              result = STACK_SMBUS_ExecuteCommandARP( pStackContext );
-            }
-#ifdef PMBUS13
-            else if ( pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ )
-            {
-              result = STACK_PMBUS_ZoneReadCallback( pStackContext, 0U );
-            }
-#endif
-            else
-            {
-              /*
-                An regular command
-              */
-              result = STACK_SMBUS_ExecuteCommand( pStackContext );
-            }
-
-            if ( result == STACK_OK )
-            {
-              /*
-                successful execution - response should be present in IO buffer
-              */
-              pStackContext->StateMachine |= SMBUS_SMS_RESPONSE_READY;
-            }
-          }
-
-          if ( result != STACK_OK )
-          {
-            /*
-              Command callback execution failed - sending NACK
-            */
-            pStackContext->StateMachine |= SMBUS_SMS_IGNORED;
-            __HAL_SMBUS_GENERATE_NACK( hsmbus );
-            hsmbus->Instance->ICR |= I2C_ICR_ADDRCF;
-            HAL_SMBUS_EnableListen_IT( hsmbus );
-            /* sometimes writing 0xFF to TXDR helps too */
-          }
-          else
-          {
-            if (( pStackContext->StateMachine & SMBUS_SMS_RESPONSE_READY ) == SMBUS_SMS_RESPONSE_READY )
-            {
-              /*
-              * means we received and executed command and have data to send back
-              */
-              pStackContext->StateMachine |= SMBUS_SMS_TRANSMIT;
-
-              if  ( ( pStackContext->CurrentCommand->cmnd_query & BLOCK ) == BLOCK )
-              {
-                /*
-                  Variable reply size - size is also prepared
-                  by the command in the output buffer (hopefully).
-                  is limited to STACK_NBYTE_SIZE
-                */
-                if ( pStackContext->Buffer[1] > STACK_NBYTE_SIZE )
-                {
-                  pStackContext->Buffer[1] = STACK_NBYTE_SIZE;
-                }
-                size = (uint16_t)(1U + (pStackContext->Buffer[1])); /* count + actual data */
-
-                /*
-                Transmission size is automatically increased by the PEC byte
-                */
-                if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
-                {
-                  size += 1U; /* PEC byte */
-                  pStackContext->Buffer[1] += 1U;
-                }
-
-                /*
-                  Info about current command will not be needed more.
-                  Normally this is reset in listen complete (stop condition) but process call
-                  is an exception.
-                */
-                pStackContext->CurrentCommand = NULL;
-              }
-              else
-              {
-                /*
-                  a regular read byte or word command
-                  transmission size is automatically increased by the PEC byte
-                */
-                if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
-                {
-                  size = (uint16_t)(pStackContext->CurrentCommand->cmnd_master_Rx_size + 1U); /* PEC byte */
-                }
-                else
-                {
-                  size = pStackContext->CurrentCommand->cmnd_master_Rx_size;
-                }
-              }
-
-              /*
-                Now we record the buffer position and send the reply
-              */
-              pStackContext->Byte_count = size;
-              HAL_SMBUS_Slave_Transmit_IT( hsmbus, &(pStackContext->Buffer[1]), size, \
-                                           SMBUS_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) );
-            }
-            else if (( (pStackContext->StateMachine) & SMBUS_SMS_READY ) == SMBUS_SMS_READY )
-            {
-              /*
-              * We have no response prepared and no write preceded this read means
-              * this is a receive byte case or a quick command (read)
-              * It is impossible to determine in advance, there are choices:
-              */
-              if (( pStackContext->StateMachine & SMBUS_SMS_RCV_BYTE_OFF ) == 0U)
-              {
-                /*
-                If ReceiveByte transaction is not completely disabled, we execute it
-                */
-                size = 1U;
-
-                /* PEC byte */
-                if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
-                {
-                  size += 1U;
-                }
-                pStackContext->StateMachine &= ~SMBUS_SMS_RESPONSE_READY;
-                pStackContext->StateMachine |= SMBUS_SMS_TRANSMIT;
-                pStackContext->Byte_count = size;
-                if (( pStackContext->StateMachine & SMBUS_SMS_RCV_BYTE_LMT ) == SMBUS_SMS_RCV_BYTE_LMT)
-                {
-                  /*
-                  This is a safe solution that allows the master to transmit STOP and
-                  doesn't not block the QuickCommand
-                  */
-                  response = pStackContext->SRByte | 0x80U;
-                  HAL_SMBUS_Slave_Transmit_IT( hsmbus, &(response), size,
-                                               SMBUS_FIRST_AND_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
-                }
-                else
-                {
-                  /*
-                  This option allows all possible values of the response byte
-                  but is blocking in case master wants a quick command read
-                  */
-                  HAL_SMBUS_Slave_Transmit_IT( hsmbus, &(pStackContext->SRByte), size,
-                                               SMBUS_FIRST_AND_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
-                }
-              }
-            }
-          }
-        }
-      }
-      else  /* Write direction detected */
-      {
-        /* New transmission, clearing the 'ignored' flag */
-        pStackContext->StateMachine &= ~SMBUS_SMS_IGNORED;
-
-        if (( pStackContext->StateMachine & SMBUS_SMS_READY ) == SMBUS_SMS_READY )
-        {
-          /*
-          * A new command arrived - we have to read the first byte to determine it's type
-          */
-          pStackContext->StateMachine &= ~SMBUS_SMS_READY;
-          pStackContext->StateMachine |= SMBUS_SMS_RECEIVE;
-          pStackContext->CurrentCommand = NULL;
-          pStackContext->Byte_count = 1U;
-          HAL_SMBUS_Slave_Receive_IT( hsmbus, pStackContext->Buffer, 1U, SMBUS_NEXT_FRAME);
-        }
-      }
-    }
-  }
-}
-
-/**
-  * @brief  Listen Complete callbacks.
-  * @param  hsmbus : Pointer to a SMBUS_HandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-void Defer_HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
-{
-  SMBUS_StackHandleTypeDef *pStackContext;
-
-  /*
-    Resolve which stack serves the port that initiated callback
-   */
-  pStackContext = STACK_SMBUS_ResolveContext( hsmbus );
-
-  /*
-    communication over, let's determine what was it
-   */
-  if ( pStackContext->CurrentCommand == 0U )
-  {
-    if ((pStackContext->StateMachine & SMBUS_SMS_RECEIVE) == SMBUS_SMS_RECEIVE )
-    {
-      /*
-        a quick command write detected - address was detected with write but no write occurred
-      */
-      pStackContext->StateMachine |= SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_READY;
-      STACK_SMBUS_ExecuteCommand( pStackContext );
-    }
-    else if ((pStackContext->StateMachine & SMBUS_SMS_QUICK_CMD_R) == SMBUS_SMS_QUICK_CMD_R )
-    {
-      /*
-        a quick command read case - flag was set during OVR error treatment
-      */
-      STACK_SMBUS_ExecuteCommand( pStackContext );
-    }
-  }
-  else if (( pStackContext->StateMachine & SMBUS_SMS_RESPONSE_READY) != SMBUS_SMS_RESPONSE_READY )
-  {
-    /*
-      we received a simple command we need yet to execute
-     */
-    if (( pStackContext->StateMachine & SMBUS_SMS_ARP_AM ) == SMBUS_SMS_ARP_AM )
-    {
-      STACK_SMBUS_ExecuteCommandARP( pStackContext );
-    }
-    else
-    {
-      STACK_SMBUS_ExecuteCommand( pStackContext );
-    }
-  }
-
-  /*
-    As the communication is concluded we want to reset the stack
-   */
-  pStackContext->StateMachine |= SMBUS_SMS_READY;
-  pStackContext->StateMachine &= ~( SMBUS_SMS_RESPONSE_READY | SMBUS_SMS_IGNORED | SMBUS_SMS_ARP_AM | SMBUS_SMS_PROCESSING
-                                    | SMBUS_SMS_ZONE_READ);
-  pStackContext->CurrentCommand = NULL;
-
-  /* sometimes there is a PEC byte left in RXDR due to command type confusion (READ or WRITE command) */
-  if (( hsmbus->Instance->ISR & I2C_ISR_RXNE ) == I2C_ISR_RXNE )
-  {
-    (*hsmbus->pBuffPtr++) = (uint8_t)(hsmbus->Instance->RXDR);
-  }
-
-  /*
-    ...and return to listen mode
-   */
-  /*Phu debug*/
-  printf("lstCpl\r\n");
-  /***/
-  HAL_SMBUS_EnableListen_IT( hsmbus );
-
-#ifdef PMBUS13
-  __SMBUS_ZONE_ENABLE(hsmbus);
 #endif /* PMBUS13 */
-}
-
-/**
-  * @brief  SMBUS alert signalling (device only).
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-void STACK_SMBUS_SendAlert( SMBUS_StackHandleTypeDef *pStackContext )
-{
-  /*
-    check mode consistency - device only sends
-   */
-  if ( ( (pStackContext->Device->Instance->CR1) & SMBUS_PERIPHERAL_MODE_SMBUS_HOST ) == 0U)
-  {
-    pStackContext->Device->Instance->CR1 |= I2C_CR1_ALERTEN;
-  }
-}
-
-/**
-  * @brief  SMBUS error callbacks.
-  * @param  hsmbus : Pointer to a SMBUS_HandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-void HAL_SMBUS_ErrorCallback(SMBUS_HandleTypeDef *hsmbus)
-{
-  SMBUS_StackHandleTypeDef *pStackContext;
-  uint32_t  error = hsmbus->ErrorCode;
-
-  pStackContext = STACK_SMBUS_ResolveContext( hsmbus );
-
-  if ( (error & HAL_SMBUS_ERROR_ALERT) == HAL_SMBUS_ERROR_ALERT )
-  {
-    if ( (pStackContext->StateMachine & SMBUS_SMS_ACTIVE_MASK) == 0U )
-    {
-      /*
-        The stack is not busy - we can react immediately
-       */
-      pStackContext->CurrentCommand = &ALERT_RESPONSE;
-      STACK_SMBUS_HostRead( pStackContext, (uint8_t *) & (pStackContext->OwnAddress), SMBUS_ADDR_ARA);
-    }
     /*
-      Alert signal detected, update state
-     */
-    pStackContext->StateMachine |= SMBUS_SMS_ALERT_PENDING;
-
-    /*
-     the alert has been treated, clear the flag
-     */
-    error &= ~HAL_SMBUS_ERROR_ALERT;
-  }
-  else if (( error & (HAL_SMBUS_ERROR_BERR | HAL_SMBUS_ERROR_BUSTIMEOUT | HAL_SMBUS_ERROR_HALTIMEOUT )) != 0U )
-  {
-    /*
-      Critical error plagued the command - reset the stack
-     */
-    if ( STACK_SMBUS_IsBusy(pStackContext))
-    {
-      __HAL_SMBUS_DISABLE( hsmbus );
-      while (( hsmbus->Instance->CR1 & I2C_CR1_PE ) == I2C_CR1_PE )
-      {}
-      __HAL_SMBUS_ENABLE( hsmbus );
-      if ( pStackContext->Device->State != HAL_SMBUS_STATE_READY )
-      {
-        HAL_SMBUS_DeInit( pStackContext->Device );
-        HAL_SMBUS_Init( pStackContext->Device );
-        HAL_SMBUS_EnableListen_IT( pStackContext->Device );
-      }
-    }
-    pStackContext->StateMachine |= SMBUS_SMS_READY;
-    pStackContext->CurrentCommand = NULL;
-    pStackContext->StateMachine &= ~SMBUS_SMS_ACTIVE_MASK;
-
-  }
-  else if (( error & HAL_SMBUS_ERROR_OVR) == HAL_SMBUS_ERROR_OVR )
-  {
-    /*
-      A case of quick command read probably, setting the flag
-     */
-    pStackContext->StateMachine |= SMBUS_SMS_QUICK_CMD_R | SMBUS_SMS_READY;
-    HAL_SMBUS_Master_Abort_IT( hsmbus, pStackContext->SlaveAddress );
-    hsmbus->ErrorCode = HAL_SMBUS_ERROR_NONE;
-  }
-  else if (( error & HAL_SMBUS_ERROR_ARLO) == HAL_SMBUS_ERROR_ARLO )
-  {
-#ifdef PMBUS13
-    /* Zone Read arbitration lost - retry */
-    if (( pStackContext->SlaveAddress == SMBUS_ADDR_ZONE_READ )
-        && ((pStackContext->StateMachine & SMBUS_SMS_ZONE_READ) != 0U ))
-    {
-      pStackContext->StateMachine &= ~SMBUS_SMS_ZONE_READ;
-      __SMBUS_ZONE_ENABLE(hsmbus);
-    }
-    else
-    {
-#endif /* PMBUS13 */
-      /*
-        Arbitration lost, giving up
-      */
-      __HAL_SMBUS_GENERATE_NACK( hsmbus );
-
-      /* TCR may still stretch the SCL */
-      if (( hsmbus->Instance->ISR & I2C_ISR_TCR ) == I2C_ISR_TCR )
-      {
-        hsmbus->Instance->CR2 |= (((uint32_t) 1 << 16 ) & I2C_CR2_NBYTES);
-      }
-      if (( hsmbus->Instance->ISR & I2C_ISR_ADDR ) == I2C_ISR_ADDR )
-      {
-        hsmbus->Instance->ICR |= I2C_ICR_ADDRCF;
-      }
-
-      /*
-      Clearing the rest of the transmission, including the HW buffer of peripheral
-      */
-      hsmbus->Instance->ISR |= I2C_ISR_TXE;
-      hsmbus->XferCount = 0U;
-      hsmbus->XferSize = 0U;
-      hsmbus->XferOptions = 0U;
-
-      /*
-        Putting the stack back to original state.
-      */
-      pStackContext->StateMachine &= ~SMBUS_SMS_TRANSMIT | SMBUS_SMS_RESPONSE_READY | SMBUS_SMS_PROCESSING;
-      pStackContext->StateMachine |= SMBUS_SMS_IGNORED | SMBUS_SMS_READY;
-#ifdef PMBUS13
-    }
-#endif  /* PMBUS13 */
-  }
-  else if (( error & HAL_SMBUS_ERROR_PECERR ) == HAL_SMBUS_ERROR_PECERR )
-  {
-    /* just ignore the error if there is no current transaction */
-    if ( hsmbus->State == HAL_SMBUS_STATE_RESET )
-    {
-      HAL_SMBUS_DeInit( pStackContext->Device );
-      HAL_SMBUS_Init( pStackContext->Device );
-      HAL_SMBUS_EnableListen_IT( pStackContext->Device );
-    }
-    else
-    {
-      /* otherwise book it in the stack */
-      pStackContext->StateMachine |= SMBUS_SMS_ERR_PECERR;
-    }
-  }
-  else if (( error & HAL_SMBUS_ERROR_ACKF ) == HAL_SMBUS_ERROR_ACKF )
-  {
-    pStackContext->Device->PreviousState = hsmbus->State;
-    pStackContext->Device->State = HAL_SMBUS_STATE_READY;
-
-    /* Process Unlocked */
-    __HAL_UNLOCK(pStackContext->Device);
-
-    /* Cease the transmit/receive effort */
-    pStackContext->StateMachine &= ~(SMBUS_SMS_TRANSMIT | SMBUS_SMS_RECEIVE);
-    STACK_SMBUS_ReadyIfNoAlert(pStackContext);
-  }
-
-  /*
-    keep any other error marked in the state machine
-   */
-  pStackContext->StateMachine |= error << 16;
-
-  /*
-    and clear the record of error in the hal driver
-   */
-  hsmbus->ErrorCode = HAL_SMBUS_ERROR_NONE;
-}
-
-/**
-  * @brief  function determines if the address could identify this device.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @param  AddrMatchCode: Address Match Code
-  * @retval ErrorStatus ERROR if address is not recognized as own.
-  */
-__weak ErrorStatus STACK_SMBUS_AddrAccpt( SMBUS_StackHandleTypeDef *pStackContext, uint16_t AddrMatchCode)
-{
-  ErrorStatus retvalue = ERROR;
-
-  /*
-   A device could have fixed address, support the ARP or answer to a general call.
-   */
-#ifdef ARP      /* Address resolution protocol follows */
-
-  /* ARP address match - general call*/
-  if (AddrMatchCode == SMBUS_ADDR_DEFAULT )
-  {
-    /* set the flag that the current call is ARP */
-    pStackContext->StateMachine |= SMBUS_SMS_ARP_AM;
-    retvalue = SUCCESS;
-  }
-#endif /*ARP supported*/
-
-#ifdef PMBUS13
-
-  /* Zone command address */
-  if ( (AddrMatchCode == SMBUS_ADDR_ZONE_READ ) || (AddrMatchCode == SMBUS_ADDR_ZONE_WRITE ))
-  {
-
-    if (( pStackContext->StateMachine & SMBUS_SMS_ZONE_READ ) == SMBUS_SMS_ZONE_READ )
-    {
-      retvalue = ERROR;
-    }
-    else
-    {
-      retvalue = SUCCESS;
-    }
-  }
-#endif /* PMBUS13 */
-
-  /* Own address match */
-  if (AddrMatchCode == pStackContext->OwnAddress )
-  {
-    retvalue = SUCCESS;
-  }
-
-  /* NOTE : This function Should not be modified, when the callback is needed,
-           the STACK_SMBUS_AddrAccpt could be implemented in the user file
-  */
-  return retvalue;
-}
-
-/**
-  * @brief  Function optionally extending the ExecuteCommand to be ARP capable
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the context information for the specified SMBUS stack.
-  * @retval HAL_StatusTypeDef response code. Equal STACK_OK if success.
-  */
-__weak HAL_StatusTypeDef STACK_SMBUS_ExecuteCommandARP( SMBUS_StackHandleTypeDef *pStackContext )
-{
-  HAL_StatusTypeDef result = STACK_OK;
-#ifdef ARP      /* Address resolution protocol follows */
-  uint32_t index;
-  /*
-    Host should implement it's reaction to Host notify protocol and ARP Host notify.
-    Regular devices implement all the commands they support.
-  Instead of modifying directly this function, use the weak property to replace it.
-   */
-
-  if ( pStackContext->CurrentCommand == &(PMBUS_COMMANDS_ARP[0]))
-  {
-    /*
-      1. reset the AR flag
-     */
-    pStackContext->StateMachine &= ~( SMBUS_SMS_ARP_AR );
-
-    /*
-      2. regenerate random UDID part - not implemented in this example
-     */
-  }
-  else if ( pStackContext->CurrentCommand == &(PMBUS_COMMANDS_ARP[1]) )
-  {
-    /*
-     1. reset the ARP flags
+      first step is to see if we have a case of extended command
     */
-#ifdef  DEV_PSA /* persistent address prevents AV reset*/
-    pStackContext->StateMachine &= ~( SMBUS_SMS_ARP_AR );
-#else /* DEV_PSA */
-    pStackContext->StateMachine &= ~( SMBUS_SMS_ARP_AV | SMBUS_SMS_ARP_AR );
-#endif /* DEV_PSA */
-    /*
-      2. regenerate random UDID part
-     */
-  }
-  else if ( pStackContext->CurrentCommand ==  &(PMBUS_COMMANDS_ARP[2]))
-  {
-    /*
-      1. Copy the UDID to the buffer (preparing answer )
-     */
-    for ( index = 2U; index < 18U; index++ )
-    {
-      pStackContext->Buffer[index] = pStackContext->ARP_UDID[index - 2U];
-    }
-
-    pStackContext->Buffer[1] = 17U;
-    pStackContext->Buffer[18] = pStackContext->OwnAddress;
-  }
-  else if ( pStackContext->CurrentCommand == &(PMBUS_COMMANDS_ARP[3]))
-  {
-    if ( (pStackContext->StateMachine & SMBUS_SMS_IGNORED ) == 0U)
-    {
-      /*
-       This is a new address assigned by the bus host
-        this slave has to remember it
-       */
-      pStackContext->StateMachine |= SMBUS_SMS_ARP_AV | SMBUS_SMS_ARP_AR;
-      pStackContext->OwnAddress = pStackContext->Buffer[18];
-      pStackContext->Device->Instance->OAR1 = (I2C_OAR1_OA1EN | pStackContext->Buffer[18]);
-    }
-  }
-  else
-  {
-    /* no command selected - could be that the stack NACKed previous write and now is the read phase */
-    result = STACK_ERROR;
-  }
-#endif /*ARP*/
-
-  /*
-    Returning zero means no problem with execution, if reply is expected, then it is correctly placed in the IO buffer
-   */
-  return result;
-}
-
-#ifdef ARP
-
-/**
-  * @brief a subroutine of the LocateCommand called in case or ARP
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @param  commandCode : the command code byte value read from input buffer
-  * @retval None
-  */
-void STACK_SMBUS_LocateCommandARP( SMBUS_StackHandleTypeDef *pStackContext, uint8_t commandCode )
-{
-  switch ( commandCode )
-  {
-#ifdef  DEV_DIS /* discoverable device only */
-    case SMBUS_ARP_CC_PREPARE:
-      /* Prepare for ARP command incoming */
-      pStackContext->CurrentCommand = &(PMBUS_COMMANDS_ARP[0]);
-      break;
-    case SMBUS_ARP_CC_RESET:
-      /* ARP reset command incoming */
-      pStackContext->CurrentCommand = &(PMBUS_COMMANDS_ARP[1]);
-      break;
-    case SMBUS_ARP_CC_GET_ID:
-      /* ID reading command - we only answer if address is not resolved yet */
-      if ( ( pStackContext->StateMachine & SMBUS_SMS_ARP_AR ) == 0 )
-      {
-        pStackContext->CurrentCommand = &(PMBUS_COMMANDS_ARP[2]);
-      }
-      else
-      {
-        /* do the best to avoid replying on that command */
-        pStackContext->StateMachine |= SMBUS_SMS_IGNORED;
-      }
-      break;
-    case SMBUS_ARP_CC_ASSIGN:
-      /* Address assignment from host */
-      pStackContext->CurrentCommand = &(PMBUS_COMMANDS_ARP[3]);
-      break;
-#endif /* DEV_DIS */
-    default:
-      if (( pStackContext->StateMachine & SMBUS_SMS_ARP_AV ) == SMBUS_SMS_ARP_AV )
-      {
-        /* directed command for this device only, address must be valid then */
-        if ( commandCode ==  ( pStackContext->OwnAddress | 0x01U ) )
-        {
-          /* GetID again */
-          pStackContext->CurrentCommand = &(PMBUS_COMMANDS_ARP[2]);
-        }
-#ifdef DEV_DIS
-        else if ( commandCode == pStackContext->OwnAddress )
-        {
-          /* reset command */
-          pStackContext->CurrentCommand = &(PMBUS_COMMANDS_ARP[1]);
-        }
-#endif /* DEV_DIS */
-      }
-      break;
-  }
-  return;
-}
-#endif /*ARP */
-
-/**
-  * @brief  locates a received command in the supported command table
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-__weak void STACK_SMBUS_LocateCommand( SMBUS_StackHandleTypeDef *pStackContext )
-{
-  uint8_t       commandCode = pStackContext->Buffer[0];
-#ifdef      DENSE_CMD_TBL
-  uint32_t      current, low, top;
-#endif
-
-#ifdef  ARP
-  if (( pStackContext->StateMachine & SMBUS_SMS_ARP_AM ) == SMBUS_SMS_ARP_AM )
-  {
-    /* on default device address we do not seek in default command table */
-    STACK_SMBUS_LocateCommandARP( pStackContext, commandCode );
+//    if ( pStackContext->CurrentCommand->cmnd_code == PMBC_PMBUS_COMMAND_EXT )
+//    {
+////      BSP_LED_On(LED_GREEN);
+//    }
+//    else /* regular command case */
+//    {
+////      BSP_LED_On(LED_GREEN);
+//      if ((pStackContext->CurrentCommand->cmnd_query & BLOCK ) == BLOCK )
+//      {
+//        *piobuf = (pStackContext->CurrentCommand->cmnd_master_Rx_size) - 1U;
+//        /* byte size of reply for block read command */
+//        /* One byte for size, rest are [size] of data */
+//      }
+//    }
+    if ((pStackContext->CurrentCommand->cmnd_query & READ_OR_WRITE ) == READ_OR_WRITE )
+	{
+//    	*piobuf = (pStackContext->CurrentCommand->cmnd_master_Rx_size) - 1U;
+    	for(uint8_t i = 0; i < 256; i++)
+    	{
+    		if(pStackContext->CurrentCommand == (st_command_t *)&EDID_COMMANDS_TABLE[i])
+    		{
+    			if ((pStackContext->CurrentCommand->cmnd_query & READ ) == READ )
+    			{
+#ifdef TEST_EDID_DELL_EXAMPLE
+    				*piobuf = atest_edid[i];
+#endif /*TEST_EDID_DELL_EXAMPLE*/
+    				//ToDo: copy data into piobuff to transfer to host
+//    				*piobuf =
+    			}else if ((pStackContext->CurrentCommand->cmnd_query & WRITE ) == WRITE )
+    			{
+    				//ToDo: get data from piobuff and then process it
+//    				*piobuf =
+    			}else
+    			{
+    				pStackContext->StateMachine |=  SMBUS_SMS_IGNORED;
+    			}
+    		}
+    	}
+	}
 
   }
-  else
-#endif /* ARP treatment */
-  {
-    /*
-       Code searching for command based on command code
-     */
-#ifdef      DENSE_CMD_TBL
-
-    /*
-      initializing the command code search - the table must have all commands sorted, but there may be gaps
-     */
-    low = 0U;
-    top = pStackContext->CMD_tableSize - 1U;
-    pStackContext->CurrentCommand = NULL;
-
-    while ( top >= low )
-    {
-      /*
-        Pick interval half
-       */
-      current = ( low + top ) >> 1 ;
-      if (pStackContext->CMD_table[current].cmnd_code == commandCode)
-      {
-        /*
-          we have found our command
-         */
-        pStackContext->CurrentCommand = &(pStackContext->CMD_table[current]);
-        return;
-      }
-      else if (pStackContext->CMD_table[current].cmnd_code < commandCode)
-      {
-        /*
-          Look at upper half
-         */
-        low = current + 1U;
-      }
-      else
-      {
-        top = current - 1U;
-      }
-    }
-#else
-    /*
-    Simple command table - command code equals the table index
-    */
-    pStackContext->CurrentCommand = &(pStackContext->CMD_table[commandCode]);
-
-    /* a sanity check */
-    if ( pStackContext->CurrentCommand->cmnd_code != commandCode )
-    {
-      pStackContext->CurrentCommand = NULL;
-    }
-#endif
-  }
-}
-
-/**
-  * @brief  This callback informs the host side application SW that an Alert has been
-  *         treated and there is received alert address in the context.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-__weak void STACK_SMBUS_AlertClbk( SMBUS_StackHandleTypeDef *pStackContext )
-{
-  /*
-   Do not modify this function directly, replace it with own version in your code
-   */
-  return;
-}
-
-/**
-  * @brief  check if alert is pending and treat it, otherwise reset state machine
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval None
-  */
-void STACK_SMBUS_ReadyIfNoAlert( SMBUS_StackHandleTypeDef *pStackContext )
-{
-
-  if ((pStackContext->StateMachine & SMBUS_SMS_ALERT_PENDING) == SMBUS_SMS_ALERT_PENDING )
-  {
-    /*
-      During a command processing, a device signalled an alert
-     */
-    if (pStackContext->CurrentCommand != &ALERT_RESPONSE)
-    {
-      /*
-       Last command was not an alert response - we send alert response
-       */
-      pStackContext->CurrentCommand = &ALERT_RESPONSE;
-      pStackContext->StateMachine |= SMBUS_SMS_READY;
-      STACK_SMBUS_HostRead( pStackContext, &(pStackContext->OwnAddress), SMBUS_ADDR_ARA);
-    }
-    else
-    {
-      /*
-       Means we already sent alert response and the address has been read
-       */
-      pStackContext->StateMachine |= SMBUS_SMS_READY | SMBUS_SMS_ALERT_ADDRESS;
-      pStackContext->StateMachine &= ~SMBUS_SMS_ALERT_PENDING;
-
-      /*
-       the callback...
-       */
-      STACK_SMBUS_AlertClbk( pStackContext );
-    }
-  }
-  else
-  {
-    /*
-    No alert, Master is ready to poke another device
-    */
-    pStackContext->StateMachine |= SMBUS_SMS_READY;
-    pStackContext->CurrentCommand = NULL;
-
-    /*
-      ...and return to listen mode
-    */
-    HAL_SMBUS_EnableListen_IT( pStackContext->Device );
-  }
-}
-
-/**
-  * @brief  SMBUS initialization routine.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval SMBus stack return code
-  */
-HAL_StatusTypeDef STACK_SMBUS_Init( SMBUS_StackHandleTypeDef *pStackContext )
-{
-  uint32_t              index = 0U;
-  HAL_StatusTypeDef     result = STACK_OK;
-
-  while ( SMBUSInstancesList[index] != NULL )
-  {
-    index++;
-  }
-
-  pStackContext->SlaveAddress = 0U;
-
-  SMBUSInstancesList[index] = pStackContext;
-
-  /*
-   No mode, nothing going on
-   */
-  pStackContext->StateMachine |= SMBUS_SMS_READY;
-  pStackContext->OpMode = 0U;
-
-#ifdef PMBUS13
-  /* initializing the Zone settings */
-  pStackContext->TheZone = ZERO_ZONE;
-#endif /* PMBUS13 */
-
-#ifdef ALERT
-  /*
-    If master is initialized
-   */
-  if (( pStackContext->Device->Instance->CR1 & SMBUS_PERIPHERAL_MODE_SMBUS_HOST ) == SMBUS_PERIPHERAL_MODE_SMBUS_HOST )
-  {
-    /*
-     Alert is by default enabled for a host
-    */
-    result = HAL_SMBUS_EnableAlert_IT( pStackContext->Device );
-  }
-#endif /* ALERT */
-
-  /*
-    the device listens for common commands, the host for notify protocol
-   */
-  if ( result == STACK_OK )
-  {
-    return HAL_SMBUS_EnableListen_IT( pStackContext->Device );
-  }
-  else
-  {
-    return result;
-  }
-}
-
-/**
-  * @brief  SMBUS IO buffer access function. Returns a valid address if buffer can be written by application.
-  *        Returns NULL if the driver is busy using the buffer. Application should not store the pointer
-  *        and always retrieve the buffer this way to check availability.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the configuration information for the specified SMBUS.
-  * @retval I/O buffer
-  */
-uint8_t *STACK_SMBUS_GetBuffer( SMBUS_StackHandleTypeDef *pStackContext )
-{
-  uint8_t *pResult;
-  /*
-    return NULL if the driver is busy
-   */
-  if (
-    ( pStackContext->Device->State != HAL_SMBUS_STATE_READY ) &&
-    (( pStackContext->Device->State & HAL_SMBUS_STATE_LISTEN ) == 0U )
-  )
-  {
-    pResult = NULL;
-  }
-  else
-  {
-    /*
-      starts at second position, first is reserved for the command code
-     */
-    pResult = &(pStackContext->Buffer[1]);
-  }
-  return pResult;
-}
-
-/**
-  * @brief  SMBUS master command transmit.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the context information for the specified SMBUS stack.
-  * @param  pCommand : description of the command to be transmitted, NULL for quick command
-  * @param  address : slave address to be used in the transmission
-  * @param  direction : either READ or WRITE, some commands have the choice with the same ordinal.
-  *                     Do not use BLOCK - it is tied to command definition and implicit.
-  *                     Leave zero for process call.
-  * @retval SMBus stack return code
-  */
-HAL_StatusTypeDef STACK_SMBUS_HostCommand(SMBUS_StackHandleTypeDef *pStackContext, st_command_t *pCommand,
-    uint16_t address, uint32_t direction)
-{
-  HAL_StatusTypeDef     result = STACK_BUSY;
-  uint32_t              xFerOptions = SMBUS_FIRST_FRAME;
-  uint8_t               *com_buffer;
-  uint16_t              size;
-
-  /*
-    First check status of the SMBUS - no transaction ongoing
-  */
-  if ( ( (pStackContext->StateMachine) & SMBUS_SMS_ACTIVE_MASK ) == 0U )
-  {
-    /*
-    becoming master, not listening any more
-    */
-    HAL_SMBUS_DisableListen_IT( pStackContext->Device );
-
-    if ( pCommand == NULL )
-    {
-      /*
-      quick command case
-      */
-      size = 0U;
-      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC;
-
-      /* set buffer to NULL to remove autoend and manage STOP by SW */
-      com_buffer = NULL;
-    }
-    else
-    {
-      /* set buffer to current context */
-      com_buffer = pStackContext->Buffer;
-
-      /*
-          Remembering the address and command code for case of further processing of non-trivial command
-        */
-      pStackContext->SlaveAddress = address;
-      pStackContext->CurrentCommand = pCommand;
-
-      /*
-      First byte, the command code is transmitted
-      */
-      com_buffer[0] = pCommand->cmnd_code;
-
-      if ( (( pCommand->cmnd_query & BLOCK ) == BLOCK ) && ( direction != READ ) )
-      {
-        /*
-            Block write and process call with data size prepared in the buffer.
-            Data size is limited to STACK_NBYTE_SIZE
-          */
-        if (com_buffer[1] > STACK_NBYTE_SIZE )
-        {
-          com_buffer[1] = STACK_NBYTE_SIZE;
-        }
-        size = 2U + com_buffer[1];            /* 1 cmd code + 1 count + data size */
-      }
-      else
-      {
-        if ( direction == READ )
-        {
-          /*
-            transmitting only the command code, then begins the read phase
-          */
-          size = 1U;
-        }
-        else
-        {
-          /*
-            fixed size write
-          */
-          size = pCommand->cmnd_master_Tx_size;
-        }
-      }
-
-      if ( pCommand->cmnd_query == BLK_PRC_CALL)
-      {
-        /*
-          Process call starts as BLOCK_WRITE mode
-        */
-        pStackContext->OpMode = BLOCK_WRITE;
-        xFerOptions = SMBUS_FIRST_FRAME;
-      }
-      else
-      {
-        /*
-          Check direction sanity and mark direction (mainly for READ_OR_WRITE kind of command)
-        */
-        if (
-          ( ( pCommand->cmnd_query & READ_OR_WRITE ) == READ_OR_WRITE ) &&
-          ( ( direction != WRITE ) && ( direction != READ ) )
-        )
-        {
-          result = STACK_ERROR;
-        }
-        else
-        {
-          pStackContext->OpMode = (uint8_t)direction;
-
-          /*
-          In case of Write this is a last frame too
-          */
-          if (( direction == WRITE ) || ( direction == BLOCK_WRITE ))
-          {
-            /*
-              Size of transmission may include the PEC byte
-              */
-            xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
-            if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
-            {
-              size += 1U; /* PEC_SIZE */
-            }
-          }
-        }
-      }
-    }
-
-    if ( result != STACK_ERROR )
-    {
-
-      /*
-      Initiating a transmission - even for a Read the command code is sent first
-      */
-      pStackContext->StateMachine |= SMBUS_SMS_TRANSMIT;
-      pStackContext->StateMachine &= ~SMBUS_SMS_READY;
-
-      /*
-        Sending the data and logging the result
-      */
-      result = HAL_SMBUS_Master_Transmit_IT( pStackContext->Device, address, com_buffer, size, xFerOptions );
-      if (result != HAL_OK )
-      {
-        pStackContext->StateMachine |= SMBUS_SMS_ERROR;
-      }
-    }
-  }
-  return result;
-}
-
-/**
-  * @brief  SMBUS notify host command transmit.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the context information for the specified SMBUS stack.
-  * @retval HAL_StatusTypeDef SMBus stack return code
-  */
-HAL_StatusTypeDef STACK_SMBUS_NotifyHost(SMBUS_StackHandleTypeDef *pStackContext)
-{
-  HAL_StatusTypeDef     result = STACK_BUSY;
-  uint32_t              xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC;
-
-  /*
-     First check status of the SMBUS - no transaction ongoing
-   */
-  if (( (pStackContext->StateMachine) & SMBUS_SMS_ACTIVE_MASK ) == 0U )
-  {
-    /*
-    becoming master, not listening any more
-    */
-    HAL_SMBUS_DisableListen_IT( pStackContext->Device );
-
-    /*
-      Remembering the address and command code for case of further processing of non-trivial command
-    */
-    pStackContext->SlaveAddress = SMBUS_ADDR_HOST;
-    pStackContext->CurrentCommand = &HOST_NOTIFY_PROTOCOL;
-
-    /*
-      First byte, the return address is transmitted
-    */
-    if ( ( pStackContext->OwnAddress == 0U ) || (( pStackContext->StateMachine & SMBUS_SMS_ARP_AR) == 0U ) )
-    {
-      /* no address resolved yet, initiating the ARP */
-      pStackContext->Buffer[0] = (uint8_t)SMBUS_ADDR_DEFAULT;
-    }
-    else
-    {
-      /* own address known and recognized */
-      pStackContext->Buffer[0] = pStackContext->OwnAddress;
-    }
-
-    pStackContext->OpMode = WRITE;
-
-    /*
-    Initiating a transmission - even for a Read the command code is sent first
-    */
-    pStackContext->StateMachine |= SMBUS_SMS_TRANSMIT;
-    pStackContext->StateMachine &= ~SMBUS_SMS_READY;
-
-    /*
-      Sending the data and logging the result
-    */
-    result = HAL_SMBUS_Master_Transmit_IT( pStackContext->Device, SMBUS_ADDR_HOST, pStackContext->Buffer, 3U, xFerOptions );
-    if (result != HAL_OK )
-    {
-      pStackContext->StateMachine |= SMBUS_SMS_ERROR;
-    }
-  }
-  return result;
-}
-
-/**
-  * @brief  SMBUS master command receive - only usable for quick command (read) and receive byte.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the context information for the specified SMBUS stack.
-  * @param  pData  : pointer to the variable where response should be stored
-  * @param  address : slave address to be used in the transmission
-  * @retval HAL_StatusTypeDef SMBus stack return code
-  */
-HAL_StatusTypeDef STACK_SMBUS_HostRead(SMBUS_StackHandleTypeDef *pStackContext, uint8_t *pData, uint16_t address)
-{
-  HAL_StatusTypeDef     result = STACK_BUSY;
-  uint8_t               size;
-  uint32_t              xFerOptions;
-
-  /*
-    First check state of the SMBUS
-   */
-  if ( ( pStackContext->StateMachine & SMBUS_SMS_READY ) == SMBUS_SMS_READY )
-  {
-
-    /*
-    becoming master, not listening any more
-    */
-    HAL_SMBUS_DisableListen_IT( pStackContext->Device );
-
-    /*
-      State transition from Ready to Reception
-    */
-    pStackContext->StateMachine &= ~SMBUS_SMS_READY;
-    pStackContext->StateMachine |= SMBUS_SMS_RECEIVE;
-
-    /*
-      May be a receive byte ( then we need pointer to store reply ) or quick command read
-    */
-    if ( pData == NULL )
-    {
-      size = 0U;
-      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC;
-    }
-    else
-    {
-      size = 1U;
-      if ((pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ) == SMBUS_SMS_PEC_ACTIVE )
-      {
-        size += PEC_SIZE;
-      }
-      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
-    }
-
-    /*
-      Ordering the HAL to do single frame read operation, checking the result
-    */
-    result = HAL_SMBUS_Master_Receive_IT( pStackContext->Device, address, pData, (uint16_t)size, xFerOptions );
-    if (result != HAL_OK )
-    {
-      pStackContext->StateMachine |= SMBUS_SMS_ERROR;
-    }
-  }
-
-  return result;
-}
-
-/**
-  * @brief  Callback function notifying slave about command incoming.
-  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the context information for the specified SMBUS stack.
-  * @retval HAL_StatusTypeDef response code. STACK_OK if success, any other value means problem
-  */
-__weak HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackContext )
-{
-  /*
-    Host should implement here it's reaction to Host notify protocol and ARP Host notify.
-    Regular devices implement all the commands they support.
-   */
-
-  /*
-    Returning zero means no problem with execution, if reply is expected, then it is correctly placed in the IO buffer
-   */
   return STACK_OK;
 }
 
 /**
-  * @brief  Callback function notifying application about command extension.
+  * @brief  Stub of an error treatment function - set to ignore most errors
   * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
-  *                the context information for the specified SMBUS stack.
-  * @retval HAL_StatusTypeDef response code. STACK_OK if success, any other value means problem
+  *                the configuration information for the specified SMBUS.
+  * @retval None
   */
-__weak HAL_StatusTypeDef STACK_SMBUS_ExtendCommand( SMBUS_StackHandleTypeDef *pStackContext )
+static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext)
 {
-  /*
-    Host should implement here it's reaction to Host notify protocol and ARP Host notify.
-    Regular devices implement all the commands they support.
-   */
-
-  /*
-    Returning zero means no problem with execution, if reply is expected, then it is correctly placed in the IO buffer
-   */
-  return STACK_OK;
+//  printf("r\r\n");
+  if ( ( STACK_SMBUS_IsBlockingError(pStackContext) ) || ( STACK_SMBUS_IsCmdError( pStackContext ) ) )
+  {
+    /* No action, error symptoms are ignored */
+    pStackContext->StateMachine &= ~(SMBUS_ERROR_CRITICAL | SMBUS_COM_ERROR);
+  }
+  else if ((pStackContext->StateMachine & SMBUS_SMS_ERR_PECERR ) ==
+           SMBUS_SMS_ERR_PECERR ) /* PEC error, we won't wait for any more action */
+  {
+    pStackContext->StateMachine |= SMBUS_SMS_READY;
+    pStackContext->CurrentCommand = NULL;
+    pStackContext->StateMachine &= ~(SMBUS_SMS_ACTIVE_MASK | SMBUS_SMS_ERR_PECERR);
+  }
 }
 
-/**
-  * @}
-  */
 
-/**
-  * @}
-  */
+/************************************
+ * GLOBAL FUNCTIONS
+ ************************************/
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/*!
+ * @brief Initializer of i2c1_smbus.
+ *
+ * @param none
+ *
+ * @return none.
+ *
+ * This function must be call in main()
+ */
+void i2c1_smbus_init(SMBUS_HandleTypeDef* hsmbus)
+{
+  SMBUS_HandleTypeDef hsmbus1 = *hsmbus;
+#ifdef TEST_SMBUS_IMPL
+  hsmbus1.pBuffPtr = context1.Buffer;
+
+  phandle1 = &hsmbus1;
+//
+////  /HAL_SMBUS_Init( phandle1 );
+//
+    context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
+    context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
+//  //#ifndef TEST4
+//  //#ifndef TEST5
+//  //  /* Most tests do not use actual PMBUS commands */
+//  //  context1.CMD_table = (st_command_t *) & PMBUS_COMMANDS_TEST[0];
+//  //  context1.CMD_tableSize = PMBUS_CMD_TBL_SIZE;
+//  //#endif /* TEST4 */
+//  //#endif /* TEST5 */
+    context1.Device = &hsmbus1;//phandle1;
+//    //ToDo: check the preset byte
+    context1.SRByte = 0x55U;
+    context1.CurrentCommand = NULL;
+//  #ifdef ARP
+//    context1.StateMachine = SMBUS_SMS_NONE;
+//  #ifdef DEV_PSA
+//    context1.OwnAddress = SMBUS_ADDR_DEVICE;
+//  #else /* DEV_PSA */
+//    context1.OwnAddress = 0U;
+//  #endif /* DEV_PSA */
+//  #ifndef  HOST1
+//    context1.ARP_UDID = (uint8_t *) &UDID;
+//  #endif /* HOST1 */
+//  #else /* ARP */
+////    context1.StateMachine = SMBUS_SMS_ARP_AR;
+	context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
+//  #endif /* ARP */
+#ifdef USE_PEC
+context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
+#endif
+    pcontext1 = &context1;
+//
+    STACK_SMBUS_Init( pcontext1 );
+
+//    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
+//    	  {
+//				  /* Transfer error in transmission process */
+//				  Error_Handler();
+//		  }
+
+    /*Read buffer 1st time*/
+
+    piobuf = STACK_SMBUS_GetBuffer( pcontext1 );
+    if (piobuf != NULL )
+    {
+      for (uint8_t index = 0U; index < STACK_NBYTE_SIZE; index++)
+      {
+        piobuf[index] = (uint8_t)index;
+      }
+    }
+
+    i2c1_smbus_lastTime = HAL_GetTick();
+#endif /*TEST_SMBUS_IMPL*/
+}
+
+
+/*!
+ * @brief Periodic task of i2c1_smbus.
+ *
+ * @param none
+ *
+ * @return none.
+ *
+ * This function must be call in loop of main()
+ */
+void i2c1_smbus_task(void)
+{
+	if (HAL_GetTick() - i2c1_smbus_lastTime > 200)
+	{
+	  i2c1_smbus_lastTime = HAL_GetTick();
+
+
+
+	  /* Periodically checking error state of the stack */
+	  	Error_Check( &context1 );
+
+	  	/* Periodically checking for Quick command */
+	  	if ( context1.StateMachine & ( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R ) )
+	  	{
+	  		/* Todo: Indicate status */
+//	  	  	BSP_LED_On(LED_GREEN);
+	  		context1.StateMachine &= ~( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R );
+	  	}
+
+	  	/* Todo: Indicate status */
+//	  	BSP_LED_Off(LED_GREEN);
+
+	  	/* Cleaning arbitration loss flag */
+	  	context1.StateMachine &= ~SMBUS_SMS_ERR_ARLO;
+
+//	  	if (buttonpress == 1U)
+//	  	{
+//#ifdef ALERT
+//	  	  STACK_SMBUS_SendAlert( pcontext1 );
+//#else /* ALERT */
+//	  	  STACK_SMBUS_NotifyHost( pcontext1 );
+//#endif /* DEV_ALERT */
+//	  	  buttonpress = 0U;
+//	  	}
+	}
+
+}
 
 /*** end of file ***/

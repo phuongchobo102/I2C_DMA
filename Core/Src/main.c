@@ -497,6 +497,8 @@ static void MX_CRC_Init(void);
 static void MX_WWDG_Init(void);
 /* USER CODE BEGIN PFP */
 #ifdef TEST_SMBUS_IMPL
+void I2C1_SMBUS_Stack_Init(void);
+void I2C1_SMBUS_Stack_Task(void);
 HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackContext );
 static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext);
 #endif /*TEST_SMBUS_IMPL*/
@@ -554,6 +556,104 @@ void set_current_usb_status(uint8_t channel, uint8_t status)
 
 
 #ifdef TEST_SMBUS_IMPL
+void I2C1_SMBUS_Stack_Init(void)
+{
+  hsmbus1.pBuffPtr = context1.Buffer;
+
+  phandle1 = &hsmbus1;
+//
+////  /HAL_SMBUS_Init( phandle1 );
+//
+    context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
+    context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
+//  //#ifndef TEST4
+//  //#ifndef TEST5
+//  //  /* Most tests do not use actual PMBUS commands */
+//  //  context1.CMD_table = (st_command_t *) & PMBUS_COMMANDS_TEST[0];
+//  //  context1.CMD_tableSize = PMBUS_CMD_TBL_SIZE;
+//  //#endif /* TEST4 */
+//  //#endif /* TEST5 */
+    context1.Device = &hsmbus1;//phandle1;
+//    //ToDo: check the preset byte
+    context1.SRByte = 0x55U;
+    context1.CurrentCommand = NULL;
+//  #ifdef ARP
+//    context1.StateMachine = SMBUS_SMS_NONE;
+//  #ifdef DEV_PSA
+//    context1.OwnAddress = SMBUS_ADDR_DEVICE;
+//  #else /* DEV_PSA */
+//    context1.OwnAddress = 0U;
+//  #endif /* DEV_PSA */
+//  #ifndef  HOST1
+//    context1.ARP_UDID = (uint8_t *) &UDID;
+//  #endif /* HOST1 */
+//  #else /* ARP */
+////    context1.StateMachine = SMBUS_SMS_ARP_AR;
+	context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
+//  #endif /* ARP */
+#ifdef USE_PEC
+context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
+#endif
+    pcontext1 = &context1;
+//
+    STACK_SMBUS_Init( pcontext1 );
+
+//    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
+//    	  {
+//				  /* Transfer error in transmission process */
+//				  Error_Handler();
+//		  }
+
+    /*Read buffer 1st time*/
+
+    piobuf = STACK_SMBUS_GetBuffer( pcontext1 );
+    if (piobuf != NULL )
+    {
+      for (uint8_t index = 0U; index < STACK_NBYTE_SIZE; index++)
+      {
+        piobuf[index] = (uint8_t)index;
+      }
+    }
+
+    i2c1_smbus_lastTime = HAL_GetTick();
+}
+
+void I2C1_SMBUS_Stack_Task(void)
+{
+	if (HAL_GetTick() - i2c1_smbus_lastTime > 200)
+	{
+	  i2c1_smbus_lastTime = HAL_GetTick();
+
+
+
+	  /* Periodically checking error state of the stack */
+		Error_Check( &context1 );
+
+		/* Periodically checking for Quick command */
+		if ( context1.StateMachine & ( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R ) )
+		{
+			/* Todo: Indicate status */
+//	  	  	BSP_LED_On(LED_GREEN);
+			context1.StateMachine &= ~( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R );
+		}
+
+		/* Todo: Indicate status */
+//	  	BSP_LED_Off(LED_GREEN);
+
+		/* Cleaning arbitration loss flag */
+		context1.StateMachine &= ~SMBUS_SMS_ERR_ARLO;
+
+//	  	if (buttonpress == 1U)
+//	  	{
+//#ifdef ALERT
+//	  	  STACK_SMBUS_SendAlert( pcontext1 );
+//#else /* ALERT */
+//	  	  STACK_SMBUS_NotifyHost( pcontext1 );
+//#endif /* DEV_ALERT */
+//	  	  buttonpress = 0U;
+//	  	}
+	}
+}
 /**
   * @brief  Callback function notifying slave about command incoming, implementation
     is supporting extended command defined by PMBus
@@ -698,6 +798,13 @@ static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext)
   * @brief  The application entry point.
   * @retval int
   */
+
+void __write(){}
+ void __lseek(){}
+ void __close(){}
+ int remove(char const* a){
+ return 1;
+ }
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -773,64 +880,65 @@ int main(void)
   t_smbus_i2c1.t_tx.u16_counter = 0;
 #endif/* TEST_I2C1_SLAVE*/
 #ifdef TEST_SMBUS_IMPL
-  hsmbus1.pBuffPtr = context1.Buffer;
-
-  phandle1 = &hsmbus1;
+//  hsmbus1.pBuffPtr = context1.Buffer;
 //
-////  /HAL_SMBUS_Init( phandle1 );
+//  phandle1 = &hsmbus1;
+////
+//////  /HAL_SMBUS_Init( phandle1 );
+////
+//    context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
+//    context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
+////  //#ifndef TEST4
+////  //#ifndef TEST5
+////  //  /* Most tests do not use actual PMBUS commands */
+////  //  context1.CMD_table = (st_command_t *) & PMBUS_COMMANDS_TEST[0];
+////  //  context1.CMD_tableSize = PMBUS_CMD_TBL_SIZE;
+////  //#endif /* TEST4 */
+////  //#endif /* TEST5 */
+//    context1.Device = &hsmbus1;//phandle1;
+////    //ToDo: check the preset byte
+//    context1.SRByte = 0x55U;
+//    context1.CurrentCommand = NULL;
+////  #ifdef ARP
+////    context1.StateMachine = SMBUS_SMS_NONE;
+////  #ifdef DEV_PSA
+////    context1.OwnAddress = SMBUS_ADDR_DEVICE;
+////  #else /* DEV_PSA */
+////    context1.OwnAddress = 0U;
+////  #endif /* DEV_PSA */
+////  #ifndef  HOST1
+////    context1.ARP_UDID = (uint8_t *) &UDID;
+////  #endif /* HOST1 */
+////  #else /* ARP */
+//////    context1.StateMachine = SMBUS_SMS_ARP_AR;
+//	context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
+////  #endif /* ARP */
+//#ifdef USE_PEC
+//context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
+//#endif
+//    pcontext1 = &context1;
+////
+//    STACK_SMBUS_Init( pcontext1 );
 //
-    context1.CMD_table = (st_command_t *) & EDID_COMMANDS_TABLE[0];
-    context1.CMD_tableSize = EDID_COMMANDS_TABBLE_SIZE;
-//  //#ifndef TEST4
-//  //#ifndef TEST5
-//  //  /* Most tests do not use actual PMBUS commands */
-//  //  context1.CMD_table = (st_command_t *) & PMBUS_COMMANDS_TEST[0];
-//  //  context1.CMD_tableSize = PMBUS_CMD_TBL_SIZE;
-//  //#endif /* TEST4 */
-//  //#endif /* TEST5 */
-    context1.Device = &hsmbus1;//phandle1;
-//    //ToDo: check the preset byte
-    context1.SRByte = 0x55U;
-    context1.CurrentCommand = NULL;
-//  #ifdef ARP
-//    context1.StateMachine = SMBUS_SMS_NONE;
-//  #ifdef DEV_PSA
-//    context1.OwnAddress = SMBUS_ADDR_DEVICE;
-//  #else /* DEV_PSA */
-//    context1.OwnAddress = 0U;
-//  #endif /* DEV_PSA */
-//  #ifndef  HOST1
-//    context1.ARP_UDID = (uint8_t *) &UDID;
-//  #endif /* HOST1 */
-//  #else /* ARP */
-////    context1.StateMachine = SMBUS_SMS_ARP_AR;
-	context1.OwnAddress = hsmbus1.Init.OwnAddress1;//SMBUS_ADDR_DEVICE;
-//  #endif /* ARP */
-#ifdef USE_PEC
-context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
-#endif
-    pcontext1 = &context1;
+////    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
+////    	  {
+////				  /* Transfer error in transmission process */
+////				  Error_Handler();
+////		  }
 //
-    STACK_SMBUS_Init( pcontext1 );
-    
-//    if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
-//    	  {
-//				  /* Transfer error in transmission process */
-//				  Error_Handler();
-//		  }
-
-    /*Read buffer 1st time*/
-
-    piobuf = STACK_SMBUS_GetBuffer( pcontext1 );
-    if (piobuf != NULL )
-    {
-      for (uint8_t index = 0U; index < STACK_NBYTE_SIZE; index++)
-      {
-        piobuf[index] = (uint8_t)index;
-      }
-    }
-
-    i2c1_smbus_lastTime = HAL_GetTick();
+//    /*Read buffer 1st time*/
+//
+//    piobuf = STACK_SMBUS_GetBuffer( pcontext1 );
+//    if (piobuf != NULL )
+//    {
+//      for (uint8_t index = 0U; index < STACK_NBYTE_SIZE; index++)
+//      {
+//        piobuf[index] = (uint8_t)index;
+//      }
+//    }
+//
+//    i2c1_smbus_lastTime = HAL_GetTick();
+  I2C1_SMBUS_Stack_Init();
 #endif /*TEST_SMBUS_IMPL*/
   /* USER CODE END 2 */
 
@@ -916,44 +1024,12 @@ context1.StateMachine |= SMBUS_SMS_PEC_ACTIVE;
 		  }
     	  isI2C1Transmit = false;
     	  //while(hsmbus1.State != HAL_SMBUS_STATE_READY);
-        while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY); 
+        while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY);
       }
 #endif /*TEST_I2C1_SLAVE*/
 
 #ifdef TEST_SMBUS_IMPL
-  if (HAL_GetTick() - i2c1_smbus_lastTime > 200)
-	{
-	  i2c1_smbus_lastTime = HAL_GetTick();
-
-
-
-	  /* Periodically checking error state of the stack */
-		Error_Check( &context1 );
-
-		/* Periodically checking for Quick command */
-		if ( context1.StateMachine & ( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R ) )
-		{
-			/* Todo: Indicate status */
-  //	  	  	BSP_LED_On(LED_GREEN);
-			context1.StateMachine &= ~( SMBUS_SMS_QUICK_CMD_W | SMBUS_SMS_QUICK_CMD_R );
-		}
-
-		/* Todo: Indicate status */
-  //	  	BSP_LED_Off(LED_GREEN);
-
-		/* Cleaning arbitration loss flag */
-		context1.StateMachine &= ~SMBUS_SMS_ERR_ARLO;
-
-  //	  	if (buttonpress == 1U)
-  //	  	{
-  //#ifdef ALERT
-  //	  	  STACK_SMBUS_SendAlert( pcontext1 );
-  //#else /* ALERT */
-  //	  	  STACK_SMBUS_NotifyHost( pcontext1 );
-  //#endif /* DEV_ALERT */
-  //	  	  buttonpress = 0U;
-  //	  	}
-	}
+      I2C1_SMBUS_Stack_Task();
 #endif	/*TEST_SMBUS_IMPL*/
   }
 
