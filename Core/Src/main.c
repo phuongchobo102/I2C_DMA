@@ -831,15 +831,15 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-//  MX_DMA_Init();
-//  MX_USB_DEVICE_Init();
-//  MX_ADC_Init();
+  MX_DMA_Init();
+  MX_USB_DEVICE_Init();
+  MX_ADC_Init();
   MX_I2C1_SMBUS_Init();
-//  MX_I2C2_Init();
-//  MX_SPI1_Init();
-//  MX_SPI2_Init();
-//  MX_USART1_UART_Init();
-//  MX_CRC_Init();
+  MX_I2C2_Init();
+  MX_SPI1_Init();
+  MX_SPI2_Init();
+  MX_USART1_UART_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   REVID = HAL_GetREVID();
   DEVID = HAL_GetDEVID();
@@ -872,13 +872,13 @@ int main(void)
   MX_WWDG_Init();
 #endif
 
-#ifdef TEST_I2C1_SLAVE
-  t_smbus_i2c1.p_hsmbus_inst = &hsmbus1;
-  t_smbus_i2c1.t_rx.u16_buffer_size = sizeof(test_rx_buffer);
-  t_smbus_i2c1.t_rx.u16_counter = 0;
-  t_smbus_i2c1.t_tx.u16_buffer_size = sizeof(test_tx_buffer);
-  t_smbus_i2c1.t_tx.u16_counter = 0;
-#endif/* TEST_I2C1_SLAVE*/
+//#ifdef TEST_I2C1_SLAVE
+//  t_smbus_i2c1.p_hsmbus_inst = &hsmbus1;
+//  t_smbus_i2c1.t_rx.u16_buffer_size = sizeof(test_rx_buffer);
+//  t_smbus_i2c1.t_rx.u16_counter = 0;
+//  t_smbus_i2c1.t_tx.u16_buffer_size = sizeof(test_tx_buffer);
+//  t_smbus_i2c1.t_tx.u16_counter = 0;
+//#endif/* TEST_I2C1_SLAVE*/
 #ifdef TEST_SMBUS_IMPL
 //  hsmbus1.pBuffPtr = context1.Buffer;
 //
@@ -991,41 +991,41 @@ int main(void)
 //    	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 //      }
 
-      if(isI2C1Receive)
-      {
-    	  if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
-    	  {
-				  /* Transfer error in transmission process */
-				  Error_Handler();
-		  }
-
-//    	  i2C1ReceiveState = SMBUS_SLAVE_STATE_LISTEN;
-    	  t_smbus_i2c1.u8_state = SMBUS_SLAVE_STATE_LISTEN;
-//		  if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, SMBUS_FIRST_FRAME) != HAL_OK)
+//      if(isI2C1Receive)
+//      {
+//    	  if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
+//    	  {
+//				  /* Transfer error in transmission process */
+//				  Error_Handler();
+//		  }
+//
+////    	  i2C1ReceiveState = SMBUS_SLAVE_STATE_LISTEN;
+//    	  t_smbus_i2c1.u8_state = SMBUS_SLAVE_STATE_LISTEN;
+////		  if(HAL_SMBUS_Slave_Receive_IT(&hsmbus1, (uint8_t *)test_rx_buffer, 1/*sizeof(test_rx_buffer)*/, SMBUS_FIRST_FRAME) != HAL_OK)
+////		  {
+////				  /* Transfer error in transmission process */
+////				  Error_Handler();
+////		  }
+//		  isI2C1Receive = false;
+//		  /* Device is ready */
+//		  //while(hsmbus1.State != HAL_SMBUS_STATE_READY);
+////          while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY);
+//      }else if(isI2C1Transmit)
+//      {
+//        if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
+//    	  {
+//                          /* Transfer error in transmission process */
+//                          Error_Handler();
+//          }
+//    	  if(HAL_SMBUS_Slave_Transmit_IT(&hsmbus1, (uint8_t *)test_tx_buffer, sizeof(test_tx_buffer), SMBUS_SOFTEND_MODE) != HAL_OK)
 //		  {
 //				  /* Transfer error in transmission process */
 //				  Error_Handler();
 //		  }
-		  isI2C1Receive = false;
-		  /* Device is ready */
-		  //while(hsmbus1.State != HAL_SMBUS_STATE_READY);
-//          while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY);
-      }else if(isI2C1Transmit)
-      {
-        if(HAL_SMBUS_EnableListen_IT(&hsmbus1) != HAL_OK)
-    	  {
-                          /* Transfer error in transmission process */
-                          Error_Handler();
-          }
-    	  if(HAL_SMBUS_Slave_Transmit_IT(&hsmbus1, (uint8_t *)test_tx_buffer, sizeof(test_tx_buffer), SMBUS_SOFTEND_MODE) != HAL_OK)
-		  {
-				  /* Transfer error in transmission process */
-				  Error_Handler();
-		  }
-    	  isI2C1Transmit = false;
-    	  //while(hsmbus1.State != HAL_SMBUS_STATE_READY);
-        while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY);
-      }
+//    	  isI2C1Transmit = false;
+//    	  //while(hsmbus1.State != HAL_SMBUS_STATE_READY);
+//        while(HAL_SMBUS_GetState(&hsmbus1) != HAL_SMBUS_STATE_READY);
+//      }
 #endif /*TEST_I2C1_SLAVE*/
 
 #ifdef TEST_SMBUS_IMPL
