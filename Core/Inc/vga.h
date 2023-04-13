@@ -3,9 +3,11 @@
 
 #include "main.h"
 
-#define START_FLASH_ADDR 0x0801fc00 //0x00012000  //0x0801f000
+#define START_FLASH_ADDR 0x0801f800 //0x0801fc00 //0x00012000  //0x0801f000
 #define VGA_I2C_ADDRESS 0x50
-#define VGA_EDID_BYTE 128
+#define VGA_BYTE        128 //256
+#define CRC_BYTE        4
+#define VGA_CRC_BYTE    132 //260
 
 extern CRC_HandleTypeDef hcrc;
 extern I2C_HandleTypeDef hi2c2;

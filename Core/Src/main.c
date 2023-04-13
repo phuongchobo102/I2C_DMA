@@ -868,6 +868,7 @@ int main(void)
   init_IS31FL3218();
   usb_kvm_switch_init();
   system_switch_init();
+  vga_init();
   //    test_LED();
 #ifdef ENABLE_WATCHDOG
   MX_WWDG_Init();
@@ -1522,7 +1523,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : VGA4_PLUG_DT_Pin VGA3_PLUG_DT_Pin VGA2_PLUG_DT_Pin VGA2_PLUG_DTB9_Pin */
   GPIO_InitStruct.Pin = VGA4_PLUG_DT_Pin | VGA3_PLUG_DT_Pin | VGA2_PLUG_DT_Pin | VGA1_PLUG_DT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BUTTON4_Pin */
