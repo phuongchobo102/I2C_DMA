@@ -735,6 +735,7 @@ HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackCo
     				isFind = true;
 #ifdef TEST_EDID_DELL_EXAMPLE
     				*piobuf = atest_edid[i];
+//    				*piobuf = flashBufferVGA128[i];
                                 return STACK_OK;
 //    				memcpy(piobuf,&atest_edid[i],pStackContext->CurrentCommand->cmnd_master_Rx_size);
 //    				piobuf++;
@@ -799,12 +800,12 @@ static void Error_Check( SMBUS_StackHandleTypeDef *pStackContext)
   * @retval int
   */
 
-//void __write(){}
-// void __lseek(){}
-// void __close(){}
-// int remove(char const* a){
-// return 1;
-// }
+void __write(){}
+ void __lseek(){}
+ void __close(){}
+ int remove(char const* a){
+ return 1;
+ }
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -952,7 +953,7 @@ int main(void)
     elsgpio_task();
     led_task();
     elinkswitch_task();
-//    vga_tasks();
+    vga_tasks();
     system_switch_tasks();
 
     authenKVM();

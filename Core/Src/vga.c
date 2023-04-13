@@ -5,7 +5,7 @@
 uint32_t lastTimeTaskEDID;
 
 uint8_t i2c1ValueBuff128[128];
-uint8_t flashBufferVGA128[128];
+uint8_t flashBufferVGA128[256];
 uint32_t flashBuff132[132];
 uint8_t ret;
 uint8_t i;
@@ -245,22 +245,22 @@ void vga_tasks()
     // if(HAL_I2C_AddrCallback()){
     //   printf("I2C callback added\r\n");
     // }
-             HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
-
-    if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY)
-    {
-      // if (HAL_I2C_Slave_Receive(&hi2c1, &c, 1, 10) == HAL_OK)
-      // {
-      //   HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
-      // }
-      // HAL_I2C_Slave_Receive_IT(&hi2c1, &c, 1);
-      HAL_I2C_Slave_Transmit_IT(&hi2c1, "hello", 5);
-      if(flagSlaveRxCplt >0 ){
-        flagSlaveRxCplt = 0;
-        printf("Receive command from master, send out value \r\n");
-      }
-      
-    }
+//             HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
+//
+//    if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY)
+//    {
+//      // if (HAL_I2C_Slave_Receive(&hi2c1, &c, 1, 10) == HAL_OK)
+//      // {
+//      //   HAL_I2C_Slave_Transmit(&hi2c1, (uint8_t *)i2c1ValueBuff128, 128, 100);
+//      // }
+//      // HAL_I2C_Slave_Receive_IT(&hi2c1, &c, 1);
+//      HAL_I2C_Slave_Transmit_IT(&hi2c1, "hello", 5);
+//      if(flagSlaveRxCplt >0 ){
+//        flagSlaveRxCplt = 0;
+//        printf("Receive command from master, send out value \r\n");
+//      }
+//
+//    }
   }
 }
 
