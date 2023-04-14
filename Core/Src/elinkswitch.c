@@ -239,7 +239,8 @@ static bool lc_elinkswitch_receive_btn_event(elinkswitch_button_event_e btn_even
         usb_msg_format_t response_host;
         response_host.header = USB_HEADER;
         response_host.opcode = USB_GET_CHANNEL;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;//0x01;@Phu
+        response_host.len = LEN_ACK_MSG +1;//@Phu
         response_host.data[0] = get_current_channel();
         printf("Response USB_GET_CHANNEL_STATUS %d \r\n", response_host.data[0]);
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
@@ -253,7 +254,8 @@ static bool lc_elinkswitch_receive_btn_event(elinkswitch_button_event_e btn_even
         usb_msg_format_t response_host;
         response_host.header = USB_HEADER;
         response_host.opcode = USB_GET_MOUSE_PORT_STATUS;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;//0x01;@Phu
+        response_host.len = LEN_ACK_MSG +4;//@Phu
         response_host.data[0] = get_current_usb(0);
         response_host.data[1] = get_current_usb(1);
         response_host.data[2] = get_current_usb(2);
@@ -270,7 +272,8 @@ static bool lc_elinkswitch_receive_btn_event(elinkswitch_button_event_e btn_even
         usb_msg_format_t response_host;
         response_host.header = USB_HEADER;
         response_host.opcode = USB_GET_VGA_PORT_STATUS;
-        response_host.opcode_status = 0x01;
+        response_host.opcode_status = 0x00;//0x01; @Phu
+        response_host.len = LEN_ACK_MSG +4;//@Phu
         response_host.data[0] = get_current_vga(0);
         response_host.data[1] = get_current_vga(1);
         response_host.data[2] = get_current_vga(2);
@@ -284,14 +287,15 @@ static bool lc_elinkswitch_receive_btn_event(elinkswitch_button_event_e btn_even
       elinkswitch_state_changed = true;
       if (hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED)
       {
-        usb_msg_format_t response_host;
-        response_host.header = USB_HEADER;
-        response_host.opcode = USB_GET_CHANNEL;
-        response_host.opcode_status = 0x01;
-        response_host.data[0] = get_current_channel();
-        response_host.data[1] = get_current_edid();
-        printf("Response USB_GET_MOUSE_PORT_STATUS %d \r\n", response_host.data[0]);
-        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
+//        usb_msg_format_t response_host;
+//        response_host.header = USB_HEADER;
+//        response_host.opcode = USB_GET_CHANNEL;
+//        response_host.opcode_status = 0x00;//0x01;@Phu
+//        response_host.len = LEN_ACK_MSG +2;//@Phu
+//        response_host.data[0] = get_current_channel();
+//        response_host.data[1] = get_current_edid();
+//        printf("Response USB_GET_MOUSE_PORT_STATUS %d \r\n", response_host.data[0]);
+//        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40);
       }
       break;
     default:
