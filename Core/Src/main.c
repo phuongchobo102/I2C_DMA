@@ -734,8 +734,8 @@ HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackCo
     			{
     				isFind = true;
 #ifdef TEST_EDID_DELL_EXAMPLE
-    				*piobuf = atest_edid[i];
-//    				*piobuf = flashBufferVGA128[i];
+//    				*piobuf = atest_edid[i];
+    				*piobuf = flashBufferVGA128[i];
                                 return STACK_OK;
 //    				memcpy(piobuf,&atest_edid[i],pStackContext->CurrentCommand->cmnd_master_Rx_size);
 //    				piobuf++;
