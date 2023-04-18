@@ -30,6 +30,8 @@
 #include "aes.h"
 #include "usb_sw_selector.h"
 #include "system_switch.h"
+
+#include "stm32_PMBUS_stack.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,7 +101,7 @@ uint32_t i2c1_smbus_lastTime;
 
 st_command_t const EDID_COMMANDS_TABLE[] =
 {
-	{ 0x00, READ_OR_WRITE, 0, 1 },											/* code 00 */
+	{ 0x00, READ_OR_WRITE, 0, 1 /*256*/ },	//=>256 is not ok										/* code 00 */
 	{ 0x01, READ_OR_WRITE, 0, 1 },	                        				/* code 01 */
 	{ 0x02, READ_OR_WRITE, 0, 1 },	                    					/* code 02 */
 	{ 0x03, READ_OR_WRITE, 0, 1 },	                             			/* code 03 */
@@ -654,6 +656,97 @@ void I2C1_SMBUS_Stack_Task(void)
 //	  	}
 	}
 }
+
+/**
+  * @brief  a version of the default SMBUS implementation with support for
+  *       EDID
+  * @param  pStackContext : Pointer to a SMBUS_StackHandleTypeDef structure that contains
+  *                the configuration information for the specified SMBUS.
+  * @retval None
+  */
+void STACK_SMBUS_LocateCommand( SMBUS_StackHandleTypeDef *pStackContext )
+{
+  uint8_t       commandCode = pStackContext->Buffer[0];
+#ifdef DENSE_CMD_TBL
+  uint32_t      current, low, top;
+#endif
+
+#ifdef ARP
+  if ( pStackContext->StateMachine & SMBUS_SMS_ARP_AM )
+  {
+    STACK_SMBUS_LocateCommandARP( pStackContext, commandCode );
+  }
+  else
+#endif /* ARP treatment */
+
+#if 0
+    if (commandCode == 0)
+    {
+
+    	uint8_t       *piobuf = NULL;
+
+		/* accessing the IO buffer */
+		piobuf = STACK_SMBUS_GetBuffer( pStackContext );
+		 /*
+		Copy data to SMBus buffer
+		*/
+		memcpy(piobuf, flashBufferVGA128, 256);
+    }
+    else
+#endif
+    {
+      /*
+        Code searching for command based on command code
+        */
+#ifdef DENSE_CMD_TBL
+
+      /*
+        initializing the command code search - the table must have all commands sorted, but there may be gaps
+       */
+      low = 0U;
+      top = pStackContext->CMD_tableSize - 1U;
+      pStackContext->CurrentCommand = NULL;
+
+      while ( top >= low )
+      {
+        /*
+          Pick interval half
+         */
+        current = ( low + top ) >> 1U;
+        if (pStackContext->CMD_table[current].cmnd_code == commandCode)
+        {
+          /*
+            we have found our command
+           */
+          pStackContext->CurrentCommand = &(pStackContext->CMD_table[current]);
+          return;
+        }
+        else if (pStackContext->CMD_table[current].cmnd_code < commandCode)
+        {
+          /*
+            Look at upper half
+          */
+          low = current + 1U;
+        }
+        else
+        {
+          top = current - 1U;
+        }
+      }
+#else
+      /*
+      Simple command table - command code equals the table index
+      */
+      pStackContext->CurrentCommand = &(pStackContext->CMD_table[commandCode]);
+
+      /* a sanity check */
+      if ( pStackContext->CurrentCommand->cmnd_code != commandCode )
+      {
+        pStackContext->CurrentCommand = NULL;
+      }
+#endif /* DENSE_CMD_TBL */
+    }
+}
 /**
   * @brief  Callback function notifying slave about command incoming, implementation
     is supporting extended command defined by PMBus
@@ -734,9 +827,13 @@ HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackCo
     			{
     				isFind = true;
 #ifdef TEST_EDID_DELL_EXAMPLE
-//    				*piobuf = atest_edid[i];
-    				*piobuf = flashBufferVGA128[i];
-                                return STACK_OK;
+    				*piobuf = atest_edid[i];
+//    				if(i != 0)
+//    				{
+//    					*piobuf = flashBufferVGA128[i];
+//    				}
+    				/*Case i=0 is handled in STACK_SMBUS_LocateCommand	*/
+					return STACK_OK;
 //    				memcpy(piobuf,&atest_edid[i],pStackContext->CurrentCommand->cmnd_master_Rx_size);
 //    				piobuf++;
 //    				*piobuf = atest_edid[i];
@@ -762,10 +859,10 @@ HAL_StatusTypeDef STACK_SMBUS_ExecuteCommand( SMBUS_StackHandleTypeDef *pStackCo
     		dummy++;
             printf("n\r\n");
     	}
-	}else
-	{
-		printf("u\r\n");
-	}
+    }else
+    {
+            printf("u\r\n");
+    }
 
   }
   return STACK_OK;
