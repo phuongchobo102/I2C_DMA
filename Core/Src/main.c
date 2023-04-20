@@ -1750,23 +1750,23 @@ static void MX_GPIO_Init(void)
 //	}
 //}
 
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-	if(hi2c->Instance==I2C1)
-	{
-		printf("\r\n Slave RxCplt I2C1 \r\n");
-#ifdef TEST_I2C1_SLAVE
-//		isI2C1Transmit = true;
-#endif /*TEST_I2C1_SLAVE*/
-//		if(HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)aI2CSlvTxBuffer, TXSLVBUFFERSIZE) != HAL_OK)
-		{
-
-		}
-	}else if(hi2c->Instance==I2C2)
-	{
-		printf("\r\n Slave RxCplt I2C2 \r\n");
-	}
-}
+//void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
+//{
+//	if(hi2c->Instance==I2C1)
+//	{
+//		printf("\r\n Slave RxCplt I2C1 \r\n");
+//#ifdef TEST_I2C1_SLAVE
+////		isI2C1Transmit = true;
+//#endif /*TEST_I2C1_SLAVE*/
+////		if(HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)aI2CSlvTxBuffer, TXSLVBUFFERSIZE) != HAL_OK)
+//		{
+//
+//		}
+//	}else if(hi2c->Instance==I2C2)
+//	{
+//		printf("\r\n Slave RxCplt I2C2 \r\n");
+//	}
+//}
 
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {

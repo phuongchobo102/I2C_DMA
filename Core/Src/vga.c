@@ -283,7 +283,36 @@ void vga_tasks()
   }
 
   if(HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY){
-    // HAL_I2C_Slave_Receive_DMA(&hi2c1, &dummyReceive, 1);
-    HAL_I2C_Slave_Transmit_DMA(&hi2c1, flashBufferVGA128, VGA_BYTE);
+    HAL_I2C_Slave_Receive_DMA(&hi2c1, &dummyReceive, 1);
+//    HAL_I2C_Slave_Transmit_DMA(&hi2c1, flashBufferVGA128, VGA_BYTE);
   }
 }
+
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	if(hi2c->Instance==I2C1)
+	{
+		if(dummyReceive == 0)
+		{
+			HAL_I2C_Slave_Transmit_DMA(&hi2c1, flashBufferVGA128, VGA_BYTE);
+		}else
+		{
+			HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)&flashBufferVGA128[dummyReceive], 1);
+		}
+	}else if(hi2c->Instance==I2C2)
+	{
+
+	}
+}
+
+//void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
+//{
+//	if(hi2c->Instance==I2C1)
+//	{
+//
+//	}else if(hi2c->Instance==I2C2)
+//	{
+//
+//	}
+//}
+
