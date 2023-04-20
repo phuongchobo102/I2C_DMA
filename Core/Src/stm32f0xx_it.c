@@ -56,16 +56,18 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+/* USER CODE BEGIN EV */
 extern PCD_HandleTypeDef hpcd_USB_FS;
 extern DMA_HandleTypeDef hdma_adc;
 extern ADC_HandleTypeDef hadc;
 extern SMBUS_HandleTypeDef hsmbus1;
 extern I2C_HandleTypeDef hi2c2;
-/* USER CODE BEGIN EV */
-extern DMA_HandleTypeDef hdma_adc;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
 extern DMA_HandleTypeDef hdma_i2c1_rx;
 extern DMA_HandleTypeDef hdma_i2c1_tx;
+
+extern DMA_HandleTypeDef hdma_i2c2_rx;
+extern I2C_HandleTypeDef hi2c1;
 
 /* USER CODE END EV */
 
@@ -165,6 +167,38 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE END DMA1_Channel1_IRQn 1 */
 }
 
+
+/**
+  * @brief This function handles DMA1 channel 2 and 3 interrupts.
+  */
+void DMA1_Channel2_3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel2_3_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel2_3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_i2c1_tx);
+  HAL_DMA_IRQHandler(&hdma_i2c1_rx);
+  /* USER CODE BEGIN DMA1_Channel2_3_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel2_3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 channel 4 and 5 interrupts.
+  */
+void DMA1_Channel4_5_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel4_5_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel4_5_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_i2c2_rx);
+  /* USER CODE BEGIN DMA1_Channel4_5_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel4_5_IRQn 1 */
+}
+
+
+
 /**
   * @brief This function handles ADC interrupt.
   */
@@ -185,14 +219,18 @@ void ADC1_IRQHandler(void)
 void I2C1_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C1_IRQn 0 */
-
-  /* USER CODE END I2C1_IRQn 0 */
-  if (hsmbus1.Instance->ISR & (SMBUS_FLAG_BERR | SMBUS_FLAG_ARLO | SMBUS_FLAG_OVR | SMBUS_FLAG_TIMEOUT | SMBUS_FLAG_ALERT | SMBUS_FLAG_PECERR)) {
-    HAL_SMBUS_ER_IRQHandler(&hsmbus1);
+  if (hi2c1.Instance->ISR & (I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR)) {
+    HAL_I2C_ER_IRQHandler(&hi2c1);
   } else {
-    HAL_SMBUS_EV_IRQHandler(&hsmbus1);
-//    printf("\r\n SMBUS EV  \r\n");
+    HAL_I2C_EV_IRQHandler(&hi2c1);
   }
+  /* USER CODE END I2C1_IRQn 0 */
+//   if (hsmbus1.Instance->ISR & (SMBUS_FLAG_BERR | SMBUS_FLAG_ARLO | SMBUS_FLAG_OVR | SMBUS_FLAG_TIMEOUT | SMBUS_FLAG_ALERT | SMBUS_FLAG_PECERR)) {
+//     HAL_SMBUS_ER_IRQHandler(&hsmbus1);
+//   } else {
+//     HAL_SMBUS_EV_IRQHandler(&hsmbus1);
+// //    printf("\r\n SMBUS EV  \r\n");
+//   }
   /* USER CODE BEGIN I2C1_IRQn 1 */
 
   /* USER CODE END I2C1_IRQn 1 */

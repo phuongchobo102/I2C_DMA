@@ -140,6 +140,7 @@ void Error_Handler(void);
 #define ELS_USB_SENSE4_GPIO_PORT        USB4_SENSE_GPIO_Port
 #define ELS_USB_SENSE4_PIN              USB4_SENSE_Pin
 
+// #define hi2c1 hsmbus1
     extern ADC_HandleTypeDef hadc;
 // extern uint8_t channelSelect ;
 // extern uint8_t edidStatus;

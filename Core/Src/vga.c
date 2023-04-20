@@ -35,16 +35,83 @@ uint16_t i;
 uint8_t flagI2CRxCplt = 0;
 uint16_t iBufferCounter = 0;
 uint8_t flagSlaveRxCplt = 0;
+uint8_t flagTxCplt = 0;
+uint8_t flagRxCplt = 0;
+uint8_t smVgaDetectStatus = 0;
+uint8_t edidHeader[8] = { 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00 };
+uint8_t c[1];
+uint32_t smVgaDetectTimeOut = 0;
+
 union crcValue
 {
   uint32_t crcValue32;
   uint8_t crcValue8[4];
 } crcValue;
 
+uint8_t dummyReceive;
 //////////////////////////////////////////////////////////////// LOCAL FUNCTIONS //////////////////////////////////
 /*
 //  Description: READ I2C FROM vga device, compare first 5  bytes = 0x00ffffffff
 */
+void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c) {
+	flagTxCplt = 1;
+}
+
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
+	flagRxCplt = 1;
+}
+uint8_t is_VGA_detect2() {
+	switch (smVgaDetectStatus) {
+	case 0: //receive 1 byte
+		ret = HAL_I2C_Master_Receive_DMA(&hi2c2, VGA_I2C_ADDRESS << 1, c, 1); // TODO: change to ReceiveDMA
+		if (ret == HAL_OK) {
+			smVgaDetectStatus = 1;
+			smVgaDetectTimeOut = HAL_GetTick();
+		}
+		break;
+	case 1: //wait respone
+		if (flagRxCplt > 0) {
+                  flagRxCplt = 0;
+			if (edidHeader[iBufferCounter] == c[0]) {
+				i2c1ValueBuff128[iBufferCounter] = c[0];
+				iBufferCounter++;
+				if (iBufferCounter >= 8) {
+					smVgaDetectStatus = 2;
+				} else
+					smVgaDetectStatus = 0;
+			} else {
+				smVgaDetectStatus = 0;
+				iBufferCounter = 0;
+			}
+		} else if (HAL_GetTick() - smVgaDetectTimeOut > 1000) {
+			smVgaDetectStatus = 0;
+			iBufferCounter = 0;
+		}
+		break;
+	case 2:
+		ret = HAL_I2C_Master_Receive_DMA(&hi2c2, VGA_I2C_ADDRESS << 1,
+				i2c1ValueBuff128 + iBufferCounter, (VGA_BYTE - 8));
+		//	    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128 + iBufferCounter , (VGA_BYTE - 8) , HAL_MAX_DELAY); // TODO: change to ReceiveDMA
+		if (ret == HAL_OK) {
+			smVgaDetectStatus = 3;
+			iBufferCounter = 0;
+		} else {
+			smVgaDetectStatus = 0;
+			iBufferCounter = 0;
+		}
+		break;
+	case 3:
+		if (flagRxCplt > 0) {
+                  flagRxCplt = 0;
+			smVgaDetectStatus = 0;
+			iBufferCounter = 0;
+			return 1;
+		}
+		break;
+	}
+	return 0;
+}
+
 uint8_t is_VGA_detect()
 {
   
@@ -198,7 +265,7 @@ void vga_tasks()
     if (is_VGA_detect()) // if have VGA
     {
       read_flash_checked();
-      if (bufer_compare(flashBufferVGA128, i2c1ValueBuff128, VGA_BYTE))
+      if (bufer_compare(flashBufferVGA128, i2c1ValueBuff128, 20 /*VGA_BYTE*/))
       {                                         // if VGA != localBuff
         store_info_vga_flash(i2c1ValueBuff128); // storage new VGA EDID
       }
@@ -213,5 +280,10 @@ void vga_tasks()
     //      printf("Rx complete \r\n");
     //    }
     
+  }
+
+  if(HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY){
+    // HAL_I2C_Slave_Receive_DMA(&hi2c1, &dummyReceive, 1);
+    HAL_I2C_Slave_Transmit_DMA(&hi2c1, flashBufferVGA128, VGA_BYTE);
   }
 }
