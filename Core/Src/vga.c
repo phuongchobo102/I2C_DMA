@@ -149,7 +149,7 @@ uint8_t is_VGA_detect()
   //  uint8_t c[1];
   if (iBufferCounter < 8)
   {
-    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, c, 1, HAL_MAX_DELAY); // TODO: change to ReceiveDMA
+    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, c, 1, 10/*HAL_MAX_DELAY*/); // TODO: change to ReceiveDMA
     if (ret == HAL_OK)
     {
       if (edidHeader[iBufferCounter] == c[0])
