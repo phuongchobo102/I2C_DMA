@@ -26,7 +26,7 @@ extern CRC_HandleTypeDef hcrc;
 extern I2C_HandleTypeDef hi2c2;
 extern I2C_HandleTypeDef hi2c1;
 
-extern uint8_t flashBufferVGA128[];
+//extern uint8_t flashBufferVGA128[];
 
 void vga_init();
 void vga_tasks();

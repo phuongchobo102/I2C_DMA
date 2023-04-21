@@ -4,9 +4,9 @@
 
 uint32_t lastTimeTaskEDID;
 
-uint8_t i2c1ValueBuff128[VGA_BYTE];
+ uint8_t i2c1ValueBuff128[VGA_BYTE];
 #ifndef DUMMY_ASUS_EDID
-uint8_t flashBufferVGA128[VGA_BYTE];
+ uint32_t flashBufferVGA128[VGA_BYTE];
 #else
 uint8_t flashBufferVGA128[256] =
     {
@@ -37,7 +37,7 @@ uint8_t flagSlaveRxCplt = 0;
 uint8_t flagTxCplt = 0;
 uint8_t flagRxCplt = 0;
 
-uint8_t edidHeader[8] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00};
+const uint8_t edidHeader[8] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00};
 uint8_t c[1];
 uint32_t smVgaDetectTimeOut = 0;
 
@@ -165,27 +165,27 @@ uint8_t is_VGA_detect()
   }
   else if (iBufferCounter < VGA_BYTE)
   {
-    //    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128 + iBufferCounter, (VGA_BYTE - 8), HAL_MAX_DELAY); // TODO: change to ReceiveDMA
-    //    if (ret == HAL_OK)
-    //    {
-    //      iBufferCounter = 0;
-    //      return 1;
-    //    }
-    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, &i2c1ValueBuff128[iBufferCounter], 1, HAL_MAX_DELAY); // TODO: change to ReceiveDMA
-    if (ret == HAL_OK)
-    {
-      iBufferCounter++;
-      if (iBufferCounter >= VGA_BYTE)
-      {
-        iBufferCounter = 0;
-        return 1;
-      }
-    }
+        ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128 + iBufferCounter, (VGA_BYTE - 8), HAL_MAX_DELAY); // TODO: change to ReceiveDMA
+        if (ret == HAL_OK)
+        {
+          iBufferCounter = 0;
+          return 1;
+        }
+//    ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, &i2c1ValueBuff128[iBufferCounter], 1, HAL_MAX_DELAY); // TODO: change to ReceiveDMA
+//    if (ret == HAL_OK)
+//    {
+//      iBufferCounter++;
+//      if (iBufferCounter >= VGA_BYTE)
+//      {
+//        iBufferCounter = 0;
+//        return 1;
+//      }
+//    }
   }
   else
   { // collect 128 byte buffer done
     iBufferCounter = 0;
-    return 1;
+    return 0;
   }
   return 0;
 }
@@ -198,15 +198,16 @@ uint8_t is_VGA_detect()
 */
 uint8_t bufer_compare(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t bfLen)
 {
-  uint8_t a;
+  uint8_t *apBuffer1 = pBuffer1;
+  uint8_t *apBuffer2 = pBuffer2;
   while (bfLen--)
   {
-    if ((*pBuffer1) != (*pBuffer2))
+    if ((*apBuffer1) != (*apBuffer2))
     {
       return bfLen;
     }
-    pBuffer1++;
-    pBuffer2++;
+    apBuffer1++;
+    apBuffer2++;
   }
   return 0;
 }
@@ -248,7 +249,7 @@ uint8_t read_flash_checked()
 //  returns: none - should return result
 //  description:     store info to flash
 */
-uint8_t store_info_vga_flash(uint8_t *bufferVGA)
+uint8_t store_info_vga_flash(uint32_t *bufferVGA)
 {
 #ifdef USING_CRC
   uint32_t buff132[VGA_CRC_BYTE];
@@ -375,23 +376,23 @@ void vga_tasks()
   if (HAL_GetTick() - lastTimeTaskEDID > 10)
   {
     lastTimeTaskEDID = HAL_GetTick();
-    if (HAL_I2C_IsDeviceReady(&hi2c2, VGA_I2C_ADDRESS << 1, 1, 1) == HAL_OK)
-    {
+//    if (HAL_I2C_IsDeviceReady(&hi2c2, VGA_I2C_ADDRESS << 1, 1, 1) == HAL_OK)
+//    {
     if (is_VGA_detect()) // if have VGA
     {
       read_flash_checked();
-      if (bufer_compare(flashBufferVGA128, i2c1ValueBuff128, 20 /*VGA_BYTE*/))
+      if (bufer_compare((uint8_t *)flashBufferVGA128, i2c1ValueBuff128, 20 /*VGA_BYTE*/))
       {                                         // if VGA != localBuff
-        store_info_vga_flash(i2c1ValueBuff128); // storage new VGA EDID
+        store_info_vga_flash((uint32_t*)i2c1ValueBuff128); // storage new VGA EDID
       }
-    }
+//    }
     }
   }
 
   if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY)
   {
     // HAL_I2C_Slave_Receive_DMA(&hi2c1, &dummyReceive, 1);
-    HAL_I2C_Slave_Transmit_DMA(&hi2c1, flashBufferVGA128, VGA_BYTE);
+    HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t*)flashBufferVGA128, VGA_BYTE);
   }
 }
 
