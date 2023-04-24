@@ -165,7 +165,7 @@ uint8_t is_VGA_detect()
   }
   else if (iBufferCounter < VGA_BYTE)
   {
-        ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128 + iBufferCounter, (VGA_BYTE - 8), HAL_MAX_DELAY); // TODO: change to ReceiveDMA
+        ret = HAL_I2C_Master_Receive(&hi2c2, VGA_I2C_ADDRESS << 1, i2c1ValueBuff128 + iBufferCounter, (VGA_BYTE - 8), 100); // TODO: change to ReceiveDMA
         if (ret == HAL_OK)
         {
           iBufferCounter = 0;

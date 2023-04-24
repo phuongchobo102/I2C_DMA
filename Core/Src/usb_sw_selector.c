@@ -90,7 +90,7 @@ void authenKVM(void)
             response_host.len = LEN_ACK_MSG;
             printf("Response USB_ACK \r\n");
             USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&response_host, 0x40); 
-            
+            switch_status = USB_NO_READY;       // An requests switch is resetted as kvm sends 05 01
             break;            
           case USB_AUTHEN_ING:
             response_host.header = USB_HEADER;
