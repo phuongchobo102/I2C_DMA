@@ -36,11 +36,28 @@ extern I2C_HandleTypeDef hi2c2;
 void set_led(uint8_t index, uint8_t value)
 {
   uint8_t myBuf = value;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t)ADD_IS32FL2318), index, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); // ALL LED CTROL(Init pwm register)
+  uint8_t ret = 0;
+  ret = HAL_I2C_Mem_Write(&hi2c2, ((uint16_t)ADD_IS32FL2318), index, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); // ALL LED CTROL(Init pwm register)
+  if (ret != HAL_OK)
+  {
+    HAL_I2C_DeInit(&hi2c2);
+    HAL_I2C_Init(&hi2c2);
+  }
   myBuf = 0;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t)ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); // UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
+  ret = HAL_I2C_Mem_Write(&hi2c2, ((uint16_t)ADD_IS32FL2318), 0x16, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); // UP DATA TO REGISTER18 CHANNELS LED DRIVER EVALUATION BOARD GUIDE
+  if (ret != HAL_OK)
+  {
+    HAL_I2C_DeInit(&hi2c2);
+    HAL_I2C_Init(&hi2c2);
+  }
   myBuf = 0x01;
-  HAL_I2C_Mem_Write(&hi2c2, ((uint16_t)ADD_IS32FL2318), 0x00, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); // CONFIGURES REGISTER to make Enable
+
+  ret = HAL_I2C_Mem_Write(&hi2c2, ((uint16_t)ADD_IS32FL2318), 0x00, I2C_MEMADD_SIZE_8BIT, &myBuf, 1, 10); // CONFIGURES REGISTER to make Enable
+  if (ret != HAL_OK)
+  {
+    HAL_I2C_DeInit(&hi2c2);
+    HAL_I2C_Init(&hi2c2);
+  }
 }
 
 /**
@@ -52,10 +69,10 @@ void update_led_button()
 {
   if (lastChannelSelectLed != get_current_channel())
   {
-    lastChannelSelectLed = get_current_channel();// channelSelect;
+    lastChannelSelectLed = get_current_channel(); // channelSelect;
     for (uint8_t i = 0; i < 4; i++)
     {
-      if (get_current_channel() == (i+1))
+      if (get_current_channel() == (i + 1))
         set_led(i * 3 + RED_OFFSET, 109);
       else
         set_led(i * 3 + RED_OFFSET, 0);
@@ -92,7 +109,7 @@ void update_led_vga()
 {
   for (uint8_t i = 0; i < 4; i++)
   {
-    if (lastvgaStatus[i] != get_current_vga(i) )
+    if (lastvgaStatus[i] != get_current_vga(i))
     {
       lastvgaStatus[i] = get_current_vga(i);
       if (get_current_vga(i))
