@@ -21,7 +21,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 /* USER CODE BEGIN Includes */
-
+extern uint8_t I2C2_pin_switch;
+int iii=0;
 /* USER CODE END Includes */
 extern DMA_HandleTypeDef hdma_adc;
 extern DMA_HandleTypeDef hdma_adc;
@@ -395,7 +396,19 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     PB10     ------> I2C2_SCL
     PB11     ------> I2C2_SDA
     */
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if(I2C2_pin_switch==1)
+    {
     GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+    iii++;
+    }
+    else  {
+    	GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14;
+    	iii++;
+    }
+
+//    else GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+//    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;

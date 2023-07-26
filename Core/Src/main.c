@@ -57,6 +57,10 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+
+uint8_t I2C2_pin_switch=1;
+
+
 ADC_HandleTypeDef hadc;
 DMA_HandleTypeDef hdma_adc;
 

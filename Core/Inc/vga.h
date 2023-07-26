@@ -25,6 +25,7 @@ enum VGA_READ_STATE {
 extern CRC_HandleTypeDef hcrc;
 extern I2C_HandleTypeDef hi2c2;
 extern I2C_HandleTypeDef hi2c1;
+extern uint8_t I2C2_pin_switch;
 
 //extern uint8_t flashBufferVGA128[];
 
