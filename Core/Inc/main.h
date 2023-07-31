@@ -140,7 +140,6 @@ void Error_Handler(void);
 #define ELS_USB_SENSE4_GPIO_PORT        USB4_SENSE_GPIO_Port
 #define ELS_USB_SENSE4_PIN              USB4_SENSE_Pin
 
-// #define hi2c1 hsmbus1
     extern ADC_HandleTypeDef hadc;
 // extern uint8_t channelSelect ;
 // extern uint8_t edidStatus;
@@ -158,6 +157,8 @@ uint8_t get_current_vga(uint8_t channel);
 uint8_t get_current_usb(uint8_t channel);
 void set_current_vga_status(uint8_t channel, uint8_t status);
 void set_current_usb_status(uint8_t channel, uint8_t status);
+
+
 
 
 /* User can use this section to tailor I2C instance used and associated
