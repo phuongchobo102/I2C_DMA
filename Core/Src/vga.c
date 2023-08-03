@@ -4,15 +4,24 @@
 
 uint32_t lastTimeTaskEDID;
 int ii=0;
+uint8_t result=0;
 uint32_t lastTimedetect;
 uint16_t iBufferCounter1;
 uint8_t ret1=0;
 uint8_t ret2=0;
 int counter_VGA_1=0;
 int counter_VGA_2=0;
+vga_detect_status_t vga_detect1=NO_VGA;//VGA 1 is detected ???
+vga_detect_status_t vga_detect2=NO_VGA;//VGA 2 is detected ???
+//vga_detect_status_t vga_detect=NO_VGA;
+/////////////////////////////////////////////////////////////////
+char moniter_name[]="MEGRE SCREEN";
 uint16_t iBufferCounter2;
 uint8_t i2c1ValueBuff128_VGA1[VGA_BYTE];
-uint8_t i2c1ValueBuff128_VGA2[VGA_BYTE];
+uint8_t i2c1ValueBuff128_VGA2[VGA_BYTE]=
+{
+		0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x1E,0x6D,0x33,0x5B,0xFA,0xF0,0x04,0x00,0x07,0x1D,0x01,0x03,0x80,0x30,0x1B,0x78,0xEA,0x31,0x35,0xA5,0x55,0x4E,0xA1,0x26,0x0C,0x50,0x54,0xA5,0x4B,0x00,0x71,0x4F,0x81,0x80,0x95,0x00,0xB3,0x00,0xA9,0xC0,0x81,0x00,0x81,0xC0,0x90,0x40,0x02,0x3A,0x80,0x18,0x71,0x38,0x2D,0x40,0x58,0x2C,0x45,0x00,0xE0,0x0E,0x11,0x00,0x00,0x1E,0x00,0x00,0x00,0xFD,0x00,0x28,0x4B,0x1E,0x55,0x12,0x00,0x0A,0x20,0x20,0x20,0x20,0x20,0x20,0x00,0x00,0x00,0xFC,0x00,0x4D,0x50,0x35,0x39,0x47,0x0A,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x00,0x00,0x00,0xFF,0x00,0x39,0x30,0x37,0x4E,0x54,0x59,0x54,0x39,0x48,0x38,0x33,0x34,0x0A,0x00,0xB1
+};
 uint8_t i2c1ValueBuff128[VGA_BYTE]=
 {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -87,11 +96,82 @@ uint8_t dummyReceive;
 //    flagRxCplt = 1;
 //  }
 //}
+// funcion: check buffer if have something.
+bool check_buffer(uint8_t* buffer)
+{
+	if (*(uint16_t*)buffer!=0)
+			return true;
+	else
+		return false;
+}
+
+// compare and save timing section between buffer a and buffer b
+void check_and_write_frame(uint8_t* buffer_a,uint8_t* buffer_b)
+{
+	bool checked;
+	for (uint8_t stt1=1;stt1<9;stt1++)
+	{
+		if (*(uint16_t*)(buffer_a+36+stt1*2)==0x0101)
+			break;
+		checked=false;
+		for (uint8_t stt2=1;stt2<9;stt2++)
+			{
+				if (*(uint16_t*)(buffer_a+36+stt1*2)==*(uint16_t*)(buffer_b+36+stt2*2))
+				{
+					checked=true;
+					break;
+				}
+			}
+		if (checked==false)
+		{
+			*(uint16_t*)(buffer_a+36+stt1*2)=0x0101;
+		}
+	}
+}
+
+//check where monitor name is located
+uint8_t check_name(uint8_t *a)
+{
+	if(*(a+0x4B)==0xFC) return 0x4B;
+	if(*(a+0x5D)==0xFC) return 0x5D;
+	if(*(a+0x6F)==0xFC) return 0x6F;
+	return 0;
+}
+
+//write name "MERGE SCREEN" to EDID data ???
+void write_name(uint8_t *buffer,uint8_t adress)
+{
+	int i=0;
+	buffer+=(adress+2);
+	for (int i=0;i<13;i++)
+		*(buffer+i)=moniter_name[i];
+	*(buffer+12)=0x0A;
+}
+
+
+// merge EDID data between two buffer a and buffer b
 void merge_i2c_EDID(uint8_t* buffer_a,uint8_t* buffer_b)
 {
-	buffer_a+=16;
-	buffer_b+=16;
-	*buffer_b=*buffer_b & *buffer_a;
+	//merge timing section**
+	*(buffer_b+35)=*(buffer_b+35) & *(buffer_a+35);
+	*(buffer_b+36)=*(buffer_b+36) & *(buffer_a+36);
+	*(buffer_b+37)=*(buffer_b+37) & *(buffer_a+37);
+	//Basic Display Parameters / Features**
+	//merge Video Input Definition
+	*(buffer_b+20)=0x10;
+	//merge Horizontal and Vertical
+	if (*(buffer_b+21)>*(buffer_a+21))
+			*(buffer_b+21)=*(buffer_a+21);
+	if (*(buffer_b+22)>*(buffer_a+22))
+			*(buffer_b+22)=*(buffer_a+22);
+	if (*(buffer_b+23)>*(buffer_a+23))
+			*(buffer_b+23)=*(buffer_a+23);
+	//Color Characteristics**
+	//do notthing
+	//Standard Timing Identification**
+	check_and_write_frame(buffer_b,buffer_a);
+	//identifer monitor name : MERGE SCREEN**
+	write_name(buffer_b,check_name(buffer_b));
 }
 void copy_buffer(uint8_t *a,uint8_t *b)
 {
@@ -121,6 +201,7 @@ uint8_t is_VGA_detect_1()
     {
       if (edidHeader[iBufferCounter1] == c[0])
       {
+
         i2c1ValueBuff128_VGA1[iBufferCounter1] = c[0];
         iBufferCounter1++;
       }
@@ -131,6 +212,7 @@ uint8_t is_VGA_detect_1()
     }
     else
     {
+    	vga_detect1=NO_VGA;
 //      HAL_I2C_DeInit(&hi2c2);
 //      HAL_I2C_Init(&hi2c2);
     }
@@ -141,6 +223,7 @@ uint8_t is_VGA_detect_1()
     if (ret == HAL_OK)
     {
       iBufferCounter1 = 0;
+      vga_detect1 =VGA_1_DETECTED;
       return 1;
     }
     else
@@ -178,6 +261,7 @@ uint8_t is_VGA_detect_2()
     }
     else
     {
+    	vga_detect2=NO_VGA;
 //      HAL_I2C_DeInit(&hi2c2);
 //      HAL_I2C_Init(&hi2c2);
     }
@@ -188,6 +272,7 @@ uint8_t is_VGA_detect_2()
     if (ret == HAL_OK)
     {
       iBufferCounter2 = 0;
+      vga_detect2 =VGA_2_DETECTED;
       return 1;
     }
     else
@@ -204,42 +289,46 @@ uint8_t is_VGA_detect_2()
   }
   return 0;
 }
+
+
 uint8_t is_VGA_detect()
 {
-	if (HAL_GetTick() - lastTimedetect < 750)
-	{
+//	if (HAL_GetTick() - lastTimedetect < 750)
+//	{
 //	    lastTimeTaskEDID = HAL_GetTick();
-	    ret2=is_VGA_detect_2();
+		ret2=is_VGA_detect_2();
 	    I2C_switch_VGA_1();
-	}
-	else if(HAL_GetTick() - lastTimedetect < 1500)
-	{
+//	}
+//	else if(HAL_GetTick() - lastTimedetect < 1500)
+//	{
 		ret1=is_VGA_detect_1();
 //		I2C_switch_VGA_1();
-	}
-	else lastTimedetect = HAL_GetTick();
-	switch (ret1+ret2)
-	{
-	case 0:
-		return 0;
-		break;
-	case 1:
-		if (ret1==1){
-		counter_VGA_1++;
-		copy_buffer(i2c1ValueBuff128, i2c1ValueBuff128_VGA1);
+//	}
+//	else lastTimedetect = HAL_GetTick();
+//	switch (ret1+ret2)
+//	{
+//	case 0:
+//		return 0;
+//		break;
+//	case 1:
+//		if (ret1==1){
+//		counter_VGA_1++;
+//		copy_buffer(i2c1ValueBuff128, i2c1ValueBuff128_VGA1);
+//		return 1;
+//		break ;
+//		}
+//		else {copy_buffer(i2c1ValueBuff128, i2c1ValueBuff128_VGA2);
+//		counter_VGA_2++;
+//		return 1;
+//		break;
+//	    }
+//	case 2:
+//		copy_buffer(i2c1ValueBuff128, i2c1ValueBuff128_VGA1);
+//		return 1;
+//		break ;
+//	}
+	if (ret1+ret2)
 		return 1;
-		break ;
-		}
-		else {copy_buffer(i2c1ValueBuff128, i2c1ValueBuff128_VGA2);
-		counter_VGA_2++;
-		return 1;
-		break;
-	    }
-	case 2:
-		copy_buffer(i2c1ValueBuff128, i2c1ValueBuff128_VGA1);
-		return 1;
-		break ;
-	}
 	return 0;
 }
 //uint8_t is_VGA_detect2()
@@ -538,7 +627,7 @@ void vga_read_tasks()
 
 void vga_tasks()
 {
-  uint8_t result;
+   result=0;
 
   // vga_read_tasks();
 
@@ -570,23 +659,57 @@ void vga_tasks()
 //    store_info_vga_flash((uint32_t *)i2c1ValueBuff128);
     if (is_VGA_detect()) // if have VGA
     {
-      read_flash_checked();
-      copy_buffer(atest_edid,i2c1ValueBuff128);
-      if (bufer_compare((uint8_t *)flashBufferVGA128, i2c1ValueBuff128, 20 /*VGA_BYTE*/))
-      {                                                     // if VGA != localBuff
-        store_info_vga_flash((uint32_t *)i2c1ValueBuff128); // storage new VGA EDID
-//        copy_buffer(atest_edid,i2c1ValueBuff128);
+//      read_flash_checked();
+//      copy_buffer(atest_edid,i2c1ValueBuff128);
+      switch (get_current_edid())
+      {
+      case EDID_VGA_1:
+    	  if(vga_detect1==VGA_1_DETECTED)
+    	  {
+    		  copy_buffer(i2c1ValueBuff128,i2c1ValueBuff128_VGA1);
+    		  result=1;
+    	  }
+    	  break;
+      case EDID_VGA_2:
+    	  if(vga_detect2==VGA_2_DETECTED)
+    	  {
+    		  copy_buffer(i2c1ValueBuff128,i2c1ValueBuff128_VGA2);
+    	  	  result=1;
+    	  }
+    	  break;
+      case EDID_VGA_MERGE:
+    	  if(vga_detect1==VGA_1_DETECTED /*&& vga_detect2==VGA_2_DETECTED*/)
+    	  {
+    		  copy_buffer(i2c1ValueBuff128,i2c1ValueBuff128_VGA1);
+    		  merge_i2c_EDID(i2c1ValueBuff128_VGA2, i2c1ValueBuff128);// merge EDID data in this case
+    		  result=1;
+    	  }
+    	  break;
+//      else result=0;
       }
+//      if (get_current_edid()== EDID_VGA_1 && vga_detect1==VGA_1_DETECTED)
+//    	  copy_buffer(i2c1ValueBuff128,i2c1ValueBuff128_VGA1);
+      if (result)
+      {
+    	  read_flash_checked();
+		  if (bufer_compare((uint8_t *)flashBufferVGA128, i2c1ValueBuff128, 20 /*VGA_BYTE*/))
+		  {                                                     // if VGA != localBuff
+			store_info_vga_flash((uint32_t *)i2c1ValueBuff128); // storage new VGA EDID
+			copy_buffer(atest_edid,i2c1ValueBuff128);
+		  }
+      }
+//      else atest_edid[126]=0x01;
       //    }
     }
   }
+}
 
 //  if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY)
 //  {
 //    // HAL_I2C_Slave_Receive_DMA(&hi2c1, &dummyReceive, 1);
 //    HAL_I2C_Slave_Transmit_DMA(&hi2c1, (uint8_t *)flashBufferVGA128, VGA_BYTE);
 //  }
-}
+//}
 
 // void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 // {

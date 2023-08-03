@@ -21,6 +21,13 @@ enum VGA_READ_STATE {
   VGA_READ_WRITE_FLASH,
   VGA_READ_SNAP_TIME
 };
+// da type of vga detected//
+typedef enum {
+	NO_VGA,
+	VGA_1_DETECTED,
+	VGA_2_DETECTED,
+	VGA_12_DETECTED
+}vga_detect_status_t;
 
 extern CRC_HandleTypeDef hcrc;
 extern I2C_HandleTypeDef hi2c2;

@@ -10,8 +10,8 @@
 uint32_t lastTimeScanLed;
 
 uint8_t lastChannelSelectLed = 10;
-uint8_t lastedidStatus = 1;
-uint8_t lastvgaStatus[4];
+edid_status_t lastedidStatus = EDID_VGA_2;
+edid_status_t lastvgaStatus[4];
 uint8_t lastusbStatus[4];
 
 unsigned char abm_tab[64] = // 64 step auto to breath
@@ -26,6 +26,12 @@ unsigned char abm_tab[64] = // 64 step auto to breath
         209, 216, 223, 230, 237, 244, 251, 255};
 
 extern I2C_HandleTypeDef hi2c2;
+extern vga_detect_status_t vga_detect1;// import VGA 1 status
+extern vga_detect_status_t vga_detect2;// import VGA 2 status
+uint32_t lastTimeTask;// last time tick of VGA led detected
+//extern uint8_t vga_detect2;
+//extern uint8_t vga_detect1;
+
 
 //////////////////////////////////////////////////////////////// PRIVATE FUNCTIONS //////////////////////////////////////////////////////////////////
 /**
@@ -113,18 +119,75 @@ void update_led_edid()
   if (lastedidStatus != get_current_edid())
   {
     lastedidStatus = get_current_edid();
-    if (get_current_edid())
+    if (get_current_edid()==EDID_VGA_1)
+    {
+      set_led(LED_EDID_OFFSET + BLUE_OFFSET, 100);
+      set_led(LED_EDID_OFFSET + 3 + BLUE_OFFSET, 0);
+    }
+    else if(get_current_edid()==EDID_VGA_2)
     {
       set_led(LED_EDID_OFFSET + BLUE_OFFSET, 0);
       set_led(LED_EDID_OFFSET + 3 + BLUE_OFFSET, 100);
     }
-    else
+    else if (get_current_edid()==EDID_VGA_MERGE)
     {
-
       set_led(LED_EDID_OFFSET + BLUE_OFFSET, 100);
-      set_led(LED_EDID_OFFSET + 3 + BLUE_OFFSET, 0);
+      set_led(LED_EDID_OFFSET + 3 + BLUE_OFFSET, 100);
     }
+//    if (vga_detect==VGA_1_DETECTED)
+//    {
+//        set_led(LED_EDID_OFFSET + RED_OFFSET, 100);
+////        set_led(LED_EDID_OFFSET + 3 + RED_OFFSET, 0);
+//    }
+//    else
+//    {
+//        set_led(LED_EDID_OFFSET + RED_OFFSET, 0);
+////        set_led(LED_EDID_OFFSET + 3 + RED_OFFSET, 0);
+//    }
   }
+  if (HAL_GetTick() - lastTimeTask > 1500)
+    {
+      lastTimeTask = HAL_GetTick();
+  if (vga_detect1==VGA_1_DETECTED)
+  {
+      set_led(LED_EDID_OFFSET + GREEN_OFFSET, 100);
+//        set_led(LED_EDID_OFFSET + 3 + RED_OFFSET, 0);
+  }
+  else
+  {
+      set_led(LED_EDID_OFFSET + GREEN_OFFSET, 0);
+//        set_led(LED_EDID_OFFSET + 3 + RED_OFFSET, 0);
+  }
+  if (vga_detect2==VGA_2_DETECTED)
+  {
+      set_led(LED_EDID_OFFSET + 3 + GREEN_OFFSET, 100);
+//        set_led(LED_EDID_OFFSET + 3 + RED_OFFSET, 0);
+  }
+  else
+  {
+      set_led(LED_EDID_OFFSET +3 + GREEN_OFFSET, 0);
+//        set_led(LED_EDID_OFFSET + 3 + RED_OFFSET, 0);
+  }
+    }
+
+//  switch (vga_status){
+//  case NO_VGA:
+//	  set_led(LED_EDID_OFFSET + GREEN_OFFSET, 0);
+//	  set_led(LED_EDID_OFFSET + 3 + GREEN_OFFSET, 0);
+//	  break;
+//  case VGA_1_DETECTED:
+//	  set_led(LED_EDID_OFFSET + GREEN_OFFSET, 100);
+//	  set_led(LED_EDID_OFFSET + 3 + GREEN_OFFSET, 0);
+//	  break;
+//  case VGA_2_DETECTED:
+//  	  set_led(LED_EDID_OFFSET + GREEN_OFFSET, 0);
+//  	  set_led(LED_EDID_OFFSET + 3 + GREEN_OFFSET, 100);
+//  	  break;
+//  case VGA_12_DETECTED:
+//    	  set_led(LED_EDID_OFFSET + GREEN_OFFSET, 100);
+//    	  set_led(LED_EDID_OFFSET + 3 + GREEN_OFFSET, 100);
+//    	  break;
+//  }
 }
 
 //////////////////////////////////////////////////////////////// PUBLIC FUNCTIONS //////////////////////////////////////////////////////////////////

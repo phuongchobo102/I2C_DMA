@@ -342,7 +342,7 @@ void prv_btn_event(struct lwbtn *lw, struct lwbtn_btn *btn, lwbtn_evt_t evt)
       }
       break;
     case '0':                                         // button EDID
-      set_current_edid((get_current_edid() + 1) % 2); // edidStatus = (edidStatus + 1) % 2;
+      set_current_edid(get_current_edid()); // edidStatus = (edidStatus + 1) % 2;
                                                       //      printf("Button EDID Pressed %d\r\n", edidStatus);
       if (elinkswitch_receive_button_event)
       {

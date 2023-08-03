@@ -147,6 +147,11 @@ void Error_Handler(void);
 // extern uint8_t usbStatus[4];
 // extern uint16_t adcValue[4]; 
 #define I2C_TIMING    0x00B01A4B //  0x00A51314
+typedef enum {
+    	EDID_VGA_1=1,
+    	EDID_VGA_2=2,
+    	EDID_VGA_MERGE=3
+}edid_status_t;
 
 uint8_t get_current_channel();
 void set_current_channel(uint8_t channel);

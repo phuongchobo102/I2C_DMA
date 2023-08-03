@@ -49,7 +49,7 @@
 
 //#define TEST_SMBUS_SELF_IMPL
 
-#define EDID_COMMANDS_TABBLE_SIZE         		((uint8_t)256)
+#define EDID_COMMANDS_TABBLE_SIZE         		((uint8_t)128)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -100,7 +100,7 @@ uint32_t i2c1_smbus_lastTime;
 
 
 
-st_command_t const EDID_COMMANDS_TABLE[] =
+st_command_t const EDID_COMMANDS_TABLE[128] =
 {
 	{ 0x00, READ_OR_WRITE, 0, 1 /*256*/ },	//=>256 is not ok										/* code 00 */
 	{ 0x01, READ_OR_WRITE, 0, 1 },	                        				/* code 01 */
@@ -230,150 +230,140 @@ st_command_t const EDID_COMMANDS_TABLE[] =
 	{ 0x7D, READ_OR_WRITE, 0, 1 },											/* code 7D */
 	{ 0x7E, READ_OR_WRITE, 0, 1 },											/* code 7E */
 	{ 0x7F, READ_OR_WRITE, 0, 1 },											/* code 7F */
-	{ 0x80, READ_OR_WRITE, 0, 1 },											/* code 80 */
-	{ 0x81, READ_OR_WRITE, 0, 1 },											/* code 81 */
-	{ 0x82, READ_OR_WRITE, 0, 1 },											/* code 82 */
-	{ 0x83, READ_OR_WRITE, 0, 1 },											/* code 83 */
-	{ 0x84, READ_OR_WRITE, 0, 1 },											/* code 84 */
-	{ 0x85, READ_OR_WRITE, 0, 1 },											/* code 85 */
-	{ 0x86, READ_OR_WRITE, 0, 1 },											/* code 86 */
-	{ 0x87, READ_OR_WRITE, 0, 1 },											/* code 87 */
-	{ 0x88, READ_OR_WRITE, 0, 1 },											/* code 88 */
-	{ 0x89, READ_OR_WRITE, 0, 1 },											/* code 89 */
-	{ 0x8A, READ_OR_WRITE, 0, 1 },											/* code 8A */
-	{ 0x8B, READ_OR_WRITE, 0, 1 },											/* code 8B */
-	{ 0x8C, READ_OR_WRITE, 0, 1 },											/* code 8C */
-	{ 0x8D, READ_OR_WRITE, 0, 1 },											/* code 8D */
-	{ 0x8E, READ_OR_WRITE, 0, 1 },											/* code 8E */
-	{ 0x8F, READ_OR_WRITE, 0, 1 },											/* code 8F */
-	{ 0x90, READ_OR_WRITE, 0, 1 },											/* code 90 */
-	{ 0x91, READ_OR_WRITE, 0, 1 },											/* code 91 */
-	{ 0x92, READ_OR_WRITE, 0, 1 },											/* code 92 */
-	{ 0x93, READ_OR_WRITE, 0, 1 },											/* code 93 */
-	{ 0x94, READ_OR_WRITE, 0, 1 },											/* code 94 */
-	{ 0x95, READ_OR_WRITE, 0, 1 },											/* code 95 */
-	{ 0x96, READ_OR_WRITE, 0, 1 },											/* code 96 */
-	{ 0x97, READ_OR_WRITE, 0, 1 },											/* code 97 */
-	{ 0x98, READ_OR_WRITE, 0, 1 },											/* code 98 */
-	{ 0x99, READ_OR_WRITE, 0, 1 },											/* code 99 */
-	{ 0x9A, READ_OR_WRITE, 0, 1 },											/* code 9A */
-	{ 0x9B, READ_OR_WRITE, 0, 1 },											/* code 9B */
-	{ 0x9C, READ_OR_WRITE, 0, 1 },											/* code 9C */
-	{ 0x9D, READ_OR_WRITE, 0, 1 },											/* code 9D */
-	{ 0x9E, READ_OR_WRITE, 0, 1 },											/* code 9E */
-	{ 0x9F, READ_OR_WRITE, 0, 1 },											/* code 9F */
-	{ 0xA0, READ_OR_WRITE, 0, 1 },											/* code A0 */
-	{ 0xA1, READ_OR_WRITE, 0, 1 },											/* code A1 */
-	{ 0xA2, READ_OR_WRITE, 0, 1 },											/* code A2 */
-	{ 0xA3, READ_OR_WRITE, 0, 1 },											/* code A3 */
-	{ 0xA4, READ_OR_WRITE, 0, 1 },											/* code A4 */
-	{ 0xA5, READ_OR_WRITE, 0, 1 },											/* code A5 */
-	{ 0xA6, READ_OR_WRITE, 0, 1 },											/* code A6 */
-	{ 0xA7, READ_OR_WRITE, 0, 1 },											/* code A7 */
-	{ 0xA8, READ_OR_WRITE, 0, 1 },											/* code A8 */
-	{ 0xA9, READ_OR_WRITE, 0, 1 },											/* code A9 */
-	{ 0xAA, READ_OR_WRITE, 0, 1 },											/* code AA */
-	{ 0xAB, READ_OR_WRITE, 0, 1 },											/* code AB */
-	{ 0xAC, READ_OR_WRITE, 0, 1 },											/* code AC */
-	{ 0xAD, READ_OR_WRITE, 0, 1 },											/* code AD */
-	{ 0xAE, READ_OR_WRITE, 0, 1 },											/* code AE */
-	{ 0xAF, READ_OR_WRITE, 0, 1 },											/* code AF */
-	{ 0xB0, READ_OR_WRITE, 0, 1 },											/* code B0 */
-	{ 0xB1, READ_OR_WRITE, 0, 1 },											/* code B1 */
-	{ 0xB2, READ_OR_WRITE, 0, 1 },											/* code B2 */
-	{ 0xB3, READ_OR_WRITE, 0, 1 },											/* code B3 */
-	{ 0xB4, READ_OR_WRITE, 0, 1 },											/* code B4 */
-	{ 0xB5, READ_OR_WRITE, 0, 1 },											/* code B5 */
-	{ 0xB6, READ_OR_WRITE, 0, 1 },											/* code B6 */
-	{ 0xB7, READ_OR_WRITE, 0, 1 },											/* code B7 */
-	{ 0xB8, READ_OR_WRITE, 0, 1 },											/* code B8 */
-	{ 0xB9, READ_OR_WRITE, 0, 1 },											/* code B9 */
-	{ 0xBA, READ_OR_WRITE, 0, 1 },											/* code BA */
-	{ 0xBB, READ_OR_WRITE, 0, 1 },											/* code BB */
-	{ 0xBC, READ_OR_WRITE, 0, 1 },											/* code BC */
-	{ 0xBD, READ_OR_WRITE, 0, 1 },											/* code BD */
-	{ 0xBE, READ_OR_WRITE, 0, 1 },											/* code BE */
-	{ 0xBF, READ_OR_WRITE, 0, 1 },											/* code BF */
-	{ 0xC0, READ_OR_WRITE, 0, 1 },											/* code C0 */
-	{ 0xC1, READ_OR_WRITE, 0, 1 },											/* code C1 */
-	{ 0xC2, READ_OR_WRITE, 0, 1 },											/* code C2 */
-	{ 0xC3, READ_OR_WRITE, 0, 1 },											/* code C3 */
-	{ 0xC4, READ_OR_WRITE, 0, 1 },											/* code C4 */
-	{ 0xC5, READ_OR_WRITE, 0, 1 },											/* code C5 */
-	{ 0xC6, READ_OR_WRITE, 0, 1 },											/* code C6 */
-	{ 0xC7, READ_OR_WRITE, 0, 1 },											/* code C7 */
-	{ 0xC8, READ_OR_WRITE, 0, 1 },											/* code C8 */
-	{ 0xC9, READ_OR_WRITE, 0, 1 },											/* code C9 */
-	{ 0xCA, READ_OR_WRITE, 0, 1 },											/* code CA */
-	{ 0xCB, READ_OR_WRITE, 0, 1 },											/* code CB */
-	{ 0xCC, READ_OR_WRITE, 0, 1 },											/* code CC */
-	{ 0xCD, READ_OR_WRITE, 0, 1 },											/* code CD */
-	{ 0xCE, READ_OR_WRITE, 0, 1 },											/* code CE */
-	{ 0xCF, READ_OR_WRITE, 0, 1 },											/* code CF */
-	{ 0xD0, READ_OR_WRITE, 0, 1 },											/* code D0 */
-	{ 0xD1, READ_OR_WRITE, 0, 1 },											/* code D1 */
-	{ 0xD2, READ_OR_WRITE, 0, 1 },											/* code D2 */
-	{ 0xD3, READ_OR_WRITE, 0, 1 },											/* code D3 */
-	{ 0xD4, READ_OR_WRITE, 0, 1 },											/* code D4 */
-	{ 0xD5, READ_OR_WRITE, 0, 1 },											/* code D5 */
-	{ 0xD6, READ_OR_WRITE, 0, 1 },											/* code D6 */
-	{ 0xD7, READ_OR_WRITE, 0, 1 },											/* code D7 */
-	{ 0xD8, READ_OR_WRITE, 0, 1 },											/* code D8 */
-	{ 0xD9, READ_OR_WRITE, 0, 1 },											/* code D9 */
-	{ 0xDA, READ_OR_WRITE, 0, 1 },											/* code DA */
-	{ 0xDB, READ_OR_WRITE, 0, 1 },											/* code DB */
-	{ 0xDC, READ_OR_WRITE, 0, 1 },											/* code DC */
-	{ 0xDD, READ_OR_WRITE, 0, 1 },											/* code DD */
-	{ 0xDE, READ_OR_WRITE, 0, 1 },											/* code DE */
-	{ 0xDF, READ_OR_WRITE, 0, 1 },											/* code DF */
-	{ 0xE0, READ_OR_WRITE, 0, 1 },											/* code E0 */
-	{ 0xE1, READ_OR_WRITE, 0, 1 },											/* code E1 */
-	{ 0xE2, READ_OR_WRITE, 0, 1 },											/* code E2 */
-	{ 0xE3, READ_OR_WRITE, 0, 1 },											/* code E3 */
-	{ 0xE4, READ_OR_WRITE, 0, 1 },											/* code E4 */
-	{ 0xE5, READ_OR_WRITE, 0, 1 },											/* code E5 */
-	{ 0xE6, READ_OR_WRITE, 0, 1 },											/* code E6 */
-	{ 0xE7, READ_OR_WRITE, 0, 1 },											/* code E7 */
-	{ 0xE8, READ_OR_WRITE, 0, 1 },											/* code E8 */
-	{ 0xE9, READ_OR_WRITE, 0, 1 },											/* code E9 */
-	{ 0xEA, READ_OR_WRITE, 0, 1 },											/* code EA */
-	{ 0xEB, READ_OR_WRITE, 0, 1 },											/* code EB */
-	{ 0xEC, READ_OR_WRITE, 0, 1 },											/* code EC */
-	{ 0xED, READ_OR_WRITE, 0, 1 },											/* code ED */
-	{ 0xEE, READ_OR_WRITE, 0, 1 },											/* code EE */
-	{ 0xEF, READ_OR_WRITE, 0, 1 },											/* code EF */
-	{ 0xF0, READ_OR_WRITE, 0, 1 },											/* code F0 */
-	{ 0xF1, READ_OR_WRITE, 0, 1 },											/* code F1 */
-	{ 0xF2, READ_OR_WRITE, 0, 1 },											/* code F2 */
-	{ 0xF3, READ_OR_WRITE, 0, 1 },											/* code F3 */
-	{ 0xF4, READ_OR_WRITE, 0, 1 },											/* code F4 */
-	{ 0xF5, READ_OR_WRITE, 0, 1 },											/* code F5 */
-	{ 0xF6, READ_OR_WRITE, 0, 1 },											/* code F6 */
-	{ 0xF7, READ_OR_WRITE, 0, 1 },											/* code F7 */
-	{ 0xF8, READ_OR_WRITE, 0, 1 },											/* code F8 */
-	{ 0xF9, READ_OR_WRITE, 0, 1 },											/* code F9 */
-	{ 0xFA, READ_OR_WRITE, 0, 1 },											/* code FA */
-	{ 0xFB, READ_OR_WRITE, 0, 1 },											/* code FB */
-	{ 0xFC, READ_OR_WRITE, 0, 1 },											/* code FC */
-	{ 0xFD, READ_OR_WRITE, 0, 1 },											/* code FD */
-	{ 0xFE, READ_OR_WRITE, 0, 1 },											/* code FE */
-	{ 0xFF, READ_OR_WRITE, 0, 1 },											/* code FF */
+//	{ 0x80, READ_OR_WRITE, 0, 1 },											/* code 80 */
+//	{ 0x81, READ_OR_WRITE, 0, 1 },											/* code 81 */
+//	{ 0x82, READ_OR_WRITE, 0, 1 },											/* code 82 */
+//	{ 0x83, READ_OR_WRITE, 0, 1 },											/* code 83 */
+//	{ 0x84, READ_OR_WRITE, 0, 1 },											/* code 84 */
+//	{ 0x85, READ_OR_WRITE, 0, 1 },											/* code 85 */
+//	{ 0x86, READ_OR_WRITE, 0, 1 },											/* code 86 */
+//	{ 0x87, READ_OR_WRITE, 0, 1 },											/* code 87 */
+//	{ 0x88, READ_OR_WRITE, 0, 1 },											/* code 88 */
+//	{ 0x89, READ_OR_WRITE, 0, 1 },											/* code 89 */
+//	{ 0x8A, READ_OR_WRITE, 0, 1 },											/* code 8A */
+//	{ 0x8B, READ_OR_WRITE, 0, 1 },											/* code 8B */
+//	{ 0x8C, READ_OR_WRITE, 0, 1 },											/* code 8C */
+//	{ 0x8D, READ_OR_WRITE, 0, 1 },											/* code 8D */
+//	{ 0x8E, READ_OR_WRITE, 0, 1 },											/* code 8E */
+//	{ 0x8F, READ_OR_WRITE, 0, 1 },											/* code 8F */
+//	{ 0x90, READ_OR_WRITE, 0, 1 },											/* code 90 */
+//	{ 0x91, READ_OR_WRITE, 0, 1 },											/* code 91 */
+//	{ 0x92, READ_OR_WRITE, 0, 1 },											/* code 92 */
+//	{ 0x93, READ_OR_WRITE, 0, 1 },											/* code 93 */
+//	{ 0x94, READ_OR_WRITE, 0, 1 },											/* code 94 */
+//	{ 0x95, READ_OR_WRITE, 0, 1 },											/* code 95 */
+//	{ 0x96, READ_OR_WRITE, 0, 1 },											/* code 96 */
+//	{ 0x97, READ_OR_WRITE, 0, 1 },											/* code 97 */
+//	{ 0x98, READ_OR_WRITE, 0, 1 },											/* code 98 */
+//	{ 0x99, READ_OR_WRITE, 0, 1 },											/* code 99 */
+//	{ 0x9A, READ_OR_WRITE, 0, 1 },											/* code 9A */
+//	{ 0x9B, READ_OR_WRITE, 0, 1 },											/* code 9B */
+//	{ 0x9C, READ_OR_WRITE, 0, 1 },											/* code 9C */
+//	{ 0x9D, READ_OR_WRITE, 0, 1 },											/* code 9D */
+//	{ 0x9E, READ_OR_WRITE, 0, 1 },											/* code 9E */
+//	{ 0x9F, READ_OR_WRITE, 0, 1 },											/* code 9F */
+//	{ 0xA0, READ_OR_WRITE, 0, 1 },											/* code A0 */
+//	{ 0xA1, READ_OR_WRITE, 0, 1 },											/* code A1 */
+//	{ 0xA2, READ_OR_WRITE, 0, 1 },											/* code A2 */
+//	{ 0xA3, READ_OR_WRITE, 0, 1 },											/* code A3 */
+//	{ 0xA4, READ_OR_WRITE, 0, 1 },											/* code A4 */
+//	{ 0xA5, READ_OR_WRITE, 0, 1 },											/* code A5 */
+//	{ 0xA6, READ_OR_WRITE, 0, 1 },											/* code A6 */
+//	{ 0xA7, READ_OR_WRITE, 0, 1 },											/* code A7 */
+//	{ 0xA8, READ_OR_WRITE, 0, 1 },											/* code A8 */
+//	{ 0xA9, READ_OR_WRITE, 0, 1 },											/* code A9 */
+//	{ 0xAA, READ_OR_WRITE, 0, 1 },											/* code AA */
+//	{ 0xAB, READ_OR_WRITE, 0, 1 },											/* code AB */
+//	{ 0xAC, READ_OR_WRITE, 0, 1 },											/* code AC */
+//	{ 0xAD, READ_OR_WRITE, 0, 1 },											/* code AD */
+//	{ 0xAE, READ_OR_WRITE, 0, 1 },											/* code AE */
+//	{ 0xAF, READ_OR_WRITE, 0, 1 },											/* code AF */
+//	{ 0xB0, READ_OR_WRITE, 0, 1 },											/* code B0 */
+//	{ 0xB1, READ_OR_WRITE, 0, 1 },											/* code B1 */
+//	{ 0xB2, READ_OR_WRITE, 0, 1 },											/* code B2 */
+//	{ 0xB3, READ_OR_WRITE, 0, 1 },											/* code B3 */
+//	{ 0xB4, READ_OR_WRITE, 0, 1 },											/* code B4 */
+//	{ 0xB5, READ_OR_WRITE, 0, 1 },											/* code B5 */
+//	{ 0xB6, READ_OR_WRITE, 0, 1 },											/* code B6 */
+//	{ 0xB7, READ_OR_WRITE, 0, 1 },											/* code B7 */
+//	{ 0xB8, READ_OR_WRITE, 0, 1 },											/* code B8 */
+//	{ 0xB9, READ_OR_WRITE, 0, 1 },											/* code B9 */
+//	{ 0xBA, READ_OR_WRITE, 0, 1 },											/* code BA */
+//	{ 0xBB, READ_OR_WRITE, 0, 1 },											/* code BB */
+//	{ 0xBC, READ_OR_WRITE, 0, 1 },											/* code BC */
+//	{ 0xBD, READ_OR_WRITE, 0, 1 },											/* code BD */
+//	{ 0xBE, READ_OR_WRITE, 0, 1 },											/* code BE */
+//	{ 0xBF, READ_OR_WRITE, 0, 1 },											/* code BF */
+//	{ 0xC0, READ_OR_WRITE, 0, 1 },											/* code C0 */
+//	{ 0xC1, READ_OR_WRITE, 0, 1 },											/* code C1 */
+//	{ 0xC2, READ_OR_WRITE, 0, 1 },											/* code C2 */
+//	{ 0xC3, READ_OR_WRITE, 0, 1 },											/* code C3 */
+//	{ 0xC4, READ_OR_WRITE, 0, 1 },											/* code C4 */
+//	{ 0xC5, READ_OR_WRITE, 0, 1 },											/* code C5 */
+//	{ 0xC6, READ_OR_WRITE, 0, 1 },											/* code C6 */
+//	{ 0xC7, READ_OR_WRITE, 0, 1 },											/* code C7 */
+//	{ 0xC8, READ_OR_WRITE, 0, 1 },											/* code C8 */
+//	{ 0xC9, READ_OR_WRITE, 0, 1 },											/* code C9 */
+//	{ 0xCA, READ_OR_WRITE, 0, 1 },											/* code CA */
+//	{ 0xCB, READ_OR_WRITE, 0, 1 },											/* code CB */
+//	{ 0xCC, READ_OR_WRITE, 0, 1 },											/* code CC */
+//	{ 0xCD, READ_OR_WRITE, 0, 1 },											/* code CD */
+//	{ 0xCE, READ_OR_WRITE, 0, 1 },											/* code CE */
+//	{ 0xCF, READ_OR_WRITE, 0, 1 },											/* code CF */
+//	{ 0xD0, READ_OR_WRITE, 0, 1 },											/* code D0 */
+//	{ 0xD1, READ_OR_WRITE, 0, 1 },											/* code D1 */
+//	{ 0xD2, READ_OR_WRITE, 0, 1 },											/* code D2 */
+//	{ 0xD3, READ_OR_WRITE, 0, 1 },											/* code D3 */
+//	{ 0xD4, READ_OR_WRITE, 0, 1 },											/* code D4 */
+//	{ 0xD5, READ_OR_WRITE, 0, 1 },											/* code D5 */
+//	{ 0xD6, READ_OR_WRITE, 0, 1 },											/* code D6 */
+//	{ 0xD7, READ_OR_WRITE, 0, 1 },											/* code D7 */
+//	{ 0xD8, READ_OR_WRITE, 0, 1 },											/* code D8 */
+//	{ 0xD9, READ_OR_WRITE, 0, 1 },											/* code D9 */
+//	{ 0xDA, READ_OR_WRITE, 0, 1 },											/* code DA */
+//	{ 0xDB, READ_OR_WRITE, 0, 1 },											/* code DB */
+//	{ 0xDC, READ_OR_WRITE, 0, 1 },											/* code DC */
+//	{ 0xDD, READ_OR_WRITE, 0, 1 },											/* code DD */
+//	{ 0xDE, READ_OR_WRITE, 0, 1 },											/* code DE */
+//	{ 0xDF, READ_OR_WRITE, 0, 1 },											/* code DF */
+//	{ 0xE0, READ_OR_WRITE, 0, 1 },											/* code E0 */
+//	{ 0xE1, READ_OR_WRITE, 0, 1 },											/* code E1 */
+//	{ 0xE2, READ_OR_WRITE, 0, 1 },											/* code E2 */
+//	{ 0xE3, READ_OR_WRITE, 0, 1 },											/* code E3 */
+//	{ 0xE4, READ_OR_WRITE, 0, 1 },											/* code E4 */
+//	{ 0xE5, READ_OR_WRITE, 0, 1 },											/* code E5 */
+//	{ 0xE6, READ_OR_WRITE, 0, 1 },											/* code E6 */
+//	{ 0xE7, READ_OR_WRITE, 0, 1 },											/* code E7 */
+//	{ 0xE8, READ_OR_WRITE, 0, 1 },											/* code E8 */
+//	{ 0xE9, READ_OR_WRITE, 0, 1 },											/* code E9 */
+//	{ 0xEA, READ_OR_WRITE, 0, 1 },											/* code EA */
+//	{ 0xEB, READ_OR_WRITE, 0, 1 },											/* code EB */
+//	{ 0xEC, READ_OR_WRITE, 0, 1 },											/* code EC */
+//	{ 0xED, READ_OR_WRITE, 0, 1 },											/* code ED */
+//	{ 0xEE, READ_OR_WRITE, 0, 1 },											/* code EE */
+//	{ 0xEF, READ_OR_WRITE, 0, 1 },											/* code EF */
+//	{ 0xF0, READ_OR_WRITE, 0, 1 },											/* code F0 */
+//	{ 0xF1, READ_OR_WRITE, 0, 1 },											/* code F1 */
+//	{ 0xF2, READ_OR_WRITE, 0, 1 },											/* code F2 */
+//	{ 0xF3, READ_OR_WRITE, 0, 1 },											/* code F3 */
+//	{ 0xF4, READ_OR_WRITE, 0, 1 },											/* code F4 */
+//	{ 0xF5, READ_OR_WRITE, 0, 1 },											/* code F5 */
+//	{ 0xF6, READ_OR_WRITE, 0, 1 },											/* code F6 */
+//	{ 0xF7, READ_OR_WRITE, 0, 1 },											/* code F7 */
+//	{ 0xF8, READ_OR_WRITE, 0, 1 },											/* code F8 */
+//	{ 0xF9, READ_OR_WRITE, 0, 1 },											/* code F9 */
+//	{ 0xFA, READ_OR_WRITE, 0, 1 },											/* code FA */
+//	{ 0xFB, READ_OR_WRITE, 0, 1 },											/* code FB */
+//	{ 0xFC, READ_OR_WRITE, 0, 1 },											/* code FC */
+//	{ 0xFD, READ_OR_WRITE, 0, 1 },											/* code FD */
+//	{ 0xFE, READ_OR_WRITE, 0, 1 },											/* code FE */
+//	{ 0xFF, READ_OR_WRITE, 0, 1 },											/* code FF */
 };
 
 
 #if defined(TEST_EDID_DELL_EXAMPLE)
 uint8_t atest_edid[128] = {
-		0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x10, 0xAC, 0x11, 0x20, 0x45, 0x31, 0x58, 0x34,
-		0x20, 0x1E, 0x01, 0x03, 0x80, 0x35, 0x1E, 0x78, 0x2A, 0xA3, 0xA5, 0xA7, 0x56, 0x51, 0x9C, 0x22,
-		0x0F, 0x50, 0x54, 0xA5, 0x4B, 0x00, 0x71, 0x4F, 0x81, 0x80, 0xA9, 0xC0, 0xD1, 0xC0, 0x01, 0x01,
-		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A, 0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
-
-		0x45, 0x00, 0x0F, 0x28, 0x21, 0x00, 0x00, 0x1E, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x38, 0x51, 0x50,
-		0x58, 0x4A, 0x33, 0x33, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x44,
-		0x45, 0x4C, 0x4C, 0x20, 0x44, 0x32, 0x34, 0x32, 0x31, 0x48, 0x0A, 0x20, 0x00, 0x00, 0x00, 0xFD,
-		0x00, 0x38, 0x4C, 0x1E, 0x53, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x69,
-
-}; //DEL2011_A37291D73923
+		0x00,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0x1e,0x6d,0x33,0x5b,0xfa,0xf0,0x04,0x00,0x07,0x1d,0x01,0x03,0x10,0x30,0x1b,0x78,0xea,0x31,0x35,0xa5,0x55,0x4e,0xa1,0x26,0x0c,0x50,0x54,0xa5,0x4b,0x00,0x01,0x01,0x81,0x80,0x95,0x00,0xb3,0x00,0x01,0x01,0x01,0x01,0x81,0xc0,0x01,0x01,0x02,0x3a,0x80,0x18,0x71,0x38,0x2d,0x40,0x58,0x2c,0x45,0x00,0xe0,0x0e,0x11,0x00,0x00,0x1e,0x00,0x00,0x00,0xfd,0x00,0x28,0x4b,0x1e,0x55,0x12,0x00,0x0a,0x20,0x20,0x20,0x20,0x20,0x20,0x00,0x00,0x00,0xfc,0x00,0x4d,0x45,0x47,0x52,0x45,0x20,0x53,0x43,0x52,0x45,0x45,0x4e,0x0a,0x00,0x00,0x00,0xff,0x00,0x39,0x30,0x37,0x4e,0x54,0x59,0x54,0x39,0x48,0x38,0x33,0x34,0x0a,0x00,0xb1}; //DEL2011_A37291D73923
 #endif /*TEST_EDID_DELL_EXAMPLE*/
 #endif 				/*TEST_SMBUS_IMPL*/
 #ifdef TEST_I2C1_SLAVE
@@ -466,7 +456,11 @@ uint32_t id_ic = 0;
 
 uint32_t test_id_ic = 0x55aa;
 uint8_t channelSelect = 0;
-uint8_t edidStatus;
+//uint8_t edidStatus=1;
+/////////////////////////////////
+//uint8_t edid_test=1;
+
+edid_status_t edidStatus=EDID_VGA_1;
 uint8_t vgaStatus[4];
 uint8_t usbStatus[4];
 
@@ -514,13 +508,15 @@ void set_current_channel(uint8_t channel)
     channelSelect = channel;
 }
 
-uint8_t get_current_edid()
+edid_status_t get_current_edid()
 {
   return edidStatus;
 }
-void set_current_edid(uint8_t value)
+void set_current_edid(edid_status_t value)
 {
-  edidStatus = value;
+  edidStatus = ++value;
+  if (edidStatus==4) // turn back value
+	  edidStatus=EDID_VGA_1;
 }
 
 uint8_t get_current_vga(uint8_t channel)
