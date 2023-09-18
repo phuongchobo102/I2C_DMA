@@ -34,34 +34,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := SMBUS_TEST
+BUILD_ARTIFACT_NAME := I2C_ADRESS_CALLBACK
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-SMBUS_TEST.elf \
+I2C_ADRESS_CALLBACK.elf \
 
 MAP_FILES += \
-SMBUS_TEST.map \
+I2C_ADRESS_CALLBACK.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-SMBUS_TEST.list \
+I2C_ADRESS_CALLBACK.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: SMBUS_TEST.elf secondary-outputs
+main-build: I2C_ADRESS_CALLBACK.elf secondary-outputs
 
 # Tool invocations
-SMBUS_TEST.elf SMBUS_TEST.map: $(OBJS) $(USER_OBJS) C:\Users\DELL\STM32CubeIDE\workspace_1.12.1\SMBUS_TEST\STM32F070CBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "SMBUS_TEST.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\DELL\STM32CubeIDE\workspace_1.12.1\SMBUS_TEST\STM32F070CBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SMBUS_TEST.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+I2C_ADRESS_CALLBACK.elf I2C_ADRESS_CALLBACK.map: $(OBJS) $(USER_OBJS) C:\Users\DELL\STM32CubeIDE\workspace_1.12.1\I2C_ADRESS_CALLBACK\STM32F070CBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "I2C_ADRESS_CALLBACK.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\DELL\STM32CubeIDE\workspace_1.12.1\I2C_ADRESS_CALLBACK\STM32F070CBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="I2C_ADRESS_CALLBACK.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +70,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-SMBUS_TEST.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "SMBUS_TEST.list"
+I2C_ADRESS_CALLBACK.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "I2C_ADRESS_CALLBACK.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) SMBUS_TEST.elf SMBUS_TEST.list SMBUS_TEST.map default.size.stdout
+	-$(RM) I2C_ADRESS_CALLBACK.elf I2C_ADRESS_CALLBACK.list I2C_ADRESS_CALLBACK.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

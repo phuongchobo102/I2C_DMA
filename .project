@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>SMBUS_TEST</name>
+	<name>I2C_ADRESS_CALLBACK</name>
 	<comment></comment>
 	<projects>
 	</projects>

@@ -251,7 +251,6 @@ typedef struct __I2C_HandleTypeDef
   /*!< I2C Msp DeInit callback                   */
 
 #endif  /* USE_HAL_I2C_REGISTER_CALLBACKS */
-  uint8_t transmit_or_receive;//0 mean receive //1 mean transmit///
 } I2C_HandleTypeDef;
 
 #if (USE_HAL_I2C_REGISTER_CALLBACKS == 1)
